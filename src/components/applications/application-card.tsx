@@ -43,7 +43,7 @@ export const ApplicationCardFace = memo(function ApplicationCardFace({
     <div
       className={cn(
         "relative overflow-hidden rounded-lg border border-border/70 bg-card text-card-foreground ring-1 ring-foreground/5",
-        "transition-shadow",
+        "transition-[border-color,box-shadow,transform] duration-150 ease-out",
         overlay
           ? "rotate-[1.5deg] shadow-xl shadow-black/20"
           : "shadow-xs group-hover/card:border-border group-hover/card:shadow-sm",
@@ -158,7 +158,7 @@ export const SortableApplicationCard = memo(function SortableApplicationCard({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "group/card cursor-grab rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing",
+        "group/card cursor-grab rounded-lg outline-none transition-transform duration-150 ease-out focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing",
         isDragging && "opacity-40",
       )}
       onClick={() => onOpen(application.id)}

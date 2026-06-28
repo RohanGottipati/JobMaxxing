@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams;
 
   return (
-    <PageShell size="narrow" className="items-center justify-center py-16">
+    <PageShell size="narrow" className="items-center justify-center py-10 sm:py-12">
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Log in</CardTitle>

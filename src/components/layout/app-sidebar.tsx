@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BriefcaseBusiness, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -18,8 +19,8 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { href: "/applications", label: "Applications" },
-  { href: "/profile", label: "Profile" },
+  { href: "/applications", icon: BriefcaseBusiness, label: "Applications" },
+  { href: "/profile", icon: UserRound, label: "Profile" },
 ] as const;
 
 export function AppSidebar() {
@@ -56,10 +57,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNav.map(({ href, label }) => (
+              {mainNav.map(({ href, icon: Icon, label }) => (
                 <SidebarMenuItem key={href}>
                   <SidebarMenuButton asChild isActive={isActive(href)}>
-                    <Link href={href}>{label}</Link>
+                    <Link href={href}>
+                      <Icon aria-hidden className="size-4" />
+                      <span>{label}</span>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

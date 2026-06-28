@@ -7,7 +7,6 @@ import {
   markResumeVersionSubmittedAction,
 } from "@/app/(app)/applications/actions";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   getPackageStatus,
@@ -70,7 +70,7 @@ export function ApplicationPackageSection({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-8">
+      <CardContent className="grid gap-5">
         <DocumentGroup
           applicationId={applicationId}
           heading="Resume versions"
@@ -176,17 +176,27 @@ function DocumentGroup({
                   <form action={duplicateAction}>
                     <input type="hidden" name="application_id" value={applicationId} />
                     <input type="hidden" name={idField} value={item.id} />
-                    <Button type="submit" variant="outline" size="sm">
+                    <SubmitButton
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      pendingLabel="Duplicating..."
+                    >
                       Duplicate to edit
-                    </Button>
+                    </SubmitButton>
                   </form>
                 ) : (
                   <form action={submitAction}>
                     <input type="hidden" name="application_id" value={applicationId} />
                     <input type="hidden" name={idField} value={item.id} />
-                    <Button type="submit" variant="outline" size="sm">
+                    <SubmitButton
+                      type="submit"
+                      variant="outline"
+                      size="sm"
+                      pendingLabel="Marking..."
+                    >
                       Mark submitted
-                    </Button>
+                    </SubmitButton>
                   </form>
                 )}
               </div>
@@ -218,9 +228,9 @@ function DocumentGroup({
           />
         </div>
         <div>
-          <Button type="submit" size="sm">
+          <SubmitButton type="submit" size="sm" pendingLabel="Adding...">
             Add {heading.toLowerCase().replace(/s$/, "")}
-          </Button>
+          </SubmitButton>
         </div>
       </form>
     </section>

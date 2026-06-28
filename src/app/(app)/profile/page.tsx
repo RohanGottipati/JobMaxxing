@@ -1,6 +1,6 @@
 import { saveProfile } from "@/app/(app)/profile/actions";
+import { AppPage, AppPageHeader } from "@/components/layout/app-page";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getProfile } from "@/lib/profile/repository";
 import { formatDateTime } from "@/lib/applications/status";
@@ -24,13 +25,11 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
   const { email, profile } = await getProfile();
 
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-medium tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">
-          Your account details and how you appear in JobMaxxing.
-        </p>
-      </div>
+    <AppPage size="narrow">
+      <AppPageHeader
+        title="Profile"
+        description="Your account details and how you appear in JobMaxxing."
+      />
 
       {params.saved ? (
         <Alert>
@@ -83,10 +82,12 @@ export default async function ProfilePage({ searchParams }: ProfilePageProps) {
                 placeholder="e.g. Product manager · Toronto"
               />
             </div>
-            <Button type="submit">Save profile</Button>
+            <SubmitButton type="submit" pendingLabel="Saving...">
+              Save profile
+            </SubmitButton>
           </form>
         </CardContent>
       </Card>
-    </main>
+    </AppPage>
   );
 }

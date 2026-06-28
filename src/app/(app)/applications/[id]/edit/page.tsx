@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { updateApplication } from "@/app/(app)/applications/actions";
 import { ApplicationForm } from "@/components/applications/application-form";
+import { AppPage, AppPageHeader } from "@/components/layout/app-page";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getApplicationById } from "@/lib/applications/repository";
 
@@ -21,15 +22,11 @@ export default async function EditApplicationPage({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-medium tracking-tight">
-          Edit application
-        </h1>
-        <p className="text-muted-foreground">
-          Update status, notes, and role details for this tracked job.
-        </p>
-      </div>
+    <AppPage size="form">
+      <AppPageHeader
+        title="Edit application"
+        description="Update status, notes, and role details for this tracked job."
+      />
 
       <ApplicationForm
         action={updateApplication}
@@ -39,6 +36,6 @@ export default async function EditApplicationPage({
         submitLabel="Save changes"
         cancelHref={`/applications/${application.id}`}
       />
-    </main>
+    </AppPage>
   );
 }

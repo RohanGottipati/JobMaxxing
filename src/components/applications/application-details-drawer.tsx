@@ -27,6 +27,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type {
   CoverLetter,
   ResumeVersion,
@@ -52,8 +53,6 @@ const TABS = [
   "Cover Letter Used",
   "Notes",
 ] as const;
-
-type Tab = (typeof TABS)[number];
 
 export function ApplicationDetailsDrawer({
   applicationId,
@@ -81,7 +80,6 @@ export function ApplicationDetailsDrawer({
 function DrawerBody({ applicationId }: { applicationId: string }) {
   const [details, setDetails] = useState<ApplicationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("Overview");
 
   useEffect(() => {
     let cancelled = false;
@@ -171,58 +169,48 @@ function DrawerBody({ applicationId }: { applicationId: string }) {
               </div>
             </SheetHeader>
 
-            <nav
-              aria-label="Application sections"
-              className="flex gap-1 overflow-x-auto border-b border-border px-4"
-            >
-              {TABS.map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setActiveTab(tab)}
-                  aria-current={activeTab === tab ? "page" : undefined}
-                  className={cn(
-                    "relative whitespace-nowrap px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-                    activeTab === tab && "text-foreground",
-                  )}
-                >
-                  {tab}
-                  {activeTab === tab ? (
-                    <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-foreground" />
-                  ) : null}
-                </button>
-              ))}
-            </nav>
+            <Tabs defaultValue="Overview" className="min-h-0 flex-1 gap-0">
+              <TabsList
+                variant="line"
+                className="h-10 justify-start overflow-x-auto rounded-none border-b border-border bg-transparent px-4"
+              >
+                {TABS.map((tab) => (
+                  <TabsTrigger key={tab} value={tab} className="flex-none px-3">
+                    {tab}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
 
-            <div className="flex-1 overflow-y-auto px-6 py-5">
-              {activeTab === "Overview" ? (
-                <OverviewTab application={application} />
-              ) : null}
-              {activeTab === "Job Description" ? (
-                <DocumentText
-                  value={application.jobDescription}
-                  emptyLabel="No job description saved for this role."
-                />
-              ) : null}
-              {activeTab === "Resume Used" ? (
-                <ResumeTab
-                  submitted={submittedResume}
-                  all={details?.resumeVersions ?? []}
-                />
-              ) : null}
-              {activeTab === "Cover Letter Used" ? (
-                <CoverLetterTab
-                  submitted={submittedCoverLetter}
-                  all={details?.coverLetters ?? []}
-                />
-              ) : null}
-              {activeTab === "Notes" ? (
-                <DocumentText
-                  value={application.notes}
-                  emptyLabel="No notes yet."
-                />
-              ) : null}
-            </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+                <TabsContent value="Overview">
+                  <OverviewTab application={application} />
+                </TabsContent>
+                <TabsContent value="Job Description">
+                  <DocumentText
+                    value={application.jobDescription}
+                    emptyLabel="No job description saved for this role."
+                  />
+                </TabsContent>
+                <TabsContent value="Resume Used">
+                  <ResumeTab
+                    submitted={submittedResume}
+                    all={details?.resumeVersions ?? []}
+                  />
+                </TabsContent>
+                <TabsContent value="Cover Letter Used">
+                  <CoverLetterTab
+                    submitted={submittedCoverLetter}
+                    all={details?.coverLetters ?? []}
+                  />
+                </TabsContent>
+                <TabsContent value="Notes">
+                  <DocumentText
+                    value={application.notes}
+                    emptyLabel="No notes yet."
+                  />
+                </TabsContent>
+              </div>
+            </Tabs>
     </>
   );
 }

@@ -1,5 +1,6 @@
 import { createApplication } from "@/app/(app)/applications/actions";
 import { ApplicationForm } from "@/components/applications/application-form";
+import { AppPage, AppPageHeader } from "@/components/layout/app-page";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { parseApplicationStatus } from "@/lib/applications/status";
@@ -16,13 +17,11 @@ export default async function NewApplicationPage({
   const defaultStatus = parseApplicationStatus(params.status) ?? "saved";
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-medium tracking-tight">Add application</h1>
-        <p className="text-muted-foreground">
-          Capture the role details, status, source link, and notes.
-        </p>
-      </div>
+    <AppPage size="form">
+      <AppPageHeader
+        title="Add application"
+        description="Capture the role details, status, source link, and notes."
+      />
 
       {params.error ? (
         <Alert variant="destructive">
@@ -40,6 +39,6 @@ export default async function NewApplicationPage({
         submitLabel="Create application"
         cancelHref="/applications"
       />
-    </main>
+    </AppPage>
   );
 }

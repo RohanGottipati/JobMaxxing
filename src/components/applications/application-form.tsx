@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Textarea } from "@/components/ui/textarea";
 import {
   applicationStatuses,
@@ -59,7 +60,7 @@ export function ApplicationForm({
         </div>
       </CardHeader>
       <CardContent>
-        <form action={action} className="grid gap-6">
+        <form action={action} className="grid gap-5">
           {application ? (
             <input type="hidden" name="application_id" value={application.id} />
           ) : null}
@@ -144,7 +145,9 @@ export function ApplicationForm({
           </Field>
 
           <div className="flex flex-wrap gap-3">
-            <Button type="submit">{submitLabel}</Button>
+            <SubmitButton type="submit" pendingLabel="Saving...">
+              {submitLabel}
+            </SubmitButton>
             <Link
               href={cancelHref}
               className={cn(buttonVariants({ variant: "outline" }))}

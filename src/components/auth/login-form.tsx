@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -121,6 +122,7 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
       ) : null}
 
       <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
         {isLoading ? "Please wait..." : submitLabel}
       </Button>
     </form>

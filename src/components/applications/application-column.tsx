@@ -11,6 +11,7 @@ import { Plus } from "lucide-react";
 
 import { SortableApplicationCard } from "@/components/applications/application-card";
 import { buttonVariants } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ApplicationStatus, JobApplication } from "@/lib/applications/types";
 import {
   statusAccents,
@@ -41,7 +42,7 @@ export const ApplicationColumn = memo(function ApplicationColumn({
   const accent = statusAccents[status];
 
   return (
-    <section className="flex max-h-[calc(100dvh-15rem)] min-h-[24rem] w-72 flex-col rounded-xl border border-border/70 bg-muted/30">
+    <section className="flex max-h-[calc(100dvh-12.5rem)] min-h-[21rem] w-64 flex-col rounded-lg border border-border/70 bg-muted/30">
       <header className="flex items-center justify-between gap-2 px-3 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
           <span
@@ -70,28 +71,32 @@ export const ApplicationColumn = memo(function ApplicationColumn({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex flex-1 flex-col gap-2 overflow-y-auto px-2 pb-2 transition-colors",
+          "flex min-h-0 flex-1 flex-col transition-colors",
           isOver && "bg-muted/60",
         )}
       >
-        <SortableContext
-          items={applications.map((application) => application.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {applications.map((application) => (
-            <SortableApplicationCard
-              key={application.id}
-              application={application}
-              onOpen={onOpen}
-            />
-          ))}
-        </SortableContext>
+        <ScrollArea className="min-h-0 flex-1 px-2 pb-2">
+          <div className="flex min-h-full flex-col gap-2 pt-0.5">
+            <SortableContext
+              items={applications.map((application) => application.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {applications.map((application) => (
+                <SortableApplicationCard
+                  key={application.id}
+                  application={application}
+                  onOpen={onOpen}
+                />
+              ))}
+            </SortableContext>
 
-        {applications.length === 0 ? (
-          <div className="m-1 flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/70 p-4 text-center text-xs text-muted-foreground">
-            {statusDescriptions[status]}
+            {applications.length === 0 ? (
+              <div className="m-1 flex flex-1 items-center justify-center rounded-md border border-dashed border-border/70 p-4 text-center text-xs text-muted-foreground">
+                {statusDescriptions[status]}
+              </div>
+            ) : null}
           </div>
-        ) : null}
+        </ScrollArea>
       </div>
     </section>
   );

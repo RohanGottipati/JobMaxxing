@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import { deleteApplication } from "@/app/(app)/applications/actions";
 import { ApplicationPackageSection } from "@/components/applications/application-detail-sections";
 import { StatusBadge } from "@/components/applications/status-badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { AppPage } from "@/components/layout/app-page";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import {
   getCoverLetters,
@@ -42,22 +44,22 @@ export default async function ApplicationDetailPage({
   ]);
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <AppPage>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <Link
             href="/applications"
-            className="mb-4 inline-block text-sm text-muted-foreground underline underline-offset-4"
+            className="mb-3 inline-block text-sm text-muted-foreground underline underline-offset-4"
           >
             Applications
           </Link>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-medium tracking-tight">
+            <h1 className="text-2xl font-medium tracking-tight">
               {application.companyName}
             </h1>
             <StatusBadge status={application.status} />
           </div>
-          <p className="mt-2 text-lg text-muted-foreground">
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {application.jobTitle}
           </p>
         </div>
@@ -81,8 +83,8 @@ export default async function ApplicationDetailPage({
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-        <div className="grid gap-6">
+      <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+        <div className="grid gap-5">
           <Card>
             <CardHeader>
               <CardTitle>Role details</CardTitle>
@@ -129,7 +131,7 @@ export default async function ApplicationDetailPage({
           />
         </div>
 
-        <div className="grid content-start gap-6">
+        <div className="grid content-start gap-5">
           <Card>
             <CardHeader>
               <CardTitle>Danger zone</CardTitle>
@@ -144,15 +146,20 @@ export default async function ApplicationDetailPage({
                   name="application_id"
                   value={application.id}
                 />
-                <Button type="submit" variant="destructive" className="w-full">
+                <SubmitButton
+                  type="submit"
+                  variant="destructive"
+                  className="w-full"
+                  pendingLabel="Deleting..."
+                >
                   Delete application
-                </Button>
+                </SubmitButton>
               </form>
             </CardContent>
           </Card>
         </div>
       </div>
-    </main>
+    </AppPage>
   );
 }
 
