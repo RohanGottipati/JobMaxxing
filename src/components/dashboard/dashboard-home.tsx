@@ -14,7 +14,6 @@ import type { ApplicationStatus, JobApplication } from "@/lib/applications/types
 
 type DashboardHomeProps = {
   email?: string | null;
-  isPreview?: boolean;
   total: number;
   active: number;
   byStatus: Record<ApplicationStatus, number>;
@@ -23,7 +22,6 @@ type DashboardHomeProps = {
 
 export function DashboardHome({
   email,
-  isPreview,
   total,
   active,
   byStatus,
@@ -32,7 +30,7 @@ export function DashboardHome({
   const steps = getPipelineSteps({ total, active, byStatus });
   const progress = getPipelineProgress(steps);
   const companies = getTargetCompanies(recent);
-  const name = getDisplayName(email, isPreview);
+  const name = getDisplayName(email);
 
   const headline =
     byStatus.offer > 0

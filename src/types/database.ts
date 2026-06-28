@@ -1,8 +1,17 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[];
+
 export type ApplicationStatus =
   | "saved"
   | "applied"
-  | "screening"
+  | "online_assessment"
   | "interview"
+  | "final_round"
   | "offer"
   | "rejected"
   | "withdrawn";
@@ -34,6 +43,7 @@ export type Database = {
         };
         Relationships: [];
       };
+      // Legacy v1 table kept for backwards compatibility. New work uses `applications`.
       job_applications: {
         Row: {
           id: string;
@@ -76,9 +86,242 @@ export type Database = {
         };
         Relationships: [];
       };
+      resumes: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          content: string | null;
+          file_path: string | null;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          content?: string | null;
+          file_path?: string | null;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          content?: string | null;
+          file_path?: string | null;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      applications: {
+        Row: {
+          id: string;
+          user_id: string;
+          company_name: string;
+          role_title: string;
+          job_url: string | null;
+          job_description: string | null;
+          location: string | null;
+          status: ApplicationStatus;
+          deadline: string | null;
+          date_applied: string | null;
+          notes: string | null;
+          referral_contact: string | null;
+          next_action: string | null;
+          submitted_resume_version_id: string | null;
+          submitted_cover_letter_id: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          company_name: string;
+          role_title: string;
+          job_url?: string | null;
+          job_description?: string | null;
+          location?: string | null;
+          status?: ApplicationStatus;
+          deadline?: string | null;
+          date_applied?: string | null;
+          notes?: string | null;
+          referral_contact?: string | null;
+          next_action?: string | null;
+          submitted_resume_version_id?: string | null;
+          submitted_cover_letter_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          company_name?: string;
+          role_title?: string;
+          job_url?: string | null;
+          job_description?: string | null;
+          location?: string | null;
+          status?: ApplicationStatus;
+          deadline?: string | null;
+          date_applied?: string | null;
+          notes?: string | null;
+          referral_contact?: string | null;
+          next_action?: string | null;
+          submitted_resume_version_id?: string | null;
+          submitted_cover_letter_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      resume_versions: {
+        Row: {
+          id: string;
+          user_id: string;
+          application_id: string;
+          base_resume_id: string | null;
+          version_number: number;
+          title: string | null;
+          content: string | null;
+          file_path: string | null;
+          rules_used: Json | null;
+          job_description_snapshot: string | null;
+          is_submitted: boolean;
+          submitted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        // version_number is auto-assigned by a trigger when omitted.
+        Insert: {
+          id?: string;
+          user_id: string;
+          application_id: string;
+          base_resume_id?: string | null;
+          version_number?: number;
+          title?: string | null;
+          content?: string | null;
+          file_path?: string | null;
+          rules_used?: Json | null;
+          job_description_snapshot?: string | null;
+          is_submitted?: boolean;
+          submitted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          application_id?: string;
+          base_resume_id?: string | null;
+          version_number?: number;
+          title?: string | null;
+          content?: string | null;
+          file_path?: string | null;
+          rules_used?: Json | null;
+          job_description_snapshot?: string | null;
+          is_submitted?: boolean;
+          submitted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      cover_letters: {
+        Row: {
+          id: string;
+          user_id: string;
+          application_id: string;
+          version_number: number;
+          title: string | null;
+          content: string | null;
+          file_path: string | null;
+          template_used: string | null;
+          job_description_snapshot: string | null;
+          is_submitted: boolean;
+          submitted_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        // version_number is auto-assigned by a trigger when omitted.
+        Insert: {
+          id?: string;
+          user_id: string;
+          application_id: string;
+          version_number?: number;
+          title?: string | null;
+          content?: string | null;
+          file_path?: string | null;
+          template_used?: string | null;
+          job_description_snapshot?: string | null;
+          is_submitted?: boolean;
+          submitted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          application_id?: string;
+          version_number?: number;
+          title?: string | null;
+          content?: string | null;
+          file_path?: string | null;
+          template_used?: string | null;
+          job_description_snapshot?: string | null;
+          is_submitted?: boolean;
+          submitted_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
-    Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Views: {
+      application_packages: {
+        Row: {
+          id: string;
+          user_id: string;
+          company_name: string;
+          role_title: string;
+          job_url: string | null;
+          job_description: string | null;
+          location: string | null;
+          status: ApplicationStatus;
+          deadline: string | null;
+          date_applied: string | null;
+          notes: string | null;
+          referral_contact: string | null;
+          next_action: string | null;
+          submitted_resume_version_id: string | null;
+          submitted_cover_letter_id: string | null;
+          created_at: string;
+          updated_at: string;
+          submitted_resume_version: Database["public"]["Tables"]["resume_versions"]["Row"] | null;
+          submitted_cover_letter: Database["public"]["Tables"]["cover_letters"]["Row"] | null;
+          package_status:
+            | "package_complete"
+            | "resume_missing"
+            | "cover_letter_missing"
+            | "package_incomplete";
+        };
+        Relationships: [];
+      };
+    };
+    Functions: {
+      submit_resume_version: {
+        Args: { p_version_id: string };
+        Returns: Database["public"]["Tables"]["resume_versions"]["Row"];
+      };
+      submit_cover_letter: {
+        Args: { p_cover_letter_id: string };
+        Returns: Database["public"]["Tables"]["cover_letters"]["Row"];
+      };
+    };
     Enums: {
       application_status: ApplicationStatus;
     };

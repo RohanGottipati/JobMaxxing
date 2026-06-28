@@ -14,11 +14,7 @@ export function getTimeGreeting() {
   return "GOOD EVENING";
 }
 
-export function getDisplayName(email?: string | null, isPreview?: boolean) {
-  if (isPreview) {
-    return "there";
-  }
-
+export function getDisplayName(email?: string | null) {
   if (!email) {
     return "there";
   }

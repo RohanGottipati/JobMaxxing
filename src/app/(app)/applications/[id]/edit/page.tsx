@@ -12,9 +12,9 @@ type EditApplicationPageProps = {
 export default async function EditApplicationPage({
   params,
 }: EditApplicationPageProps) {
-  const user = await requireCurrentUser();
+  await requireCurrentUser();
   const { id } = await params;
-  const application = await getApplicationById(user.id, id);
+  const application = await getApplicationById(id);
 
   if (!application) {
     notFound();
@@ -35,7 +35,7 @@ export default async function EditApplicationPage({
         action={updateApplication}
         application={application}
         title={`${application.companyName} · ${application.jobTitle}`}
-        description="This placeholder form validates and redirects now; persistence comes with the Supabase adapter."
+        description="Update status, notes, and role details for this tracked job."
         submitLabel="Save changes"
         cancelHref={`/applications/${application.id}`}
       />

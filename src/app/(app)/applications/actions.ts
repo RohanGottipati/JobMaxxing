@@ -1,9 +1,20 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { requireCurrentUser } from "@/lib/auth/current-user";
-import { placeholderRedirectParam } from "@/lib/applications/repository";
+import {
+  createApplication as createApplicationRecord,
+  createCoverLetter,
+  createResumeVersion,
+  deleteApplication as deleteApplicationRecord,
+  duplicateCoverLetter,
+  duplicateResumeVersion,
+  markCoverLetterSubmitted,
+  markResumeVersionSubmitted,
+  updateApplication as updateApplicationRecord,
+} from "@/lib/applications/packages";
+import type { ApplicationStatus } from "@/lib/applications/package-types";
 import { parseApplicationStatus } from "@/lib/applications/status";
 
 function readText(formData: FormData, key: string) {
@@ -26,13 +37,13 @@ function readApplicationInput(formData: FormData) {
   }
 
   return {
-    companyName,
-    jobTitle,
+    company_name: companyName,
+    role_title: jobTitle,
     status,
-    jobUrl: readOptionalText(formData, "job_url"),
+    job_url: readOptionalText(formData, "job_url"),
     location: readOptionalText(formData, "location"),
-    appliedAt: readOptionalText(formData, "applied_at"),
-    jobDescription: readOptionalText(formData, "job_description"),
+    date_applied: readOptionalText(formData, "applied_at"),
+    job_description: readOptionalText(formData, "job_description"),
     notes: readOptionalText(formData, "notes"),
   };
 }
@@ -41,37 +52,115 @@ function readApplicationId(formData: FormData) {
   const id = readText(formData, "application_id");
 
   if (!id) {
-    redirect(`/applications?${placeholderRedirectParam("missing-id")}`);
+    redirect("/applications");
   }
 
   return id;
 }
 
 export async function createApplication(formData: FormData) {
-  await requireCurrentUser();
-  readApplicationInput(formData);
+  const input = readApplicationInput(formData);
+  const application = await createApplicationRecord(input);
 
-  redirect(`/applications?${placeholderRedirectParam("created")}`);
+  revalidatePath("/applications");
+  revalidatePath("/dashboard");
+  redirect(`/applications/${application.id}`);
 }
 
 export async function updateApplication(formData: FormData) {
-  await requireCurrentUser();
   const id = readApplicationId(formData);
-  readApplicationInput(formData);
+  const input = readApplicationInput(formData);
+  await updateApplicationRecord(id, input);
 
-  redirect(`/applications/${encodeURIComponent(id)}?${placeholderRedirectParam("updated")}`);
+  revalidatePath("/applications");
+  revalidatePath(`/applications/${id}`);
+  revalidatePath("/dashboard");
+  redirect(`/applications/${id}`);
 }
 
 export async function deleteApplication(formData: FormData) {
-  await requireCurrentUser();
-  readApplicationId(formData);
+  const id = readApplicationId(formData);
+  await deleteApplicationRecord(id);
 
-  redirect(`/applications?${placeholderRedirectParam("deleted")}`);
+  revalidatePath("/applications");
+  revalidatePath("/dashboard");
+  redirect("/applications");
 }
 
-export async function uploadDocumentPlaceholder(formData: FormData) {
-  await requireCurrentUser();
-  const id = readApplicationId(formData);
+/**
+ * Persists a status change from the board (drag-and-drop or the inline select).
+ */
+export async function setApplicationStatus(id: string, status: ApplicationStatus) {
+  await updateApplicationRecord(id, { status });
+  revalidatePath("/applications");
+  revalidatePath(`/applications/${id}`);
+  revalidatePath("/dashboard");
+}
 
-  redirect(`/applications/${encodeURIComponent(id)}?${placeholderRedirectParam("uploaded")}`);
+// ---------------------------------------------------------------------------
+// Resume version + cover letter package actions
+// ---------------------------------------------------------------------------
+
+export async function addResumeVersion(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  await createResumeVersion({
+    application_id: applicationId,
+    title: readOptionalText(formData, "title"),
+    content: readOptionalText(formData, "content"),
+  });
+
+  revalidatePath(`/applications/${applicationId}`);
+}
+
+export async function markResumeVersionSubmittedAction(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  const versionId = readText(formData, "version_id");
+  if (versionId) {
+    await markResumeVersionSubmitted(versionId);
+  }
+
+  revalidatePath(`/applications/${applicationId}`);
+  revalidatePath("/applications");
+}
+
+export async function duplicateResumeVersionAction(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  const versionId = readText(formData, "version_id");
+  if (versionId) {
+    await duplicateResumeVersion(versionId);
+  }
+
+  revalidatePath(`/applications/${applicationId}`);
+}
+
+export async function addCoverLetter(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  await createCoverLetter({
+    application_id: applicationId,
+    title: readOptionalText(formData, "title"),
+    content: readOptionalText(formData, "content"),
+  });
+
+  revalidatePath(`/applications/${applicationId}`);
+}
+
+export async function markCoverLetterSubmittedAction(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  const coverLetterId = readText(formData, "cover_letter_id");
+  if (coverLetterId) {
+    await markCoverLetterSubmitted(coverLetterId);
+  }
+
+  revalidatePath(`/applications/${applicationId}`);
+  revalidatePath("/applications");
+}
+
+export async function duplicateCoverLetterAction(formData: FormData) {
+  const applicationId = readApplicationId(formData);
+  const coverLetterId = readText(formData, "cover_letter_id");
+  if (coverLetterId) {
+    await duplicateCoverLetter(coverLetterId);
+  }
+
+  revalidatePath(`/applications/${applicationId}`);
 }

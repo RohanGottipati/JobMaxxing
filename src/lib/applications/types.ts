@@ -1,33 +1,13 @@
-export const applicationStatuses = [
-  "saved",
-  "applied",
-  "interviewing",
-  "offer",
-  "rejected",
-] as const;
+import { APPLICATION_STATUSES } from "@/lib/applications/package-types";
+import type { ApplicationStatus } from "@/lib/applications/package-types";
 
-export type ApplicationStatus = (typeof applicationStatuses)[number];
+export type { ApplicationStatus };
 
-export type ApplicationDocumentType = "resume" | "cover_letter" | "other";
+export const applicationStatuses = APPLICATION_STATUSES;
 
-export type ApplicationDocument = {
-  id: string;
-  applicationId: string;
-  type: ApplicationDocumentType;
-  filename: string;
-  uploadedAt: string;
-  sizeLabel: string;
-  storagePath: string;
-};
-
-export type StatusHistoryItem = {
-  id: string;
-  applicationId: string;
-  userId: string;
-  status: ApplicationStatus;
-  createdAt: string;
-};
-
+/**
+ * UI-facing shape for an application, mapped from the `applications` table row.
+ */
 export type JobApplication = {
   id: string;
   userId: string;
@@ -36,13 +16,16 @@ export type JobApplication = {
   jobUrl: string | null;
   location: string | null;
   appliedAt: string | null;
+  deadline: string | null;
   status: ApplicationStatus;
   jobDescription: string | null;
   notes: string | null;
+  referralContact: string | null;
+  nextAction: string | null;
+  submittedResumeVersionId: string | null;
+  submittedCoverLetterId: string | null;
   createdAt: string;
   updatedAt: string;
-  documents: ApplicationDocument[];
-  statusHistory: StatusHistoryItem[];
 };
 
 export type ApplicationFilters = {

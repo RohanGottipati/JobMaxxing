@@ -14,15 +14,29 @@ Job application tracker — help users organize their job search pipeline.
 | Route | Purpose |
 |-------|---------|
 | `/` | Marketing landing page |
-| `/login` | Magic-link sign in |
-| `/dashboard` | Application list (auth required) |
+| `/login` | Email + password sign in |
+| `/signup` | Email + password registration |
+| `/dashboard` | Pipeline overview (auth required) |
+| `/applications` | Application board (auth required) |
 | `/applications/new` | Create application (auth required) |
-| `/auth/callback` | Supabase OAuth/magic-link callback |
+| `/applications/[id]` | Application detail + package manager (auth required) |
+| `/auth/callback` | Supabase email-confirmation callback |
 
 ## Database
 
 - `profiles` — user profile, auto-created on signup
-- `job_applications` — tracked roles with status enum
+- `applications` — the hub for each tracked role (status enum, deadlines, package pointers)
+- `resumes` — reusable base/master resumes
+- `resume_versions` — tailored resume versions saved per application
+- `cover_letters` — cover letter versions saved per application
+- `application_packages` (view) — an application joined with its submitted resume version + cover letter
+- `job_applications` — legacy v1 table, superseded by `applications`
+
+Each application can hold many resume versions and cover letters, but only one of each may
+be marked submitted (enforced by partial unique indexes). Submitted documents are
+content-locked; duplicate them before editing. Submission goes through the
+`submit_resume_version` / `submit_cover_letter` RPCs. Data access helpers live in
+`src/lib/applications/packages.ts`.
 
 RLS is enabled on all tables. Users can only access their own rows.
 

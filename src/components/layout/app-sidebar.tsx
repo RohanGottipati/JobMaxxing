@@ -30,11 +30,7 @@ const resourceNav = [
   { href: "/dashboard", label: "Status overview" },
 ] as const;
 
-type AppSidebarProps = {
-  isPreview?: boolean;
-};
-
-export function AppSidebar({ isPreview }: AppSidebarProps) {
+export function AppSidebar() {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -106,9 +102,6 @@ export function AppSidebar({ isPreview }: AppSidebarProps) {
       </SidebarContent>
 
       <SidebarFooter>
-        {isPreview ? (
-          <p className="px-2 text-xs text-muted-foreground">Preview mode</p>
-        ) : null}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton disabled>Settings</SidebarMenuButton>

@@ -6,23 +6,21 @@ import { getApplications } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
 
 import { ApplicationList } from "@/components/applications/application-list";
-import { PlaceholderNotice } from "@/components/applications/placeholder-notice";
 
 type ApplicationsPageProps = {
   searchParams: Promise<{
     q?: string;
     status?: string;
-    placeholder?: string;
   }>;
 };
 
 export default async function ApplicationsPage({
   searchParams,
 }: ApplicationsPageProps) {
-  const user = await requireCurrentUser();
+  await requireCurrentUser();
   const params = await searchParams;
   const status = parseApplicationStatus(params.status) ?? "all";
-  const applications = await getApplications(user.id, {
+  const applications = await getApplications({
     query: params.q,
     status,
   });
@@ -40,8 +38,6 @@ export default async function ApplicationsPage({
           Add application
         </Link>
       </div>
-
-      <PlaceholderNotice value={params.placeholder} />
 
       <ApplicationList
         applications={applications}

@@ -12,18 +12,3 @@ export function isSupabaseConfigured() {
       anonKey !== PLACEHOLDER_SUPABASE_ANON_KEY,
   );
 }
-
-export function isPreviewAuthEnabled() {
-  if (process.env.NODE_ENV === "production") {
-    return false;
-  }
-
-  if (process.env.NEXT_PUBLIC_ENABLE_AUTH_PREVIEW === "false") {
-    return false;
-  }
-
-  return (
-    process.env.NEXT_PUBLIC_ENABLE_AUTH_PREVIEW === "true" ||
-    !isSupabaseConfigured()
-  );
-}

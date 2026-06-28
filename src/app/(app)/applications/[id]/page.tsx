@@ -2,11 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { deleteApplication } from "@/app/(app)/applications/actions";
-import {
-  DocumentSection,
-  StatusHistorySection,
-} from "@/components/applications/application-detail-sections";
-import { PlaceholderNotice } from "@/components/applications/placeholder-notice";
+import { ApplicationPackageSection } from "@/components/applications/application-detail-sections";
 import { StatusBadge } from "@/components/applications/status-badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -18,26 +14,32 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { requireCurrentUser } from "@/lib/auth/current-user";
+import {
+  getCoverLetters,
+  getResumeVersions,
+} from "@/lib/applications/packages";
 import { getApplicationById } from "@/lib/applications/repository";
 import { formatDate, formatDateTime } from "@/lib/applications/status";
 
 type ApplicationDetailPageProps = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ placeholder?: string }>;
 };
 
 export default async function ApplicationDetailPage({
   params,
-  searchParams,
 }: ApplicationDetailPageProps) {
-  const user = await requireCurrentUser();
+  await requireCurrentUser();
   const { id } = await params;
-  const query = await searchParams;
-  const application = await getApplicationById(user.id, id);
+  const application = await getApplicationById(id);
 
   if (!application) {
     notFound();
   }
+
+  const [resumeVersions, coverLetters] = await Promise.all([
+    getResumeVersions(application.id),
+    getCoverLetters(application.id),
+  ]);
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
@@ -79,15 +81,13 @@ export default async function ApplicationDetailPage({
         </div>
       </div>
 
-      <PlaceholderNotice value={query.placeholder} />
-
       <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="grid gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Role details</CardTitle>
               <CardDescription>
-                Main application fields from the MVP spec.
+                The core information you are tracking for this role.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5">
@@ -101,12 +101,12 @@ export default async function ApplicationDetailPage({
                   value={formatDate(application.appliedAt)}
                 />
                 <InfoItem
-                  label="Created"
-                  value={formatDateTime(application.createdAt)}
+                  label="Deadline"
+                  value={formatDate(application.deadline)}
                 />
                 <InfoItem
-                  label="Updated"
-                  value={formatDateTime(application.updatedAt)}
+                  label="Created"
+                  value={formatDateTime(application.createdAt)}
                 />
               </div>
 
@@ -120,17 +120,21 @@ export default async function ApplicationDetailPage({
             </CardContent>
           </Card>
 
-          <DocumentSection application={application} />
+          <ApplicationPackageSection
+            applicationId={application.id}
+            resumeVersions={resumeVersions}
+            coverLetters={coverLetters}
+            submittedResumeVersionId={application.submittedResumeVersionId}
+            submittedCoverLetterId={application.submittedCoverLetterId}
+          />
         </div>
 
         <div className="grid content-start gap-6">
-          <StatusHistorySection application={application} />
-
           <Card>
             <CardHeader>
-              <CardTitle>Delete application</CardTitle>
+              <CardTitle>Danger zone</CardTitle>
               <CardDescription>
-                Placeholder action until Supabase persistence is connected.
+                Permanently delete this application and all of its versions.
               </CardDescription>
             </CardHeader>
             <CardContent>

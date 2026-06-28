@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 import {
   closestCorners,
   DndContext,
@@ -22,6 +23,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+import { setApplicationStatus } from "@/app/(app)/applications/actions";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
@@ -67,6 +69,8 @@ export function ApplicationBoard({
   applications,
   visibleStatus,
 }: ApplicationBoardProps) {
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const [cards, setCards] = useState(applications);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const sensors = useSensors(
@@ -98,6 +102,13 @@ export function ApplicationBoard({
     return cards.find((card) => card.id === id)?.status ?? null;
   }
 
+  function persistStatus(id: string, status: ApplicationStatus) {
+    startTransition(async () => {
+      await setApplicationStatus(id, status);
+      router.refresh();
+    });
+  }
+
   function handleDragStart(event: DragStartEvent) {
     setActiveId(event.active.id);
   }
@@ -122,15 +133,24 @@ export function ApplicationBoard({
       return;
     }
 
+    const previousStatus = cards.find(
+      (card) => card.id === String(activeId),
+    )?.status;
+
     setCards((currentCards) =>
       moveCard(currentCards, String(activeId), String(over.id), targetStatus),
     );
+
+    if (previousStatus && previousStatus !== targetStatus) {
+      persistStatus(String(activeId), targetStatus);
+    }
   }
 
   function handleStatusChange(id: string, status: ApplicationStatus) {
     setCards((currentCards) =>
       moveCard(currentCards, id, getColumnId(status), status),
     );
+    persistStatus(id, status);
   }
 
   const activeCard = activeId
@@ -151,7 +171,7 @@ export function ApplicationBoard({
             "grid min-w-max gap-4",
             columns.length === 1
               ? "grid-cols-[minmax(18rem,34rem)]"
-              : "grid-cols-[repeat(5,minmax(17rem,1fr))]",
+              : "grid-cols-[repeat(8,minmax(16rem,1fr))]",
           )}
         >
           {columns.map((status) => {

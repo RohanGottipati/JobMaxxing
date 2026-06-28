@@ -1,18 +1,14 @@
 import type { ReactNode } from "react";
 
 import { AppShell } from "@/components/layout/app-shell";
-import { getCurrentUser } from "@/lib/auth/current-user";
+import { requireCurrentUser } from "@/lib/auth/current-user";
 
 export default async function AppLayout({
   children,
 }: {
   children: ReactNode;
 }) {
-  const user = await getCurrentUser({ allowPreview: true });
+  await requireCurrentUser();
 
-  return (
-    <AppShell isPreview={user?.isPreview}>
-      {children}
-    </AppShell>
-  );
+  return <AppShell>{children}</AppShell>;
 }

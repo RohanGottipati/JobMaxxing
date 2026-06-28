@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { cn } from "@/lib/utils";
 
 export async function MarketingHeader() {
-  const user = await getCurrentUser({ allowPreview: true });
+  const user = await getCurrentUser();
 
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-background">

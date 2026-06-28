@@ -17,19 +17,19 @@ const features = [
       "Search and filter every tracked role by company, title, or status.",
   },
   {
-    title: "Status history",
+    title: "Pipeline board",
     description:
-      "Preview the status timeline that will map to the future status_history table.",
+      "Drag roles across stages from saved to offer — status changes save instantly.",
   },
   {
-    title: "Materials",
+    title: "Application packages",
     description:
-      "Upload surfaces are ready for resumes, cover letters, and other documents.",
+      "Save the exact resume version and cover letter you submitted for each role.",
   },
 ] as const;
 
 export default async function HomePage() {
-  const user = await getCurrentUser({ allowPreview: true });
+  const user = await getCurrentUser();
 
   if (user) {
     redirect("/dashboard");

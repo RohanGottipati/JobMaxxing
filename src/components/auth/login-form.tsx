@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -7,38 +8,62 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 type LoginFormProps = {
   mode?: "login" | "signup";
 };
 
 export function LoginForm({ mode = "login" }: LoginFormProps) {
+  const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const configured = isSupabaseConfigured();
-  const submitLabel = mode === "signup" ? "Send signup link" : "Send magic link";
+
+  const isSignup = mode === "signup";
+  const submitLabel = isSignup ? "Create account" : "Log in";
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setMessage(null);
+    setIsLoading(true);
 
-    if (!configured) {
-      setError("Supabase auth is not configured yet.");
+    const supabase = createClient();
+
+    if (isSignup) {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      setIsLoading(false);
+
+      if (signUpError) {
+        setError(signUpError.message);
+        return;
+      }
+
+      // If email confirmation is required, no session is returned yet.
+      if (!data.session) {
+        setMessage(
+          "Account created. Check your email to confirm, then log in.",
+        );
+        return;
+      }
+
+      router.push("/dashboard");
+      router.refresh();
       return;
     }
 
-    setIsLoading(true);
-    const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithOtp({
+    const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-        shouldCreateUser: true,
-      },
+      password,
     });
 
     setIsLoading(false);
@@ -48,7 +73,8 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
       return;
     }
 
-    setMessage("Check your email for a magic link.");
+    router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -67,14 +93,20 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         />
       </div>
 
-      {!configured ? (
-        <Alert>
-          <AlertDescription>
-            Supabase auth is a placeholder right now. Use preview mode to review
-            the app UI.
-          </AlertDescription>
-        </Alert>
-      ) : null}
+      <div className="space-y-2">
+        <Label htmlFor="password">Password</Label>
+        <Input
+          id="password"
+          name="password"
+          type="password"
+          placeholder="••••••••"
+          autoComplete={isSignup ? "new-password" : "current-password"}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          minLength={6}
+          required
+        />
+      </div>
 
       {error ? (
         <Alert variant="destructive">
@@ -88,8 +120,8 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         </Alert>
       ) : null}
 
-      <Button type="submit" disabled={isLoading || !configured} className="w-full">
-        {isLoading ? "Sending..." : submitLabel}
+      <Button type="submit" disabled={isLoading} className="w-full">
+        {isLoading ? "Please wait..." : submitLabel}
       </Button>
     </form>
   );

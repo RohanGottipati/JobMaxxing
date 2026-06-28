@@ -44,7 +44,7 @@ export function DashboardWidgets({
 
       <WidgetCard
         label="Pipeline"
-        title={`${byStatus.interviewing} in interviews`}
+        title={`${byStatus.interview + byStatus.final_round} in interviews`}
         description={`${byStatus.applied} applied · ${byStatus.offer} offers · ${byStatus.rejected} closed`}
         action={{ label: "Filter by status", href: "/applications" }}
       />

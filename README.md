@@ -57,7 +57,8 @@ Open [http://localhost:3000](http://localhost:3000).
 src/
   app/                  # Next.js App Router pages
   components/           # UI and feature components
-  lib/supabase/         # Supabase client helpers
+  lib/supabase/         # Supabase client helpers (server + browser)
+  lib/applications/     # Application/package data helpers, types, repository
   types/                # Database types
 supabase/
   migrations/           # SQL migrations
@@ -76,11 +77,10 @@ supabase/
 
 ## Auth
 
-Email magic-link auth is configured via Supabase. Enable Email provider in your Supabase dashboard under Authentication → Providers.
+Email + password auth via Supabase. Enable the Email provider in your Supabase dashboard under Authentication → Providers. Register at `/signup` and sign in at `/login`.
 
-Add `http://localhost:3000/auth/callback` to your redirect URLs in Supabase Auth settings.
+If "Confirm email" is enabled, new users confirm via an emailed link that lands on `/auth/callback`; add `http://localhost:3000/auth/callback` to your redirect URLs in Supabase Auth settings. To allow instant sign-in during development, you can disable email confirmation.
 
 ## License
 
 Private
-# JobMaxxing
