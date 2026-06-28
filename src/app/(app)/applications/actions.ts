@@ -10,11 +10,15 @@ import {
   deleteApplication as deleteApplicationRecord,
   duplicateCoverLetter,
   duplicateResumeVersion,
+  getCoverLetters,
+  getResumeVersions,
   markCoverLetterSubmitted,
   markResumeVersionSubmitted,
+  reorderApplications,
   updateApplication as updateApplicationRecord,
+  type ApplicationReorderItem,
 } from "@/lib/applications/packages";
-import type { ApplicationStatus } from "@/lib/applications/package-types";
+import { getApplicationById } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
 
 function readText(formData: FormData, key: string) {
@@ -63,7 +67,6 @@ export async function createApplication(formData: FormData) {
   const application = await createApplicationRecord(input);
 
   revalidatePath("/applications");
-  revalidatePath("/dashboard");
   redirect(`/applications/${application.id}`);
 }
 
@@ -74,7 +77,6 @@ export async function updateApplication(formData: FormData) {
 
   revalidatePath("/applications");
   revalidatePath(`/applications/${id}`);
-  revalidatePath("/dashboard");
   redirect(`/applications/${id}`);
 }
 
@@ -83,18 +85,38 @@ export async function deleteApplication(formData: FormData) {
   await deleteApplicationRecord(id);
 
   revalidatePath("/applications");
-  revalidatePath("/dashboard");
   redirect("/applications");
 }
 
 /**
- * Persists a status change from the board (drag-and-drop or the inline select).
+ * Persists a batch of status/position changes when cards are dragged on the board.
+ * The board updates optimistically, so this only revalidates the cached server data
+ * (no redirect) and surfaces failures to the client for rollback.
  */
-export async function setApplicationStatus(id: string, status: ApplicationStatus) {
-  await updateApplicationRecord(id, { status });
+export async function reorderApplicationsAction(
+  updates: ApplicationReorderItem[],
+) {
+  await reorderApplications(updates);
   revalidatePath("/applications");
-  revalidatePath(`/applications/${id}`);
-  revalidatePath("/dashboard");
+}
+
+/**
+ * Loads everything saved for one application — core details plus the exact resume
+ * versions and cover letters tracked against it — to populate the board's detail drawer.
+ */
+export async function getApplicationDetails(id: string) {
+  const application = await getApplicationById(id);
+
+  if (!application) {
+    return null;
+  }
+
+  const [resumeVersions, coverLetters] = await Promise.all([
+    getResumeVersions(id),
+    getCoverLetters(id),
+  ]);
+
+  return { application, resumeVersions, coverLetters };
 }
 
 // ---------------------------------------------------------------------------

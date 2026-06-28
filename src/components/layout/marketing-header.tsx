@@ -11,7 +11,7 @@ export async function MarketingHeader() {
     <header className="sticky top-0 z-40 border-b border-border bg-background">
       <div className="mx-auto flex min-h-14 w-full max-w-6xl items-center justify-between gap-3 px-4">
         <Link
-          href={user ? "/dashboard" : "/"}
+          href={user ? "/applications" : "/login"}
           className="font-semibold tracking-tight"
         >
           JobMaxxing
@@ -19,7 +19,7 @@ export async function MarketingHeader() {
 
         <nav className="flex items-center gap-2">
           {user ? (
-            <Link href="/dashboard" className={buttonVariants({ size: "sm" })}>
+            <Link href="/applications" className={buttonVariants({ size: "sm" })}>
               Open app
             </Link>
           ) : (

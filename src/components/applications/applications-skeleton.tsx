@@ -14,20 +14,20 @@ export function ApplicationsSkeleton() {
       <Skeleton className="h-24 w-full rounded-xl" />
 
       <div className="-mx-4 overflow-hidden px-4 md:mx-0 md:px-0">
-        <div className="grid min-w-max grid-cols-[repeat(5,minmax(17rem,1fr))] gap-4">
+        <div className="flex w-max gap-3">
           {Array.from({ length: 5 }).map((_, columnIndex) => (
             <div
               key={columnIndex}
-              className="grid min-h-[32rem] gap-3 rounded-lg border border-border/70 bg-muted/35 p-3"
+              className="flex min-h-[24rem] w-72 flex-col gap-2 rounded-xl border border-border/70 bg-muted/30 p-2"
             >
-              <div className="space-y-2 border-b border-border/70 pb-3">
-                <Skeleton className="h-5 w-28" />
-                <Skeleton className="h-4 w-44" />
+              <div className="flex items-center gap-2 px-1 py-1.5">
+                <Skeleton className="size-2 rounded-full" />
+                <Skeleton className="h-4 w-24" />
               </div>
               {Array.from({ length: 3 }).map((_, cardIndex) => (
                 <Skeleton
                   key={cardIndex}
-                  className="h-40 w-full rounded-lg bg-background/80"
+                  className="h-24 w-full rounded-lg bg-background/80"
                 />
               ))}
             </div>

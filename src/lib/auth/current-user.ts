@@ -9,18 +9,27 @@ export type AppUser = {
 
 export async function getCurrentUser(): Promise<AppUser | null> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+    };
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.warn(`[supabase] Current user lookup failed: ${message}`);
+    }
     return null;
   }
-
-  return {
-    id: user.id,
-    email: user.email ?? null,
-  };
 }
 
 export async function requireCurrentUser(): Promise<AppUser> {

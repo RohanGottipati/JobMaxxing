@@ -24,8 +24,11 @@ export function ApplicationList({
   query = "",
   status = "all",
 }: ApplicationListProps) {
+  // Remount only when the *set* of applications changes (create/delete) or the filters
+  // change — never on status/position changes, so drag reorders keep their optimistic state.
   const boardKey = applications
-    .map((application) => `${application.id}:${application.status}`)
+    .map((application) => application.id)
+    .sort()
     .join("|");
 
   return (

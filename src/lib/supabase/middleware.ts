@@ -25,7 +25,14 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    if (process.env.NODE_ENV === "development") {
+      const message = error instanceof Error ? error.message : "Unknown error";
+      console.warn(`[supabase] Auth session refresh skipped: ${message}`);
+    }
+  }
 
   return supabaseResponse;
 }

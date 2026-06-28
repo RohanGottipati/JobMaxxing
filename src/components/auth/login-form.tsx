@@ -56,7 +56,7 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         return;
       }
 
-      router.push("/dashboard");
+      router.push("/applications");
       router.refresh();
       return;
     }
@@ -73,7 +73,7 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/applications");
     router.refresh();
   }
 

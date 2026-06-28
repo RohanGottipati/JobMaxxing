@@ -1,5 +1,9 @@
 import { APPLICATION_STATUSES } from "@/lib/applications/package-types";
-import type { ApplicationStatus } from "@/lib/applications/package-types";
+import type {
+  ApplicationStatus,
+  CoverLetter,
+  ResumeVersion,
+} from "@/lib/applications/package-types";
 
 export type { ApplicationStatus };
 
@@ -22,6 +26,7 @@ export type JobApplication = {
   notes: string | null;
   referralContact: string | null;
   nextAction: string | null;
+  position: number;
   submittedResumeVersionId: string | null;
   submittedCoverLetterId: string | null;
   createdAt: string;
@@ -31,4 +36,14 @@ export type JobApplication = {
 export type ApplicationFilters = {
   query?: string;
   status?: ApplicationStatus | "all";
+};
+
+/**
+ * Full detail payload for one application, including the exact resume versions and
+ * cover letters saved against it. Powers the board's detail drawer.
+ */
+export type ApplicationDetails = {
+  application: JobApplication;
+  resumeVersions: ResumeVersion[];
+  coverLetters: CoverLetter[];
 };

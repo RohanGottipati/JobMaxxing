@@ -4,19 +4,9 @@ import {
 } from "@/lib/applications/packages";
 import type { Application } from "@/lib/applications/package-types";
 import {
-  applicationStatuses,
   type ApplicationFilters,
-  type ApplicationStatus,
   type JobApplication,
 } from "@/lib/applications/types";
-
-// Statuses that count as "in flight" for dashboard stats.
-const activeStatuses: ApplicationStatus[] = [
-  "applied",
-  "online_assessment",
-  "interview",
-  "final_round",
-];
 
 function toJobApplication(
   row: Pick<
@@ -34,6 +24,7 @@ function toJobApplication(
     | "notes"
     | "referral_contact"
     | "next_action"
+    | "position"
     | "submitted_resume_version_id"
     | "submitted_cover_letter_id"
     | "created_at"
@@ -54,6 +45,7 @@ function toJobApplication(
     notes: row.notes,
     referralContact: row.referral_contact,
     nextAction: row.next_action,
+    position: row.position,
     submittedResumeVersionId: row.submitted_resume_version_id,
     submittedCoverLetterId: row.submitted_cover_letter_id,
     createdAt: row.created_at,
@@ -83,27 +75,4 @@ export async function getApplicationById(id: string) {
   const application = await getApplicationPackage(id);
 
   return application ? toJobApplication(application) : null;
-}
-
-export async function getApplicationStats() {
-  const applications = await getApplications();
-  const byStatus = Object.fromEntries(
-    applicationStatuses.map((status) => [status, 0]),
-  ) as Record<ApplicationStatus, number>;
-
-  for (const application of applications) {
-    byStatus[application.status] += 1;
-  }
-
-  const active = activeStatuses.reduce(
-    (total, status) => total + byStatus[status],
-    0,
-  );
-
-  return {
-    total: applications.length,
-    byStatus,
-    recent: applications.slice(0, 4),
-    active,
-  };
 }

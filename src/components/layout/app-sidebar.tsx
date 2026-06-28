@@ -10,41 +10,26 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-  SidebarSeparator,
 } from "@/components/ui/sidebar";
 
 const mainNav = [
-  { href: "/dashboard", label: "Home" },
   { href: "/applications", label: "Applications" },
-  { href: "/applications/new", label: "Add role" },
-] as const;
-
-const resourceNav = [
-  { href: "/applications", label: "Pipeline view" },
-  { href: "/dashboard", label: "Status overview" },
+  { href: "/profile", label: "Profile" },
 ] as const;
 
 export function AppSidebar() {
   const pathname = usePathname();
 
   function isActive(href: string) {
-    if (href === "/dashboard") {
-      return pathname === "/dashboard";
-    }
     if (href === "/applications") {
-      return (
-        pathname === "/applications" ||
-        (pathname.startsWith("/applications/") &&
-          !pathname.endsWith("/new") &&
-          !pathname.endsWith("/edit"))
-      );
+      return pathname.startsWith("/applications");
     }
+
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
@@ -54,7 +39,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/dashboard">
+              <Link href="/applications">
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">JobMaxxing</span>
                   <span className="truncate text-xs text-muted-foreground">
@@ -69,7 +54,6 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNav.map(({ href, label }) => (
@@ -82,31 +66,9 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        <SidebarSeparator />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>Resources</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {resourceNav.map(({ href, label }) => (
-                <SidebarMenuItem key={label}>
-                  <SidebarMenuButton asChild isActive={isActive(href)}>
-                    <Link href={href}>{label}</Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton disabled>Settings</SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
         <div className="px-2">
           <SignOutButton className="w-full" />
         </div>

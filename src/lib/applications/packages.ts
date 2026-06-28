@@ -3,6 +3,7 @@ import type {
   Application,
   ApplicationInsert,
   ApplicationPackage,
+  ApplicationStatus,
   ApplicationUpdate,
   CoverLetter,
   CoverLetterInsert,
@@ -101,10 +102,38 @@ export async function getApplications(): Promise<Application[]> {
   const { data, error } = await supabase
     .from("applications")
     .select("*")
+    .order("status", { ascending: true })
+    .order("position", { ascending: true })
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data ?? [];
+}
+
+export type ApplicationReorderItem = {
+  id: string;
+  status: ApplicationStatus;
+  position: number;
+};
+
+/**
+ * Persists a batch of status/position changes from the board in a single transaction.
+ * Backed by the `reorder_applications` RPC, which is scoped to the authenticated user.
+ */
+export async function reorderApplications(
+  updates: ApplicationReorderItem[],
+): Promise<void> {
+  if (updates.length === 0) {
+    return;
+  }
+
+  const { supabase } = await getAuthContext();
+
+  const { error } = await supabase.rpc("reorder_applications", {
+    p_updates: updates,
+  });
+
+  if (error) throw error;
 }
 
 /**

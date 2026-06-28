@@ -13,13 +13,13 @@ Job application tracker — help users organize their job search pipeline.
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Marketing landing page |
+| `/` | Redirects to `/applications` (signed in) or `/login` |
 | `/login` | Email + password sign in |
 | `/signup` | Email + password registration |
-| `/dashboard` | Pipeline overview (auth required) |
 | `/applications` | Application board (auth required) |
 | `/applications/new` | Create application (auth required) |
 | `/applications/[id]` | Application detail + package manager (auth required) |
+| `/profile` | User profile (auth required) |
 | `/auth/callback` | Supabase email-confirmation callback |
 
 ## Database

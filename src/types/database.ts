@@ -134,6 +134,7 @@ export type Database = {
           notes: string | null;
           referral_contact: string | null;
           next_action: string | null;
+          position: number;
           submitted_resume_version_id: string | null;
           submitted_cover_letter_id: string | null;
           created_at: string;
@@ -153,6 +154,7 @@ export type Database = {
           notes?: string | null;
           referral_contact?: string | null;
           next_action?: string | null;
+          position?: number;
           submitted_resume_version_id?: string | null;
           submitted_cover_letter_id?: string | null;
           created_at?: string;
@@ -172,6 +174,7 @@ export type Database = {
           notes?: string | null;
           referral_contact?: string | null;
           next_action?: string | null;
+          position?: number;
           submitted_resume_version_id?: string | null;
           submitted_cover_letter_id?: string | null;
           created_at?: string;
@@ -297,6 +300,7 @@ export type Database = {
           notes: string | null;
           referral_contact: string | null;
           next_action: string | null;
+          position: number;
           submitted_resume_version_id: string | null;
           submitted_cover_letter_id: string | null;
           created_at: string;
@@ -320,6 +324,10 @@ export type Database = {
       submit_cover_letter: {
         Args: { p_cover_letter_id: string };
         Returns: Database["public"]["Tables"]["cover_letters"]["Row"];
+      };
+      reorder_applications: {
+        Args: { p_updates: Json };
+        Returns: undefined;
       };
     };
     Enums: {
