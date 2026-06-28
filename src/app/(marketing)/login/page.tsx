@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { PageShell } from "@/components/layout/page-shell";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -29,7 +30,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const previewEnabled = isPreviewAuthEnabled();
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16">
+    <PageShell size="narrow" className="items-center justify-center py-16">
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Log in</CardTitle>
@@ -39,22 +40,28 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {params.error ? (
-            <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-              Sign-in failed. Please try again.
-            </p>
+            <Alert variant="destructive">
+              <AlertDescription>
+                Sign-in failed. Please try again.
+              </AlertDescription>
+            </Alert>
           ) : null}
           {params.check ? (
-            <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-              Check your email for a magic link to sign in.
-            </p>
+            <Alert>
+              <AlertDescription>
+                Check your email for a magic link to sign in.
+              </AlertDescription>
+            </Alert>
           ) : null}
 
           <LoginForm />
 
           {previewEnabled ? (
-            <Link href="/dashboard" className={buttonVariants({ className: "w-full" })}>
+            <Link
+              href="/dashboard"
+              className={buttonVariants({ className: "w-full" })}
+            >
               Continue in preview
-              <ArrowRight className="size-4" />
             </Link>
           ) : null}
 
@@ -66,6 +73,6 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </p>
         </CardContent>
       </Card>
-    </main>
+    </PageShell>
   );
 }

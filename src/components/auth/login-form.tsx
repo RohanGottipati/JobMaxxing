@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -67,22 +68,24 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
       </div>
 
       {!configured ? (
-        <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-          Supabase auth is a placeholder right now. Use preview mode to review
-          the app UI.
-        </p>
+        <Alert>
+          <AlertDescription>
+            Supabase auth is a placeholder right now. Use preview mode to review
+            the app UI.
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {error ? (
-        <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-          {error}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : null}
 
       {message ? (
-        <p className="rounded-md bg-muted px-3 py-2 text-sm text-muted-foreground">
-          {message}
-        </p>
+        <Alert>
+          <AlertDescription>{message}</AlertDescription>
+        </Alert>
       ) : null}
 
       <Button type="submit" disabled={isLoading || !configured} className="w-full">

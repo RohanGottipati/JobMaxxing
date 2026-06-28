@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowLeft, Save } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -14,13 +13,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { applicationStatuses, type JobApplication } from "@/lib/applications/types";
+import {
+  applicationStatuses,
+  type ApplicationStatus,
+  type JobApplication,
+} from "@/lib/applications/types";
 import { statusLabels } from "@/lib/applications/status";
 import { cn } from "@/lib/utils";
 
 type ApplicationFormProps = {
   action: (formData: FormData) => void | Promise<void>;
   application?: JobApplication;
+  defaultStatus?: ApplicationStatus;
   submitLabel: string;
   title: string;
   description: string;
@@ -30,11 +34,14 @@ type ApplicationFormProps = {
 export function ApplicationForm({
   action,
   application,
+  defaultStatus = "saved",
   submitLabel,
   title,
   description,
   cancelHref,
 }: ApplicationFormProps) {
+  const selectedStatus = application?.status ?? defaultStatus;
+
   return (
     <Card>
       <CardHeader>
@@ -47,7 +54,6 @@ export function ApplicationForm({
             href={cancelHref}
             className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
           >
-            <ArrowLeft className="size-4" />
             Back
           </Link>
         </div>
@@ -94,7 +100,7 @@ export function ApplicationForm({
                 id="location"
                 name="location"
                 defaultValue={application?.location ?? ""}
-                placeholder="Remote, New York, Toronto"
+                placeholder="Remote, Toronto, or New York"
               />
             </Field>
           </div>
@@ -109,12 +115,7 @@ export function ApplicationForm({
               />
             </Field>
             <Field label="Status" htmlFor="status" required>
-              <Select
-                id="status"
-                name="status"
-                defaultValue={application?.status ?? "saved"}
-                required
-              >
+              <Select id="status" name="status" defaultValue={selectedStatus} required>
                 {applicationStatuses.map((status) => (
                   <option key={status} value={status}>
                     {statusLabels[status]}
@@ -142,17 +143,14 @@ export function ApplicationForm({
             />
           </Field>
 
-          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <div className="flex flex-wrap gap-3">
+            <Button type="submit">{submitLabel}</Button>
             <Link
               href={cancelHref}
               className={cn(buttonVariants({ variant: "outline" }))}
             >
               Cancel
             </Link>
-            <Button type="submit">
-              <Save className="size-4" />
-              {submitLabel}
-            </Button>
           </div>
         </form>
       </CardContent>
@@ -172,7 +170,7 @@ function Field({ label, htmlFor, required, children }: FieldProps) {
     <div className="grid gap-2">
       <Label htmlFor={htmlFor}>
         {label}
-        {required ? <span className="text-destructive"> *</span> : null}
+        {required ? <span> *</span> : null}
       </Label>
       {children}
     </div>

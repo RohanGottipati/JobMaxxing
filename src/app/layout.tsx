@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
-import { SiteHeader } from "@/components/layout/site-header";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
+
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-plus-jakarta",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "JobMaxxing",
@@ -16,12 +23,12 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className="min-h-full">
-      <body className="min-h-full bg-background font-sans antialiased">
-        <div className="flex min-h-screen flex-col">
-          <SiteHeader />
-          {children}
-        </div>
+    <html
+      lang="en"
+      className={`dark min-h-full ${plusJakarta.variable}`}
+    >
+      <body className="min-h-full font-sans antialiased">
+        <TooltipProvider delayDuration={0}>{children}</TooltipProvider>
       </body>
     </html>
   );

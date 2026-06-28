@@ -1,17 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import type { ComponentType } from "react";
-import {
-  ArrowLeft,
-  Calendar,
-  ExternalLink,
-  FileText,
-  MapPin,
-  Pencil,
-  Trash2,
-} from "lucide-react";
 
-import { deleteApplication } from "@/app/applications/actions";
+import { deleteApplication } from "@/app/(app)/applications/actions";
 import {
   DocumentSection,
   StatusHistorySection,
@@ -50,18 +40,17 @@ export default async function ApplicationDetailPage({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-10">
+    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <Link
             href="/applications"
-            className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="mb-4 inline-block text-sm text-muted-foreground underline underline-offset-4"
           >
-            <ArrowLeft className="size-4" />
             Applications
           </Link>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-medium tracking-tight">
               {application.companyName}
             </h1>
             <StatusBadge status={application.status} />
@@ -78,7 +67,6 @@ export default async function ApplicationDetailPage({
               target="_blank"
               rel="noreferrer"
             >
-              <ExternalLink className="size-4" />
               Job post
             </Link>
           ) : null}
@@ -86,7 +74,6 @@ export default async function ApplicationDetailPage({
             href={`/applications/${application.id}/edit`}
             className={buttonVariants()}
           >
-            <Pencil className="size-4" />
             Edit
           </Link>
         </div>
@@ -106,22 +93,18 @@ export default async function ApplicationDetailPage({
             <CardContent className="grid gap-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <InfoItem
-                  icon={MapPin}
                   label="Location"
                   value={application.location ?? "Not set"}
                 />
                 <InfoItem
-                  icon={Calendar}
                   label="Application date"
                   value={formatDate(application.appliedAt)}
                 />
                 <InfoItem
-                  icon={Calendar}
                   label="Created"
                   value={formatDateTime(application.createdAt)}
                 />
                 <InfoItem
-                  icon={Calendar}
                   label="Updated"
                   value={formatDateTime(application.updatedAt)}
                 />
@@ -143,7 +126,7 @@ export default async function ApplicationDetailPage({
         <div className="grid content-start gap-6">
           <StatusHistorySection application={application} />
 
-          <Card className="border-destructive/30">
+          <Card>
             <CardHeader>
               <CardTitle>Delete application</CardTitle>
               <CardDescription>
@@ -158,7 +141,6 @@ export default async function ApplicationDetailPage({
                   value={application.id}
                 />
                 <Button type="submit" variant="destructive" className="w-full">
-                  <Trash2 className="size-4" />
                   Delete application
                 </Button>
               </form>
@@ -170,19 +152,12 @@ export default async function ApplicationDetailPage({
   );
 }
 
-type InfoItemProps = {
-  icon: ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-};
-
-function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
+function InfoItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border p-3">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase text-muted-foreground">
-        <Icon className="size-3.5" />
+    <div className="rounded-lg border border-border p-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {label}
-      </div>
+      </p>
       <p className="mt-2 text-sm font-medium">{value}</p>
     </div>
   );
@@ -191,11 +166,8 @@ function InfoItem({ icon: Icon, label, value }: InfoItemProps) {
 function TextBlock({ title, value }: { title: string; value: string | null }) {
   return (
     <div className="grid gap-2">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <FileText className="size-4 text-muted-foreground" />
-        {title}
-      </div>
-      <div className="min-h-20 rounded-md border bg-muted/20 p-3 text-sm leading-6 text-muted-foreground">
+      <p className="text-sm font-medium">{title}</p>
+      <div className="min-h-20 rounded-lg border border-border p-3 text-sm leading-6 text-muted-foreground">
         {value || "Not added yet."}
       </div>
     </div>

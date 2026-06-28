@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { updateApplication } from "@/app/applications/actions";
+import { updateApplication } from "@/app/(app)/applications/actions";
 import { ApplicationForm } from "@/components/applications/application-form";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getApplicationById } from "@/lib/applications/repository";
@@ -21,12 +21,12 @@ export default async function EditApplicationPage({
   }
 
   return (
-    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-10">
-      <div>
-        <h1 className="text-3xl font-semibold tracking-tight">
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 p-4 md:p-6 lg:p-8">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-medium tracking-tight">
           Edit application
         </h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="text-muted-foreground">
           Update status, notes, and role details for this tracked job.
         </p>
       </div>

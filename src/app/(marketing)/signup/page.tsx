@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight } from "lucide-react";
 
 import { LoginForm } from "@/components/auth/login-form";
+import { PageShell } from "@/components/layout/page-shell";
 import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
@@ -24,7 +24,7 @@ export default async function SignupPage() {
   const previewEnabled = isPreviewAuthEnabled();
 
   return (
-    <main className="mx-auto flex w-full max-w-md flex-1 items-center px-4 py-16">
+    <PageShell size="narrow" className="items-center justify-center py-16">
       <Card className="w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Sign up</CardTitle>
@@ -36,9 +36,11 @@ export default async function SignupPage() {
           <LoginForm mode="signup" />
 
           {previewEnabled ? (
-            <Link href="/dashboard" className={buttonVariants({ className: "w-full" })}>
+            <Link
+              href="/dashboard"
+              className={buttonVariants({ className: "w-full" })}
+            >
               Continue in preview
-              <ArrowRight className="size-4" />
             </Link>
           ) : null}
 
@@ -50,6 +52,6 @@ export default async function SignupPage() {
           </p>
         </CardContent>
       </Card>
-    </main>
+    </PageShell>
   );
 }
