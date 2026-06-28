@@ -1,0 +1,51 @@
+---
+pid: 68317
+cwd: /Users/rohangottipati/Documents/JobMaxxing
+command: kill 14677 2>/dev/null; sleep 2 && cd /Users/rohangottipati/Documents/JobMaxxing && npm run dev
+---
+
+> jobmaxxing@0.1.0 dev
+> next dev --webpack
+
+▲ Next.js 16.2.9 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://10.0.0.21:3000
+- Environments: .env.local
+✓ Ready in 190ms
+
+ GET /login 200 in 2.3s (next.js: 1971ms, proxy.ts: 120ms, application-code: 213ms)
+ GET /applications 200 in 3.3s (next.js: 1785ms, proxy.ts: 305ms, application-code: 1163ms)
+ GET / 307 in 826ms (next.js: 648ms, proxy.ts: 60ms, application-code: 117ms)
+ GET /applications 200 in 617ms (next.js: 23ms, proxy.ts: 232ms, application-code: 363ms)
+ GET /login 200 in 71ms (next.js: 8ms, proxy.ts: 4ms, application-code: 59ms)
+ POST /applications 200 in 622ms (next.js: 1850µs, proxy.ts: 104ms, application-code: 517ms)
+  └─ ƒ getApplicationDetails("983e4ec7-917e-4713-a69d-157b8db3829e") in 460ms app/(app)/applications/actions.ts
+ POST /applications 200 in 559ms (next.js: 17ms, proxy.ts: 108ms, application-code: 433ms)
+  └─ ƒ getApplicationDetails("983e4ec7-917e-4713-a69d-157b8db3829e") in 425ms app/(app)/applications/actions.ts
+ GET /login 200 in 119ms (next.js: 45ms, proxy.ts: 7ms, application-code: 67ms)
+ GET /applications 200 in 344ms (next.js: 14ms, proxy.ts: 288ms, application-code: 42ms)
+ GET /login 200 in 97ms (next.js: 35ms, proxy.ts: 3ms, application-code: 60ms)
+ GET /applications 200 in 230ms (next.js: 13ms, proxy.ts: 181ms, application-code: 36ms)
+ GET / 307 in 443ms (next.js: 333ms, proxy.ts: 4ms, application-code: 106ms)
+ GET /applications 200 in 694ms (next.js: 27ms, proxy.ts: 297ms, application-code: 371ms)
+ GET /login 200 in 49ms (next.js: 7ms, proxy.ts: 4ms, application-code: 39ms)
+ GET /applications 200 in 478ms (next.js: 3ms, proxy.ts: 168ms, application-code: 307ms)
+ GET /applications 200 in 556ms (next.js: 5ms, proxy.ts: 201ms, application-code: 350ms)
+ GET /login 200 in 92ms (next.js: 35ms, proxy.ts: 6ms, application-code: 52ms)
+ GET /applications 200 in 333ms (next.js: 20ms, proxy.ts: 281ms, application-code: 33ms)
+ GET /login 200 in 92ms (next.js: 33ms, proxy.ts: 2ms, application-code: 57ms)
+ GET /applications 200 in 249ms (next.js: 14ms, proxy.ts: 184ms, application-code: 51ms)
+ POST /applications 200 in 723ms (next.js: 3ms, proxy.ts: 176ms, application-code: 543ms)
+  └─ ƒ getApplicationDetails("983e4ec7-917e-4713-a69d-157b8db3829e") in 469ms app/(app)/applications/actions.ts
+ POST /applications 200 in 552ms (next.js: 6ms, proxy.ts: 96ms, application-code: 451ms)
+  └─ ƒ getApplicationDetails("983e4ec7-917e-4713-a69d-157b8db3829e") in 440ms app/(app)/applications/actions.ts
+ GET /login 200 in 64ms (next.js: 22ms, proxy.ts: 2ms, application-code: 40ms)
+ GET /applications 200 in 140ms (next.js: 8ms, proxy.ts: 104ms, application-code: 28ms)
+ GET /applications 200 in 489ms (next.js: 3ms, proxy.ts: 118ms, application-code: 368ms)
+ GET /login 200 in 45ms (next.js: 949µs, proxy.ts: 2ms, application-code: 42ms)
+ GET /login 200 in 62ms (next.js: 20ms, proxy.ts: 5ms, application-code: 37ms)
+ GET /applications 200 in 262ms (next.js: 8ms, proxy.ts: 226ms, application-code: 28ms)
+ GET /login 200 in 69ms (next.js: 23ms, proxy.ts: 2ms, application-code: 44ms)
+ GET /applications 200 in 211ms (next.js: 13ms, proxy.ts: 162ms, application-code: 36ms)
+ GET /applications 200 in 567ms (next.js: 4ms, proxy.ts: 181ms, application-code: 382ms)
+ GET /login 200 in 45ms (next.js: 894µs, proxy.ts: 1964µs, application-code: 42ms)

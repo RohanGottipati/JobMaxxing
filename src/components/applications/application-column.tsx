@@ -7,11 +7,10 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
+import { MoreHorizontal, Plus, SquarePlus } from "lucide-react";
 
 import { SortableApplicationCard } from "@/components/applications/application-card";
-import { buttonVariants } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import type { ApplicationStatus, JobApplication } from "@/lib/applications/types";
 import {
   statusAccents,
@@ -26,10 +25,6 @@ type ApplicationColumnProps = {
   onOpen: (id: string) => void;
 };
 
-/**
- * A single status lane on the board. Acts as a drop target for cross-column moves and hosts
- * a vertical SortableContext for reordering cards within the lane.
- */
 export const ApplicationColumn = memo(function ApplicationColumn({
   status,
   applications,
@@ -37,67 +32,79 @@ export const ApplicationColumn = memo(function ApplicationColumn({
 }: ApplicationColumnProps) {
   const { isOver, setNodeRef } = useDroppable({
     id: status,
-    data: { type: "column", status },
+    data: {
+      type: "status",
+      status,
+    },
   });
+
   const accent = statusAccents[status];
 
   return (
-    <section className="flex max-h-[calc(100dvh-12.5rem)] min-h-[21rem] w-64 flex-col rounded-lg border border-border/70 bg-muted/30">
-      <header className="flex items-center justify-between gap-2 px-3 py-2.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span
-            aria-hidden
-            className={cn("size-2 shrink-0 rounded-full", accent.dot)}
-          />
-          <h2 className="truncate text-sm font-semibold">
+    <section
+      ref={setNodeRef}
+      className={cn(
+        "flex h-[calc(100dvh-11rem)] min-h-[26rem] w-72 shrink-0 flex-col overflow-hidden rounded-2xl border border-black/30 bg-black/[0.88] text-zinc-100 shadow-2xl shadow-black/35 backdrop-blur-md transition",
+        isOver && "border-sky-300/70 bg-zinc-950/95 ring-2 ring-sky-300/40",
+      )}
+      aria-label={`${statusLabels[status]} applications`}
+    >
+      <header className="flex items-center justify-between gap-3 px-4 py-2.5">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className={cn("size-2 rounded-full", accent.dot)} />
+          <h2 className="truncate text-sm font-bold tracking-normal text-zinc-100">
             {statusLabels[status]}
           </h2>
-          <span className="rounded-full bg-background px-1.5 text-xs font-medium text-muted-foreground tabular-nums">
+          <span className="rounded-full bg-zinc-800/60 px-1.5 py-0.5 text-xs font-medium text-zinc-400 tabular-nums">
             {applications.length}
           </span>
         </div>
-        <Link
-          href={`/applications/new?status=${status}`}
-          aria-label={`Add application to ${statusLabels[status]}`}
-          className={cn(
-            buttonVariants({ variant: "ghost", size: "icon-sm" }),
-            "shrink-0 text-muted-foreground",
-          )}
+
+        <button
+          type="button"
+          className="grid size-8 shrink-0 place-items-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
+          aria-label={`${statusLabels[status]} column options`}
         >
-          <Plus aria-hidden className="size-4" />
-        </Link>
+          <MoreHorizontal aria-hidden className="size-5" />
+        </button>
       </header>
 
-      <div
-        ref={setNodeRef}
-        className={cn(
-          "flex min-h-0 flex-1 flex-col transition-colors",
-          isOver && "bg-muted/60",
-        )}
+      <SortableContext
+        items={applications.map((application) => application.id)}
+        strategy={verticalListSortingStrategy}
       >
-        <ScrollArea className="min-h-0 flex-1 px-2 pb-2">
-          <div className="flex min-h-full flex-col gap-2 pt-0.5">
-            <SortableContext
-              items={applications.map((application) => application.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              {applications.map((application) => (
+        <ScrollArea className="min-h-0 flex-1 px-2.5">
+          <div className="flex flex-col gap-2.5 pb-3">
+            {applications.length ? (
+              applications.map((application) => (
                 <SortableApplicationCard
                   key={application.id}
                   application={application}
                   onOpen={onOpen}
                 />
-              ))}
-            </SortableContext>
-
-            {applications.length === 0 ? (
-              <div className="m-1 flex flex-1 items-center justify-center rounded-md border border-dashed border-border/70 p-4 text-center text-xs text-muted-foreground">
-                {statusDescriptions[status]}
+              ))
+            ) : (
+              <div className="rounded-lg border border-dashed border-zinc-700/80 bg-zinc-900/60 px-4 py-8 text-center text-sm text-zinc-500">
+                Drop applications here.
               </div>
-            ) : null}
+            )}
           </div>
+          <ScrollBar orientation="vertical" />
         </ScrollArea>
-      </div>
+      </SortableContext>
+
+      <footer className="mt-auto border-t border-white/5 px-3 py-2.5">
+        <Link
+          href={`/applications/new?status=${status}`}
+          className="flex h-9 items-center justify-between rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white"
+        >
+          <span className="inline-flex items-center gap-2">
+            <Plus aria-hidden className="size-5" />
+            Add a card
+          </span>
+          <SquarePlus aria-hidden className="size-5 text-zinc-500" />
+        </Link>
+      </footer>
     </section>
   );
 });

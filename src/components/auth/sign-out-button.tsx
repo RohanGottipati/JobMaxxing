@@ -27,11 +27,11 @@ export function SignOutButton({ className }: SignOutButtonProps) {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       onClick={handleSignOut}
       disabled={isLoading}
-      className={cn(className)}
+      className={cn("h-9 justify-start", className)}
     >
       {isLoading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : null}
       {isLoading ? "Signing out..." : "Sign out"}

@@ -10,7 +10,7 @@ type StatusBadgeProps = {
 
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
-    <Badge variant="outline" className={cn("text-muted-foreground", className)}>
+    <Badge variant="secondary" className={cn("text-xs font-medium", className)}>
       {statusLabels[status]}
     </Badge>
   );

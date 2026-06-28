@@ -5,11 +5,13 @@ import { useEffect, useState } from "react";
 import {
   Building2,
   CalendarDays,
+  CheckCircle2,
   Clock,
   ExternalLink,
   FileText,
   Link2,
   MapPin,
+  MessageSquareText,
   NotebookPen,
   Pencil,
   UserRound,
@@ -18,21 +20,17 @@ import {
 import { getApplicationDetails } from "@/app/(app)/applications/actions";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type {
-  CoverLetter,
-  ResumeVersion,
-} from "@/lib/applications/package-types";
-import type { ApplicationDetails } from "@/lib/applications/types";
+import type { JobApplication } from "@/lib/applications/types";
 import {
   formatDate,
   formatDateTime,
@@ -46,53 +44,82 @@ type ApplicationDetailsDrawerProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-const TABS = [
-  "Overview",
-  "Job Description",
-  "Resume Used",
-  "Cover Letter Used",
-  "Notes",
-] as const;
+type ApplicationDetails = Awaited<ReturnType<typeof getApplicationDetails>>;
+
+type DocumentItem = {
+  id: string;
+  version_number: number;
+  title: string | null;
+  submitted_at: string | null;
+  file_path?: string | null;
+  content?: string | null;
+};
+
+const TABS = ["Overview", "Job Description", "Resume", "Cover Letter", "Notes"];
+
+function safeFormatDate(value: string | null | undefined) {
+  if (!value || !Number.isFinite(new Date(value).getTime())) {
+    return null;
+  }
+
+  return formatDate(value);
+}
+
+function safeFormatDateTime(value: string | null | undefined) {
+  if (!value || !Number.isFinite(new Date(value).getTime())) {
+    return null;
+  }
+
+  return formatDateTime(value);
+}
 
 export function ApplicationDetailsDrawer({
   applicationId,
   onOpenChange,
 }: ApplicationDetailsDrawerProps) {
   return (
-    <Sheet open={applicationId !== null} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
+    <Dialog open={applicationId !== null} onOpenChange={onOpenChange}>
+      <DialogContent
         showCloseButton
-        className="w-full gap-0 p-0 sm:max-w-xl"
+        className="h-[min(90dvh,700px)] w-[min(94vw,900px)] max-w-none overflow-hidden border-zinc-700 bg-zinc-900 p-0 text-zinc-100 shadow-2xl shadow-black/60"
       >
         {applicationId ? (
-          <DrawerBody key={applicationId} applicationId={applicationId} />
+          <ModalBody key={applicationId} applicationId={applicationId} />
         ) : null}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-/**
- * Mounted fresh per opened application (keyed by id), so loading state starts true and the
- * active tab resets without any synchronous setState inside an effect.
- */
-function DrawerBody({ applicationId }: { applicationId: string }) {
+function ModalBody({ applicationId }: { applicationId: string }) {
   const [details, setDetails] = useState<ApplicationDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
+    // This modal intentionally resets local load state whenever a new card id opens.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDetails(null);
+    setError(null);
+    setIsLoading(true);
+
     getApplicationDetails(applicationId)
-      .then((result) => {
-        if (!cancelled) setDetails(result);
+      .then((nextDetails) => {
+        if (!cancelled) {
+          setDetails(nextDetails);
+        }
       })
       .catch(() => {
-        if (!cancelled) setDetails(null);
+        if (!cancelled) {
+          setError("Unable to load this application.");
+        }
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       });
 
     return () => {
@@ -100,373 +127,426 @@ function DrawerBody({ applicationId }: { applicationId: string }) {
     };
   }, [applicationId]);
 
-  const application = details?.application ?? null;
-  const submittedResume =
-    details?.resumeVersions.find(
-      (version) => version.id === application?.submittedResumeVersionId,
-    ) ?? null;
-  const submittedCoverLetter =
-    details?.coverLetters.find(
-      (letter) => letter.id === application?.submittedCoverLetterId,
-    ) ?? null;
-
-  if (isLoading || !application) {
-    return <DrawerSkeleton loading={isLoading} />;
+  if (isLoading) {
+    return <ModalSkeleton />;
   }
 
+  if (error || !details) {
+    return (
+      <div className="grid h-full place-items-center p-8">
+        <div className="max-w-sm text-center">
+          <h2 className="text-lg font-semibold text-zinc-100">
+            Application unavailable
+          </h2>
+          <p className="mt-2 text-sm text-zinc-400">
+            {error ?? "This application could not be loaded."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const { application, coverLetters, resumeVersions } = details;
+  const submittedResume =
+    resumeVersions.find(
+      (version) => version.id === application.submittedResumeVersionId,
+    ) ?? null;
+  const submittedCoverLetter =
+    coverLetters.find(
+      (letter) => letter.id === application.submittedCoverLetterId,
+    ) ?? null;
+  const deadlineLabel = safeFormatDate(application.deadline);
+
   return (
-    <>
-            <SheetHeader className="gap-2 border-b border-border px-6 py-5 pr-14">
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={cn("gap-1", statusAccents[application.status].badge)}
-                >
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "size-1.5 rounded-full",
-                      statusAccents[application.status].dot,
-                    )}
-                  />
-                  {statusLabels[application.status]}
-                </Badge>
-              </div>
-              <SheetTitle className="text-xl leading-tight">
-                {application.jobTitle}
-              </SheetTitle>
-              <SheetDescription className="flex items-center gap-1.5 text-sm">
-                <Building2 aria-hidden className="size-4" />
-                {application.companyName}
-              </SheetDescription>
-
-              <div className="mt-2 flex flex-wrap gap-2">
-                {application.jobUrl ? (
-                  <Link
-                    href={application.jobUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                  >
-                    <ExternalLink aria-hidden className="size-3.5" />
-                    Job post
-                  </Link>
-                ) : null}
-                <Link
-                  href={`/applications/${application.id}`}
-                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-                >
-                  <FileText aria-hidden className="size-3.5" />
-                  Full page
-                </Link>
-                <Link
-                  href={`/applications/${application.id}/edit`}
-                  className={cn(buttonVariants({ size: "sm" }))}
-                >
-                  <Pencil aria-hidden className="size-3.5" />
-                  Edit
-                </Link>
-              </div>
-            </SheetHeader>
-
-            <Tabs defaultValue="Overview" className="min-h-0 flex-1 gap-0">
-              <TabsList
-                variant="line"
-                className="h-10 justify-start overflow-x-auto rounded-none border-b border-border bg-transparent px-4"
+    <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <main className="min-h-0 overflow-y-auto">
+        <DialogHeader className="border-b border-zinc-700/70 px-5 py-4 pr-14 text-left">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className={cn(
+                "gap-1 border-zinc-600 bg-zinc-950/70 text-zinc-200",
+                statusAccents[application.status].badge,
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "size-1.5 rounded-full",
+                  statusAccents[application.status].dot,
+                )}
+              />
+              {statusLabels[application.status]}
+            </Badge>
+            {deadlineLabel ? (
+              <Badge
+                variant="outline"
+                className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-200"
               >
-                {TABS.map((tab) => (
-                  <TabsTrigger key={tab} value={tab} className="flex-none px-3">
-                    {tab}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+                <Clock aria-hidden className="size-3" />
+                Due {deadlineLabel}
+              </Badge>
+            ) : null}
+          </div>
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-                <TabsContent value="Overview">
-                  <OverviewTab application={application} />
-                </TabsContent>
-                <TabsContent value="Job Description">
-                  <DocumentText
-                    value={application.jobDescription}
-                    emptyLabel="No job description saved for this role."
-                  />
-                </TabsContent>
-                <TabsContent value="Resume Used">
-                  <ResumeTab
-                    submitted={submittedResume}
-                    all={details?.resumeVersions ?? []}
-                  />
-                </TabsContent>
-                <TabsContent value="Cover Letter Used">
-                  <CoverLetterTab
-                    submitted={submittedCoverLetter}
-                    all={details?.coverLetters ?? []}
-                  />
-                </TabsContent>
-                <TabsContent value="Notes">
-                  <DocumentText
-                    value={application.notes}
-                    emptyLabel="No notes yet."
-                  />
-                </TabsContent>
-              </div>
-            </Tabs>
-    </>
+          <DialogTitle className="max-w-3xl text-3xl leading-tight font-bold text-zinc-100">
+            {application.jobTitle}
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2 text-base text-zinc-400">
+            <Building2 aria-hidden className="size-4" />
+            {application.companyName}
+          </DialogDescription>
+
+          <div className="flex flex-wrap gap-2 pt-2">
+            {application.jobUrl ? (
+              <Link
+                href={application.jobUrl}
+                target="_blank"
+                rel="noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "border-zinc-700 bg-zinc-950/70 text-zinc-200 hover:bg-zinc-800",
+                )}
+              >
+                <ExternalLink aria-hidden className="size-3.5" />
+                Job post
+              </Link>
+            ) : null}
+            <Link
+              href={`/applications/${application.id}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "border-zinc-700 bg-zinc-950/70 text-zinc-200 hover:bg-zinc-800",
+              )}
+            >
+              <FileText aria-hidden className="size-3.5" />
+              Full page
+            </Link>
+            <Link
+              href={`/applications/${application.id}/edit`}
+              className={cn(buttonVariants({ size: "sm" }), "bg-sky-600 text-white hover:bg-sky-500")}
+            >
+              <Pencil aria-hidden className="size-3.5" />
+              Edit
+            </Link>
+          </div>
+        </DialogHeader>
+
+        <Tabs defaultValue="Overview" className="px-5 py-4">
+          <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-lg bg-zinc-950/70 p-1">
+            {TABS.map((tab) => (
+              <TabsTrigger
+                key={tab}
+                value={tab}
+                className="flex-none px-3 py-2 text-sm font-medium text-zinc-400 data-active:bg-zinc-800 data-active:text-zinc-100"
+              >
+                {tab}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="Overview" className="mt-4">
+            <OverviewTab application={application} />
+          </TabsContent>
+          <TabsContent value="Job Description" className="mt-4">
+            <DocumentText
+              value={application.jobDescription}
+              emptyLabel="No job description saved for this role."
+            />
+          </TabsContent>
+          <TabsContent value="Resume" className="mt-4">
+            <DocumentVersions
+              heading="Resume versions"
+              submitted={submittedResume}
+              items={resumeVersions}
+              emptyLabel="No resume versions yet."
+              submittedEmptyLabel="No submitted resume selected."
+            />
+          </TabsContent>
+          <TabsContent value="Cover Letter" className="mt-4">
+            <DocumentVersions
+              heading="Cover letters"
+              submitted={submittedCoverLetter}
+              items={coverLetters}
+              emptyLabel="No cover letters yet."
+              submittedEmptyLabel="No submitted cover letter selected."
+            />
+          </TabsContent>
+          <TabsContent value="Notes" className="mt-4">
+            <DocumentText value={application.notes} emptyLabel="No notes yet." />
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      <aside className="min-h-0 overflow-y-auto border-t border-zinc-700/70 bg-zinc-950/70 p-4 lg:border-t-0 lg:border-l">
+        <ActivityPanel
+          application={application}
+          submittedCoverLetter={submittedCoverLetter}
+          submittedResume={submittedResume}
+        />
+      </aside>
+    </div>
   );
 }
 
-function OverviewTab({
-  application,
-}: {
-  application: ApplicationDetails["application"];
-}) {
+function OverviewTab({ application }: { application: JobApplication }) {
+  const appliedLabel = safeFormatDate(application.appliedAt);
+  const createdLabel = safeFormatDateTime(application.createdAt) ?? "Unknown";
+  const updatedLabel = safeFormatDateTime(application.updatedAt) ?? "Unknown";
+
   return (
     <div className="grid gap-5">
-      <dl className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <InfoTile
           icon={<MapPin className="size-4" />}
           label="Location"
-          value={application.location ?? "Not set"}
+          value={application.location}
         />
         <InfoTile
           icon={<CalendarDays className="size-4" />}
-          label="Date applied"
-          value={formatDate(application.appliedAt)}
+          label="Applied"
+          value={appliedLabel}
         />
         <InfoTile
           icon={<Clock className="size-4" />}
-          label="Deadline"
-          value={formatDate(application.deadline)}
+          label="Next action"
+          value={application.nextAction}
         />
         <InfoTile
           icon={<UserRound className="size-4" />}
-          label="Referral / contact"
-          value={application.referralContact ?? "Not set"}
+          label="Referral"
+          value={application.referralContact}
         />
-      </dl>
+      </div>
 
       {application.jobUrl ? (
-        <div className="grid gap-1.5">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Application link
+        <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+            <Link2 aria-hidden className="size-4" />
+            Source
           </p>
           <Link
             href={application.jobUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-1.5 break-all text-sm text-foreground underline-offset-4 hover:underline"
+            className="mt-2 block truncate text-sm text-sky-300 underline-offset-4 hover:underline"
           >
-            <Link2 aria-hidden className="size-4 shrink-0" />
             {application.jobUrl}
           </Link>
         </div>
       ) : null}
 
-      {application.nextAction ? (
-        <>
-          <Separator />
-          <Section title="Next action">
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              {application.nextAction}
-            </p>
-          </Section>
-        </>
-      ) : null}
-
-      <Separator />
-      <p className="text-xs text-muted-foreground">
-        Created {formatDateTime(application.createdAt)} · Updated{" "}
-        {formatDateTime(application.updatedAt)}
-      </p>
+      <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+        <p className="text-sm font-semibold text-zinc-200">Timeline</p>
+        <Separator className="my-3 bg-zinc-800" />
+        <p className="text-sm text-zinc-400">
+          Created {createdLabel}
+        </p>
+        <p className="mt-1 text-sm text-zinc-400">
+          Updated {updatedLabel}
+        </p>
+      </div>
     </div>
   );
 }
 
-function ResumeTab({
-  submitted,
-  all,
+function ActivityPanel({
+  application,
+  submittedCoverLetter,
+  submittedResume,
 }: {
-  submitted: ResumeVersion | null;
-  all: ResumeVersion[];
+  application: JobApplication;
+  submittedCoverLetter: DocumentItem | null;
+  submittedResume: DocumentItem | null;
 }) {
-  return (
-    <DocumentVersions
-      submitted={
-        submitted
-          ? {
-              heading: titleFor("Resume", submitted.version_number, submitted.title),
-              submittedAt: submitted.submitted_at,
-              content: submitted.content,
-              filePath: submitted.file_path,
-            }
-          : null
-      }
-      others={all
-        .filter((version) => version.id !== submitted?.id)
-        .map((version) => ({
-          id: version.id,
-          heading: titleFor("Resume", version.version_number, version.title),
-        }))}
-      emptyLabel="No resume versions saved for this application yet."
-      submittedEmptyLabel="No resume has been marked as submitted for this role yet."
-    />
-  );
-}
-
-function CoverLetterTab({
-  submitted,
-  all,
-}: {
-  submitted: CoverLetter | null;
-  all: CoverLetter[];
-}) {
-  return (
-    <DocumentVersions
-      submitted={
-        submitted
-          ? {
-              heading: titleFor("Cover letter", submitted.version_number, submitted.title),
-              submittedAt: submitted.submitted_at,
-              content: submitted.content,
-              filePath: submitted.file_path,
-            }
-          : null
-      }
-      others={all
-        .filter((letter) => letter.id !== submitted?.id)
-        .map((letter) => ({
-          id: letter.id,
-          heading: titleFor("Cover letter", letter.version_number, letter.title),
-        }))}
-      emptyLabel="No cover letters saved for this application yet."
-      submittedEmptyLabel="No cover letter has been marked as submitted for this role yet."
-    />
-  );
-}
-
-type SubmittedDoc = {
-  heading: string;
-  submittedAt: string | null;
-  content: string | null;
-  filePath: string | null;
-};
-
-function DocumentVersions({
-  submitted,
-  others,
-  emptyLabel,
-  submittedEmptyLabel,
-}: {
-  submitted: SubmittedDoc | null;
-  others: { id: string; heading: string }[];
-  emptyLabel: string;
-  submittedEmptyLabel: string;
-}) {
-  const hasAny = submitted !== null || others.length > 0;
-
-  if (!hasAny) {
-    return <EmptyState>{emptyLabel}</EmptyState>;
-  }
-
   return (
     <div className="grid gap-5">
-      {submitted ? (
-        <div className="grid gap-2">
-          <div className="flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-3">
+        <MessageSquareText aria-hidden className="size-5 text-zinc-400" />
+        <h3 className="text-base font-bold text-zinc-100">Activity</h3>
+      </div>
+
+      <div className="grid gap-4">
+        <ActivityEntry
+          initials={initialsFor(application.companyName)}
+          title={`Added ${application.companyName} to ${statusLabels[application.status]}`}
+          time={safeFormatDateTime(application.createdAt) ?? "Unknown"}
+        />
+        <ActivityEntry
+          initials="JM"
+          title="Updated application details"
+          time={safeFormatDateTime(application.updatedAt) ?? "Unknown"}
+        />
+        {submittedResume ? (
+          <ActivityEntry
+            initials="RS"
+            title={`Submitted resume v${submittedResume.version_number}`}
+            time={
+              safeFormatDateTime(submittedResume.submitted_at) ??
+              "Marked as submitted"
+            }
+          />
+        ) : null}
+        {submittedCoverLetter ? (
+          <ActivityEntry
+            initials="CL"
+            title={`Submitted cover letter v${submittedCoverLetter.version_number}`}
+            time={
+              safeFormatDateTime(submittedCoverLetter.submitted_at) ??
+              "Marked as submitted"
+            }
+          />
+        ) : null}
+      </div>
+
+      {application.notes ? (
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
+          <p className="text-sm font-semibold text-zinc-200">Latest note</p>
+          <p className="mt-2 line-clamp-5 text-sm leading-6 text-zinc-400">
+            {application.notes}
+          </p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function ActivityEntry({
+  initials,
+  time,
+  title,
+}: {
+  initials: string;
+  time: string;
+  title: string;
+}) {
+  return (
+    <div className="flex gap-3">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cyan-500 text-xs font-bold text-zinc-950">
+        {initials}
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-semibold leading-5 text-zinc-200">{title}</p>
+        <p className="mt-0.5 text-xs text-sky-300">{time}</p>
+      </div>
+    </div>
+  );
+}
+
+function DocumentVersions({
+  emptyLabel,
+  heading,
+  items,
+  submitted,
+  submittedEmptyLabel,
+}: {
+  emptyLabel: string;
+  heading: string;
+  items: DocumentItem[];
+  submitted: DocumentItem | null;
+  submittedEmptyLabel: string;
+}) {
+  return (
+    <div className="grid gap-5">
+      <section className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-zinc-200">Submitted</p>
+          {submitted ? (
             <Badge
               variant="outline"
-              className="border-emerald-500/40 text-emerald-600"
+              className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
             >
+              <CheckCircle2 aria-hidden className="size-3" />
               Submitted
             </Badge>
-            <span className="text-sm font-medium">{submitted.heading}</span>
-            {submitted.submittedAt ? (
-              <span className="text-xs text-muted-foreground">
-                {formatDateTime(submitted.submittedAt)}
-              </span>
-            ) : null}
-          </div>
-          {submitted.filePath ? (
-            <FileAttachment filePath={submitted.filePath} />
           ) : null}
-          <DocumentText
-            value={submitted.content}
-            emptyLabel="This version has no text content saved."
-          />
         </div>
-      ) : (
-        <EmptyState>{submittedEmptyLabel}</EmptyState>
-      )}
 
-      {others.length ? (
-        <div className="grid gap-2">
-          <Separator />
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Other versions
-          </p>
-          <ul className="grid gap-1.5">
-            {others.map((item) => (
+        {submitted ? (
+          <div className="mt-3 grid gap-3">
+            <DocumentHeader item={submitted} />
+            <FileAttachment filePath={submitted.file_path ?? null} />
+            <DocumentText
+              value={submitted.content ?? null}
+              emptyLabel="This version has no text content saved."
+            />
+          </div>
+        ) : (
+          <EmptyState>{submittedEmptyLabel}</EmptyState>
+        )}
+      </section>
+
+      <section className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+        <p className="text-sm font-semibold text-zinc-200">{heading}</p>
+        {items.length ? (
+          <ul className="mt-3 grid gap-2">
+            {items.map((item) => (
               <li
                 key={item.id}
-                className="rounded-md border border-border/70 px-3 py-2 text-sm text-muted-foreground"
+                className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3"
               >
-                {item.heading}
+                <DocumentHeader item={item} />
               </li>
             ))}
           </ul>
-        </div>
+        ) : (
+          <EmptyState>{emptyLabel}</EmptyState>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function DocumentHeader({ item }: { item: DocumentItem }) {
+  const submittedLabel = safeFormatDate(item.submitted_at);
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <p className="min-w-0 truncate text-sm font-medium text-zinc-200">
+        Version {item.version_number}
+        {item.title ? ` · ${item.title}` : ""}
+      </p>
+      {submittedLabel ? (
+        <span className="shrink-0 text-xs text-zinc-500">
+          {submittedLabel}
+        </span>
       ) : null}
     </div>
   );
 }
 
-function FileAttachment({ filePath }: { filePath: string }) {
-  const fileName = filePath.split("/").pop() || filePath;
+function FileAttachment({ filePath }: { filePath: string | null }) {
+  if (!filePath) {
+    return null;
+  }
+
+  const fileName = filePath.split("/").filter(Boolean).at(-1) ?? "Attachment";
+
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
-      <span className="flex min-w-0 items-center gap-2 text-sm">
-        <FileText aria-hidden className="size-4 shrink-0 text-muted-foreground" />
-        <span className="truncate">{fileName}</span>
-      </span>
-      <Badge variant="secondary" className="shrink-0">
+    <p className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-300">
+      <FileText aria-hidden className="size-4 shrink-0 text-zinc-500" />
+      <span className="min-w-0 truncate">{fileName}</span>
+      <Badge variant="secondary" className="ml-auto shrink-0">
         File
       </Badge>
-    </div>
+    </p>
   );
 }
 
 function DocumentText({
-  value,
   emptyLabel,
+  value,
 }: {
-  value: string | null;
   emptyLabel: string;
+  value: string | null;
 }) {
-  if (!value?.trim()) {
+  if (!value) {
     return <EmptyState>{emptyLabel}</EmptyState>;
   }
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 p-4">
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-        {value}
-      </p>
-    </div>
-  );
-}
 
-function Section({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
   return (
-    <div className="grid gap-1.5">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-        {title}
-      </p>
-      {children}
+    <div className="max-h-[28rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 text-sm leading-6 text-zinc-300">
+      {value}
     </div>
   );
 }
@@ -478,52 +558,63 @@ function InfoTile({
 }: {
   icon: React.ReactNode;
   label: string;
-  value: string;
+  value: string | null;
 }) {
   return (
-    <div className="grid gap-1 rounded-lg border border-border p-3">
-      <span className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+    <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase text-zinc-500">
         {icon}
         {label}
-      </span>
-      <span className="text-sm font-medium">{value}</span>
+      </p>
+      <p className="mt-2 min-h-5 text-sm font-medium text-zinc-200">
+        {value || "Not set"}
+      </p>
     </div>
   );
 }
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-center rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-      <span className="flex flex-col items-center gap-2">
-        <NotebookPen aria-hidden className="size-5 opacity-50" />
-        {children}
-      </span>
+    <div className="mt-3 grid place-items-center rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-4 py-8 text-center text-sm text-zinc-500">
+      <NotebookPen aria-hidden className="mb-2 size-5 opacity-60" />
+      {children}
     </div>
   );
 }
 
-function titleFor(prefix: string, versionNumber: number, title: string | null) {
-  return `${prefix} v${versionNumber}${title ? ` · ${title}` : ""}`;
-}
-
-function DrawerSkeleton({ loading }: { loading: boolean }) {
+function ModalSkeleton() {
   return (
-    <div aria-busy={loading} className="grid gap-5 p-6">
-      <Skeleton className="h-5 w-24 rounded-full" />
-      <Skeleton className="h-7 w-3/4" />
-      <Skeleton className="h-5 w-1/2" />
-      <div className="flex gap-2">
-        <Skeleton className="h-8 w-24" />
-        <Skeleton className="h-8 w-24" />
+    <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="space-y-5 p-6">
+        <Skeleton className="h-6 w-28 bg-zinc-800" />
+        <Skeleton className="h-10 w-3/4 bg-zinc-800" />
+        <Skeleton className="h-5 w-48 bg-zinc-800" />
+        <div className="flex gap-2">
+          <Skeleton className="h-9 w-24 bg-zinc-800" />
+          <Skeleton className="h-9 w-24 bg-zinc-800" />
+          <Skeleton className="h-9 w-20 bg-zinc-800" />
+        </div>
+        <Skeleton className="h-10 w-full bg-zinc-800" />
+        <Skeleton className="h-48 w-full bg-zinc-800" />
+        <Skeleton className="h-32 w-full bg-zinc-800" />
       </div>
-      <Skeleton className="h-px w-full" />
-      <div className="grid grid-cols-2 gap-3">
-        <Skeleton className="h-16 w-full rounded-lg" />
-        <Skeleton className="h-16 w-full rounded-lg" />
-        <Skeleton className="h-16 w-full rounded-lg" />
-        <Skeleton className="h-16 w-full rounded-lg" />
+      <div className="space-y-4 border-t border-zinc-700 bg-zinc-950/70 p-4 lg:border-t-0 lg:border-l">
+        <Skeleton className="h-6 w-32 bg-zinc-800" />
+        <Skeleton className="h-14 w-full bg-zinc-800" />
+        <Skeleton className="h-14 w-full bg-zinc-800" />
+        <Skeleton className="h-28 w-full bg-zinc-800" />
       </div>
-      <Skeleton className="h-32 w-full rounded-lg" />
     </div>
   );
+}
+
+function initialsFor(value: string) {
+  const initials = value
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+
+  return initials || "JM";
 }

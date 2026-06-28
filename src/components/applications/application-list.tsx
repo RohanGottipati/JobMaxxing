@@ -32,14 +32,14 @@ export function ApplicationList({
 
   return (
     <div className="grid gap-5">
-      <form className="grid gap-2 rounded-lg border border-border/70 bg-card p-3 shadow-xs sm:grid-cols-[minmax(0,1fr)_12rem_auto_auto] sm:items-center">
+      <form className="grid gap-3 rounded-lg border border-border/70 bg-card p-4 shadow-xs sm:grid-cols-[minmax(0,1fr)_10rem_auto_auto] sm:items-center sm:gap-3">
             <Input
               name="q"
               defaultValue={query}
               placeholder="Search company or job title"
               className="h-9"
             />
-            <Select name="status" defaultValue={status}>
+            <Select name="status" defaultValue={status} className="h-9">
               <option value="all">All statuses</option>
               {applicationStatuses.map((item) => (
                 <option key={item} value={item}>
@@ -47,12 +47,12 @@ export function ApplicationList({
                 </option>
               ))}
             </Select>
-            <Button type="submit" size="sm">
+            <Button type="submit" size="sm" className="h-9 px-4">
               Search
             </Button>
             <Link
               href="/applications"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 px-4")}
             >
               Reset
             </Link>

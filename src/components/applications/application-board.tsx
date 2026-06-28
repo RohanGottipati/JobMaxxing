@@ -2,20 +2,20 @@
 
 import { useId, useMemo, useState } from "react";
 import {
-  DndContext,
-  DragOverlay,
   closestCorners,
   defaultDropAnimationSideEffects,
+  DndContext,
+  DragOverlay,
   type DropAnimation,
 } from "@dnd-kit/core";
 
 import { ApplicationCardFace } from "@/components/applications/application-card";
 import { ApplicationColumn } from "@/components/applications/application-column";
 import { ApplicationDetailsDrawer } from "@/components/applications/application-details-drawer";
-import { useApplicationBoard } from "@/components/applications/use-application-board";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { applicationStatuses } from "@/lib/applications/types";
 import type { ApplicationStatus, JobApplication } from "@/lib/applications/types";
+import { applicationStatuses } from "@/lib/applications/types";
+import { useApplicationBoard } from "@/components/applications/use-application-board";
 
 type ApplicationBoardProps = {
   applications: JobApplication[];
@@ -24,7 +24,11 @@ type ApplicationBoardProps = {
 
 const dropAnimation: DropAnimation = {
   sideEffects: defaultDropAnimationSideEffects({
-    styles: { active: { opacity: "0.4" } },
+    styles: {
+      active: {
+        opacity: "0.4",
+      },
+    },
   }),
 };
 
@@ -32,24 +36,24 @@ export function ApplicationBoard({
   applications,
   visibleStatus,
 }: ApplicationBoardProps) {
-  const {
-    columns,
-    activeCard,
-    sensors,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-    handleDragCancel,
-    requestOpen,
-  } = useApplicationBoard(applications);
+  const boardId = useId();
   const [openId, setOpenId] = useState<string | null>(null);
-  const dndContextId = useId();
+  const {
+    activeCard,
+    columns,
+    handleDragCancel,
+    handleDragEnd,
+    handleDragOver,
+    handleDragStart,
+    requestOpen,
+    sensors,
+  } = useApplicationBoard(applications);
 
-  const visibleColumns = useMemo(
+  const visibleStatuses = useMemo(
     () =>
-      visibleStatus === "all"
-        ? applicationStatuses
-        : applicationStatuses.filter((status) => status === visibleStatus),
+      applicationStatuses.filter(
+        (status) => visibleStatus === "all" || status === visibleStatus,
+      ),
     [visibleStatus],
   );
 
@@ -58,9 +62,10 @@ export function ApplicationBoard({
   }
 
   return (
-    <>
+    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-xl">
+
       <DndContext
-        id={dndContextId}
+        id={boardId}
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
@@ -68,13 +73,13 @@ export function ApplicationBoard({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <ScrollArea className="-mx-4 pb-3 md:mx-0">
-          <div className="flex w-max gap-2.5 px-4 md:px-0">
-            {visibleColumns.map((status) => (
+        <ScrollArea className="relative h-[calc(100dvh-9.5rem)] min-h-[32rem]">
+          <div className="flex min-w-max gap-3 p-3">
+            {visibleStatuses.map((status) => (
               <ApplicationColumn
                 key={status}
                 status={status}
-                applications={columns[status]}
+                applications={columns[status] ?? []}
                 onOpen={handleOpen}
               />
             ))}
@@ -84,9 +89,7 @@ export function ApplicationBoard({
 
         <DragOverlay dropAnimation={dropAnimation}>
           {activeCard ? (
-            <div className="w-64">
-              <ApplicationCardFace application={activeCard} overlay />
-            </div>
+            <ApplicationCardFace application={activeCard} overlay />
           ) : null}
         </DragOverlay>
       </DndContext>
@@ -94,9 +97,11 @@ export function ApplicationBoard({
       <ApplicationDetailsDrawer
         applicationId={openId}
         onOpenChange={(open) => {
-          if (!open) setOpenId(null);
+          if (!open) {
+            setOpenId(null);
+          }
         }}
       />
-    </>
+    </div>
   );
 }

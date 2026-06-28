@@ -25,14 +25,14 @@ export default async function EditApplicationPage({
     <AppPage size="form">
       <AppPageHeader
         title="Edit application"
-        description="Update status, notes, and role details for this tracked job."
+        description="Update the details for this job application."
       />
 
       <ApplicationForm
         action={updateApplication}
         application={application}
         title={`${application.companyName} · ${application.jobTitle}`}
-        description="Update status, notes, and role details for this tracked job."
+        description="Make any necessary changes to keep your application data current."
         submitLabel="Save changes"
         cancelHref={`/applications/${application.id}`}
       />

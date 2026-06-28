@@ -20,7 +20,7 @@ export default async function NewApplicationPage({
     <AppPage size="form">
       <AppPageHeader
         title="Add application"
-        description="Capture the role details, status, source link, and notes."
+        description="Add a new job application with all the essential details."
       />
 
       {params.error ? (
@@ -35,7 +35,7 @@ export default async function NewApplicationPage({
         action={createApplication}
         defaultStatus={defaultStatus}
         title="Application details"
-        description="Status defaults to Saved until you submit or move the application forward."
+        description="Add the essential information for tracking this opportunity."
         submitLabel="Create application"
         cancelHref="/applications"
       />

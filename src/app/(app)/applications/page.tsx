@@ -30,9 +30,9 @@ export default async function ApplicationsPage({
     <AppPage>
       <AppPageHeader
         title="Applications"
-        description="Search and filter your tracked jobs by company, title, and status."
+        description="Track and manage your job applications with ease."
         action={
-          <Link href="/applications/new" className={buttonVariants()}>
+          <Link href="/applications/new" className={buttonVariants({ size: "sm" })}>
             Add application
           </Link>
         }

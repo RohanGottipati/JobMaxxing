@@ -144,13 +144,13 @@ export function ApplicationForm({
             />
           </Field>
 
-          <div className="flex flex-wrap gap-3">
-            <SubmitButton type="submit" pendingLabel="Saving...">
+          <div className="flex gap-3 pt-2">
+            <SubmitButton type="submit" pendingLabel="Saving..." className="h-10">
               {submitLabel}
             </SubmitButton>
             <Link
               href={cancelHref}
-              className={cn(buttonVariants({ variant: "outline" }))}
+              className={cn(buttonVariants({ variant: "outline" }), "h-10")}
             >
               Cancel
             </Link>
@@ -171,9 +171,9 @@ type FieldProps = {
 function Field({ label, htmlFor, required, children }: FieldProps) {
   return (
     <div className="grid gap-2">
-      <Label htmlFor={htmlFor}>
+      <Label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
-        {required ? <span> *</span> : null}
+        {required ? <span className="text-destructive"> *</span> : null}
       </Label>
       {children}
     </div>

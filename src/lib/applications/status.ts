@@ -65,8 +65,24 @@ export function parseApplicationStatus(
     : null;
 }
 
-export function formatDate(value: string | null | undefined) {
+function parseFiniteDate(value: string | null | undefined, dateOnly = false) {
   if (!value) {
+    return null;
+  }
+
+  const date = new Date(dateOnly ? `${value}T00:00:00` : value);
+
+  if (!Number.isFinite(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+export function formatDate(value: string | null | undefined) {
+  const date = parseFiniteDate(value, true);
+
+  if (!date) {
     return "Not set";
   }
 
@@ -74,11 +90,13 @@ export function formatDate(value: string | null | undefined) {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(date);
 }
 
 export function formatDateTime(value: string | null | undefined) {
-  if (!value) {
+  const date = parseFiniteDate(value);
+
+  if (!date) {
     return "Not set";
   }
 
@@ -86,5 +104,5 @@ export function formatDateTime(value: string | null | undefined) {
     month: "short",
     day: "numeric",
     year: "numeric",
-  }).format(new Date(value));
+  }).format(date);
 }
