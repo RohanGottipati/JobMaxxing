@@ -16,6 +16,8 @@ export type ApplicationStatus =
   | "rejected"
   | "withdrawn";
 
+export type ProfileExperienceKind = "work" | "volunteer";
+
 export type Database = {
   public: {
     Tables: {
@@ -24,6 +26,10 @@ export type Database = {
           id: string;
           full_name: string | null;
           headline: string | null;
+          phone: string | null;
+          location: string | null;
+          summary: string | null;
+          additional_info: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -31,6 +37,10 @@ export type Database = {
           id: string;
           full_name?: string | null;
           headline?: string | null;
+          phone?: string | null;
+          location?: string | null;
+          summary?: string | null;
+          additional_info?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -38,6 +48,235 @@ export type Database = {
           id?: string;
           full_name?: string | null;
           headline?: string | null;
+          phone?: string | null;
+          location?: string | null;
+          summary?: string | null;
+          additional_info?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_links: {
+        Row: {
+          id: string;
+          user_id: string;
+          label: string;
+          url: string;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          label?: string;
+          url?: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          label?: string;
+          url?: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_experiences: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: ProfileExperienceKind;
+          job_title: string;
+          company: string;
+          location: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          is_current: boolean;
+          responsibilities: string | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind?: ProfileExperienceKind;
+          job_title?: string;
+          company?: string;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_current?: boolean;
+          responsibilities?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          kind?: ProfileExperienceKind;
+          job_title?: string;
+          company?: string;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_current?: boolean;
+          responsibilities?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_education: {
+        Row: {
+          id: string;
+          user_id: string;
+          school: string;
+          degree: string | null;
+          field: string | null;
+          location: string | null;
+          start_date: string | null;
+          end_date: string | null;
+          is_current: boolean;
+          details: string | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          school?: string;
+          degree?: string | null;
+          field?: string | null;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_current?: boolean;
+          details?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          school?: string;
+          degree?: string | null;
+          field?: string | null;
+          location?: string | null;
+          start_date?: string | null;
+          end_date?: string | null;
+          is_current?: boolean;
+          details?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_projects: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          date: string | null;
+          url: string | null;
+          description: string | null;
+          tech_stack: string | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title?: string;
+          date?: string | null;
+          url?: string | null;
+          description?: string | null;
+          tech_stack?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          date?: string | null;
+          url?: string | null;
+          description?: string | null;
+          tech_stack?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_skills: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name?: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      profile_achievements: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string;
+          description: string | null;
+          date: string | null;
+          position: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title?: string;
+          description?: string | null;
+          date?: string | null;
+          position?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string;
+          description?: string | null;
+          date?: string | null;
+          position?: number;
           created_at?: string;
           updated_at?: string;
         };
@@ -332,6 +571,7 @@ export type Database = {
     };
     Enums: {
       application_status: ApplicationStatus;
+      profile_experience_kind: ProfileExperienceKind;
     };
     CompositeTypes: Record<string, never>;
   };
