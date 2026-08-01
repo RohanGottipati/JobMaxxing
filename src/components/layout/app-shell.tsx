@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent, type ReactNode } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Plus, Sparkles } from "lucide-react";
 
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { MaxwellPanel } from "@/components/maxwell/maxwell-panel";
@@ -12,10 +10,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
-import { buttonVariants } from "@/components/ui/button";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -92,23 +87,18 @@ export function AppShell({ children, user }: AppShellProps) {
 
   return (
     <SidebarProvider>
-      <AppSidebar user={user} />
+      <AppSidebar
+        user={user}
+        maxwellOpen={maxwellOpen}
+        onMaxwellToggle={() => setOpen(!maxwellOpen)}
+      />
       <div className="flex min-w-0 flex-1 overflow-hidden">
       <SidebarInset className="min-w-0 overflow-hidden">
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/85 px-3 backdrop-blur-md sm:px-5">
-          <SidebarTrigger className="-ml-1 text-muted-foreground" />
-          <Separator orientation="vertical" className="mr-1 h-4" />
+          <SidebarTrigger className="-ml-1 text-muted-foreground md:hidden" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[0.82rem] font-medium">{title}</p>
           </div>
-          <Link href="/applications/new" className={`${buttonVariants({ size: "sm" })} hidden sm:inline-flex`}>
-            <Plus aria-hidden />
-            Add application
-          </Link>
-          <Button variant={maxwellOpen ? "secondary" : "ghost"} size="sm" onClick={() => setOpen(!maxwellOpen)} aria-label="Toggle Maxwell assistant" aria-expanded={maxwellOpen}>
-            <Sparkles aria-hidden />
-            <span className="hidden sm:inline">Maxwell</span>
-          </Button>
           <ThemeToggle className="text-muted-foreground" />
         </header>
         <div className="surface-grid flex min-h-0 flex-1 flex-col">

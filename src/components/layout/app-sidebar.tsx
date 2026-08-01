@@ -13,12 +13,14 @@ import {
   LogOut,
   PanelLeftClose,
   Plus,
+  Sparkles,
   UserRound,
 } from "lucide-react";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
-import { Brand } from "@/components/layout/brand";
+import { Brand, BrandMark } from "@/components/layout/brand";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,8 +41,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarRail,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigation = [
@@ -65,13 +67,24 @@ function initials(value: string) {
 
 export function AppSidebar({
   user,
+  maxwellOpen,
+  onMaxwellToggle,
 }: {
   user: { email: string | null; name: string };
+  maxwellOpen: boolean;
+  onMaxwellToggle: () => void;
 }) {
   const pathname = usePathname();
+  const { isMobile, state, setOpenMobile } = useSidebar();
+  const collapsed = !isMobile && state === "collapsed";
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
+  }
+
+  function toggleMaxwell() {
+    setOpenMobile(false);
+    onMaxwellToggle();
   }
 
   function renderItems(items: typeof navigation) {
@@ -95,25 +108,24 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" variant="sidebar" className="border-sidebar-border">
       <SidebarHeader className="gap-0 p-0">
-        <div className="flex h-14 items-center justify-between gap-2 border-b border-sidebar-border px-4 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2">
-          <Brand href="/dashboard" className="group-data-[collapsible=icon]:hidden" />
-          <Brand href="/dashboard" compact className="hidden group-data-[collapsible=icon]:inline-flex" />
-          <SidebarTrigger className="shrink-0 text-sidebar-foreground/55 group-data-[collapsible=icon]:hidden">
-            <PanelLeftClose aria-hidden />
+        <div className={cn("flex h-14 items-center border-b border-sidebar-border", collapsed ? "justify-center px-2" : "justify-between gap-2 px-4")}>
+          {!collapsed ? <Brand href="/dashboard" /> : null}
+          <SidebarTrigger className="shrink-0 text-sidebar-foreground/55">
+            {collapsed ? <BrandMark /> : <PanelLeftClose aria-hidden />}
           </SidebarTrigger>
         </div>
 
-        <SidebarMenu className="border-b border-sidebar-border px-3 py-3 group-data-[collapsible=icon]:px-2">
+        <SidebarMenu className={cn("border-b border-sidebar-border py-3", collapsed ? "items-center px-2" : "px-3")}>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
                   size="lg"
                   tooltip="Create new"
-                  className="h-9 rounded-md bg-primary px-3 text-primary-foreground shadow-[0_1px_1px_rgb(41_40_36/0.08)] hover:bg-primary/90 hover:text-primary-foreground"
+                  className={cn("h-9 rounded-md bg-primary px-3 text-primary-foreground shadow-[0_1px_1px_rgb(41_40_36/0.08)] hover:bg-primary/90 hover:text-primary-foreground", collapsed && "justify-center gap-0 px-0")}
                 >
                   <Plus aria-hidden />
-                  <span className="font-semibold">Create New</span>
+                  {!collapsed ? <span className="font-semibold">Create New</span> : null}
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="start" className="w-56">
@@ -147,17 +159,32 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
 
-      <SidebarContent className="px-3 py-3 group-data-[collapsible=icon]:px-2">
+      <SidebarContent className={cn("py-3", collapsed ? "px-2" : "px-3")}>
         <SidebarGroup className="p-0">
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>{renderItems(navigation)}</SidebarMenu>
+            <SidebarMenu className={cn(collapsed && "items-center")}>
+              {renderItems(navigation)}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={maxwellOpen}
+                  tooltip="Maxwell"
+                  aria-label="Toggle Maxwell assistant"
+                  aria-expanded={maxwellOpen}
+                  onClick={toggleMaxwell}
+                  className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
+                >
+                  <Sparkles aria-hidden className="size-4" />
+                  <span>Maxwell</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-2.5">
-        <SidebarMenu>
+        <SidebarMenu className={cn(collapsed && "items-center")}>
           <SidebarMenuItem>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -205,7 +232,6 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }
