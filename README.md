@@ -26,6 +26,8 @@ cp .env.example .env.local
 
 Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your [Supabase project API settings](https://supabase.com/dashboard/project/_/settings/api).
 
+Maxwell, the built-in workspace assistant, also needs a [Gemini API key](https://aistudio.google.com/app/apikey). Set it as `GEMINI_API_KEY`; it is read only by server routes and must never use a `NEXT_PUBLIC_` prefix. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`.
+
 ### 3. Set up the database
 
 Link your Supabase project and push migrations:
@@ -51,6 +53,20 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Maxwell workspace assistant
+
+Open **Maxwell** from the app header. Conversations are private, saved to your account, and available from every authenticated page.
+
+Maxwell can:
+
+- import a job description with a PDF/DOCX resume and cover letter into one linked application package;
+- search and assess your applications, career profile, resumes, and cover letters;
+- create or update application cards and editable plain-text, Markdown, or LaTeX document source;
+- flag unsupported claims in generated documents for review;
+- move cards, mark documents submitted, and manage saved conversation threads.
+
+Explicit create or update instructions run automatically. Ambiguous writes ask for confirmation, and deletes always require confirmation. Maxwell does not browse the web, submit job applications, send email, or compile PDF/DOCX output.
+
 ## Project structure
 
 ```
@@ -59,6 +75,7 @@ src/
   components/           # UI and feature components
   lib/supabase/         # Supabase client helpers (server + browser)
   lib/applications/     # Application/package data helpers, types, repository
+  lib/maxwell/          # Gemini orchestration, tools, policies, and persistence
   types/                # Database types
 supabase/
   migrations/           # SQL migrations
@@ -72,6 +89,7 @@ supabase/
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
+| `npm test` | Run focused unit tests |
 | `npm run db:push` | Push migrations to linked Supabase project |
 | `npm run db:reset` | Reset local Supabase database |
 

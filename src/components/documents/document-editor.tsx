@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Copy, FileLock2, Save, Star, Trash2 } from "lucide-react";
+import { CheckCircle2, Copy, Download, FileLock2, Save, Star, Trash2, TriangleAlert } from "lucide-react";
 
 import { DocumentFilePanel } from "@/components/documents/document-file-panel";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -44,12 +44,14 @@ export function DocumentEditor({
 }) {
   const libraryHref = model.kind === "cover_letter" ? "/cover-letters" : "/resumes";
   const typeLabel = model.kind === "master_resume" ? "Master resume" : model.kind === "resume_version" ? "Tailored resume" : "Cover letter";
+  const metadata = model.generationMetadata && typeof model.generationMetadata === "object" && !Array.isArray(model.generationMetadata) ? model.generationMetadata : {};
+  const unsupportedClaims = Array.isArray(metadata.unsupported_claims) ? metadata.unsupported_claims.filter((claim): claim is string => typeof claim === "string") : [];
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.62fr)]">
       <Card className="min-w-0">
         <CardHeader className="border-b border-border bg-parchment/35">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{typeLabel}</Badge>{model.versionNumber ? <Badge variant="secondary">Version {model.versionNumber}</Badge> : null}{isDefault ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}{model.isSubmitted ? <Badge className="bg-success/12 text-success hover:bg-success/12"><CheckCircle2 aria-hidden className="mr-1 size-3" />Submitted</Badge> : null}</div><CardTitle className="mt-3 text-xl">{model.title || typeLabel}</CardTitle><CardDescription className="mt-1">{model.application ? `${model.application.companyName} · ${model.application.jobTitle}` : "Reusable across applications"}</CardDescription></div>
+            <div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">{typeLabel}</Badge><Badge variant="secondary">{model.contentFormat === "plain_text" ? "Plain text" : model.contentFormat === "markdown" ? "Markdown" : "LaTeX"}</Badge>{model.versionNumber ? <Badge variant="secondary">Version {model.versionNumber}</Badge> : null}{isDefault ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}{model.isSubmitted ? <Badge className="bg-success/12 text-success hover:bg-success/12"><CheckCircle2 aria-hidden className="mr-1 size-3" />Submitted</Badge> : null}</div><CardTitle className="mt-3 text-xl">{model.title || typeLabel}</CardTitle><CardDescription className="mt-1">{model.application ? `${model.application.companyName} · ${model.application.jobTitle}` : "Reusable across applications"}</CardDescription></div>
             <Link href={libraryHref} className={buttonVariants({ variant: "outline", size: "sm" })}>Back to library</Link>
           </div>
         </CardHeader>
@@ -57,6 +59,7 @@ export function DocumentEditor({
           {state?.error ? <Alert variant="destructive"><AlertDescription>Check the title and try again.</AlertDescription></Alert> : null}
           {state?.saved ? <Alert><AlertDescription>Your changes were saved.</AlertDescription></Alert> : null}
           {model.isSubmitted ? <Alert><FileLock2 aria-hidden /><AlertDescription>This is the exact submitted version, so its text and file are locked. Duplicate it to make changes.</AlertDescription></Alert> : null}
+          {unsupportedClaims.length ? <Alert variant="destructive"><TriangleAlert aria-hidden /><AlertDescription><span className="font-medium">Review Maxwell&apos;s unsupported claims before using this document:</span><ul className="mt-2 list-disc space-y-1 pl-5">{unsupportedClaims.map((claim) => <li key={claim}>{claim}</li>)}</ul></AlertDescription></Alert> : null}
           <form action={saveAction} className="grid gap-5">
             <div className="grid gap-1.5"><Label htmlFor="document-title">{model.kind === "master_resume" ? "Name" : "Title"}</Label><Input id="document-title" name={model.kind === "master_resume" ? "name" : "title"} defaultValue={model.title} placeholder={model.kind === "master_resume" ? "e.g. Product engineering master" : "e.g. Tailored for platform team"} disabled={model.isSubmitted} required /></div>
             {model.kind === "resume_version" ? <div className="grid gap-1.5"><Label htmlFor="base_resume_id">Based on</Label><Select id="base_resume_id" name="base_resume_id" defaultValue={model.baseResumeId ?? ""} disabled={model.isSubmitted}><option value="">No master resume</option>{masterResumes.map((resume) => <option key={resume.id} value={resume.id}>{resume.name}{resume.is_default ? " (default)" : ""}</option>)}</Select></div> : null}
@@ -70,6 +73,7 @@ export function DocumentEditor({
         <Card><CardHeader><CardTitle>Private attachment</CardTitle><CardDescription>PDF or DOCX, up to 10 MB. Preview links expire after five minutes.</CardDescription></CardHeader><CardContent><DocumentFilePanel kind={model.kind} id={model.id} userId={userId} filePath={model.filePath} signedUrl={signedUrl} locked={model.isSubmitted} /></CardContent></Card>
         {model.content ? <Card><CardHeader><CardTitle>Text preview</CardTitle><CardDescription>A clean reading view of the saved text.</CardDescription></CardHeader><CardContent><div className="paper-rule max-h-[30rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-parchment/45 p-4 text-sm leading-8 text-muted-foreground">{model.content}</div></CardContent></Card> : null}
         <Card><CardHeader><CardTitle>Document actions</CardTitle><CardDescription>Manage this document without losing submitted history.</CardDescription></CardHeader><CardContent className="grid gap-2">
+          {model.content ? <Button asChild variant="outline" className="w-full justify-start"><a href={`/api/documents/${model.kind}/${model.id}/source`}><Download aria-hidden />Download {model.contentFormat === "latex" ? ".tex" : model.contentFormat === "markdown" ? ".md" : ".txt"} source</a></Button> : null}
           {defaultAction && !isDefault ? <form action={defaultAction}><Button type="submit" variant="outline" className="w-full justify-start"><Star aria-hidden />Make default resume</Button></form> : null}
           {submitAction && !model.isSubmitted ? <AlertDialog><AlertDialogTrigger asChild><Button variant="outline" className="w-full justify-start"><CheckCircle2 aria-hidden />Mark as submitted</Button></AlertDialogTrigger><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Mark this document as submitted?</AlertDialogTitle><AlertDialogDescription>This locks the current text and attachment as a permanent record of what you sent. You can duplicate it later to create an editable version.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancel</AlertDialogCancel><form action={submitAction}><Button type="submit" className="w-full">Mark submitted</Button></form></AlertDialogFooter></AlertDialogContent></AlertDialog> : null}
           {duplicateAction ? <form action={duplicateAction}><Button type="submit" variant="outline" className="w-full justify-start"><Copy aria-hidden />{model.isSubmitted ? "Duplicate to edit" : "Duplicate document"}</Button></form> : null}

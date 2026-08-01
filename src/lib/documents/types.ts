@@ -3,6 +3,7 @@ import type {
   Resume,
   ResumeVersion,
 } from "@/lib/applications/package-types";
+import type { DocumentContentFormat, Json } from "@/types/database";
 
 export type DocumentKind =
   | "master_resume"
@@ -38,6 +39,8 @@ export type DocumentEditorModel = {
   kind: DocumentKind;
   title: string;
   content: string;
+  contentFormat: DocumentContentFormat;
+  generationMetadata: Json;
   filePath: string | null;
   isSubmitted: boolean;
   versionNumber: number | null;

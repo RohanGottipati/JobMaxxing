@@ -15,6 +15,7 @@ export default async function AppLayout({
   return (
     <AppShell
       user={{
+        id: user.id,
         email: user.email,
         name: profile?.full_name?.trim() || user.email?.split("@")[0] || "User",
       }}
