@@ -1,59 +1,20 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
-import { PageShell } from "@/components/layout/page-shell";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/current-user";
 
-type LoginPageProps = {
-  searchParams: Promise<{ error?: string }>;
-};
+export const metadata: Metadata = { title: "Log in" };
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const user = await getCurrentUser();
-
-  if (user) {
-    redirect("/applications");
-  }
-
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  if (await getCurrentUser()) redirect("/dashboard");
   const params = await searchParams;
-
-  return (
-    <PageShell size="narrow" className="items-center justify-center py-10 sm:py-12">
-      <Card className="w-full">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Log in</CardTitle>
-          <CardDescription>
-            Welcome back. Enter your email and password to continue.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {params.error ? (
-            <Alert variant="destructive">
-              <AlertDescription>
-                Sign-in failed. Please try again.
-              </AlertDescription>
-            </Alert>
-          ) : null}
-
-          <LoginForm mode="login" />
-
-          <p className="text-center text-sm text-muted-foreground">
-            New here?{" "}
-            <Link href="/signup" className="underline underline-offset-4">
-              Create an account
-            </Link>
-          </p>
-        </CardContent>
-      </Card>
-    </PageShell>
-  );
+  return <AuthShell title="Welcome back" description="Log in to pick up exactly where you left off." footer={<>New to JobMaxxing? <Link href="/signup" className="font-medium text-foreground underline underline-offset-4">Create an account</Link></>}>
+    {params.error ? <Alert variant="destructive"><AlertDescription>Your sign-in link was invalid or expired. Try again.</AlertDescription></Alert> : null}
+    <LoginForm />
+    <div className="text-right"><Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">Forgot your password?</Link></div>
+  </AuthShell>;
 }

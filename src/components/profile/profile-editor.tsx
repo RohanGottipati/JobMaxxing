@@ -30,6 +30,7 @@ import {
 } from "@/app/(app)/profile/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -41,6 +42,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   AchievementInput,
@@ -119,6 +121,7 @@ const emptyAchievement: AchievementInput = {
 function toPayload(profile: CareerProfile): CareerProfilePayload {
   return {
     fullName: profile.fullName,
+    headline: profile.headline,
     phone: profile.phone,
     location: profile.location,
     summary: profile.summary,
@@ -136,6 +139,7 @@ function toPayload(profile: CareerProfile): CareerProfilePayload {
 function emptyPayload(): CareerProfilePayload {
   return {
     fullName: "",
+    headline: "",
     phone: "",
     location: "",
     summary: "",
@@ -158,6 +162,25 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [isSaving, startSave] = useTransition();
   const [isClearing, startClear] = useTransition();
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    JSON.stringify(toPayload(profile)),
+  );
+  const isDirty = JSON.stringify(data) !== savedSnapshot;
+  const completionChecks = [
+    data.fullName,
+    data.headline,
+    data.phone,
+    data.location,
+    data.links.length,
+    data.experiences.length,
+    data.education.length,
+    data.projects.length,
+    data.skills.length,
+    data.achievements.length,
+  ];
+  const completion = Math.round(
+    (completionChecks.filter(Boolean).length / completionChecks.length) * 100,
+  );
 
   function patch(next: Partial<CareerProfilePayload>) {
     setData((prev) => ({ ...prev, ...next }));
@@ -167,6 +190,7 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
     startSave(async () => {
       try {
         await saveProfileAction(data);
+        setSavedSnapshot(JSON.stringify(data));
         toast.success("Profile saved");
       } catch {
         toast.error("Could not save your profile. Try again.");
@@ -178,7 +202,9 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
     startClear(async () => {
       try {
         await clearProfileAction();
-        setData(emptyPayload());
+        const empty = emptyPayload();
+        setData(empty);
+        setSavedSnapshot(JSON.stringify(empty));
         setConfirmDelete(false);
         toast.success("Profile cleared");
       } catch {
@@ -188,27 +214,20 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-1.5">
-          <h1 className="text-3xl font-semibold tracking-tight">Your profile</h1>
+          <h1 className="text-[1.8rem] font-semibold tracking-[-0.04em]">Your profile</h1>
           <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-            Your profile is your career source of truth. Add your experience in
-            your own words, no formatting needed, and we&apos;ll handle turning
-            it into a polished, tailored resume or cover letter in seconds. The
-            more you add, the better your results.
+            Keep the experience, projects, education, and skills behind every
+            application in one career source of truth.
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setConfirmDelete(true)}
-          >
-            <Trash2 aria-hidden />
-            Delete
-          </Button>
-          <Button size="sm" onClick={handleSave} disabled={isSaving}>
+          <Badge variant={isDirty ? "outline" : "secondary"} className="h-8 px-3">
+            {isDirty ? "Unsaved changes" : "All changes saved"}
+          </Badge>
+          <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>
             {isSaving ? (
               <Loader2 aria-hidden className="animate-spin" />
             ) : (
@@ -219,8 +238,24 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[210px_1fr]">
-        <nav className="lg:sticky lg:top-4 lg:self-start">
+      <Card className="bg-card">
+        <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <span className="font-medium">Profile completeness</span>
+              <span className="text-muted-foreground tabular-nums">{completion}%</span>
+            </div>
+            <Progress value={completion} className="mt-2" />
+          </div>
+          <p className="max-w-md text-xs leading-5 text-muted-foreground">
+            Complete the major sections to keep your application materials ready.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+        <nav className="rounded-xl border border-border bg-card p-2 shadow-paper lg:sticky lg:top-20 lg:self-start">
+          <p className="micro-label mb-2 px-2 pt-1 text-muted-foreground">Profile sections</p>
           <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
             {SECTIONS.map(({ id, label, icon: Icon }) => {
               const isActive = active === id;
@@ -231,10 +266,10 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
                     onClick={() => setActive(id)}
                     aria-current={isActive ? "page" : undefined}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-medium transition-colors",
+                      "relative flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors before:absolute before:left-0 before:top-1/2 before:h-5 before:w-0.5 before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0",
                       isActive
-                        ? "bg-secondary text-foreground"
-                        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground",
+                        ? "bg-accent text-foreground before:opacity-100"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <Icon aria-hidden className="size-4 shrink-0" />
@@ -246,7 +281,8 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
           </ul>
         </nav>
 
-        <div className="min-w-0">
+        <Card className="min-w-0 bg-card">
+          <CardContent>
           {active === "personal" ? (
             <PersonalSection
               data={data}
@@ -305,8 +341,21 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
           {active === "additional" ? (
             <AdditionalSection data={data} patch={patch} />
           ) : null}
-        </div>
+          </CardContent>
+        </Card>
       </div>
+
+      <div className="sticky bottom-3 z-20 ml-auto flex w-fit items-center gap-3 rounded-xl border border-border/70 bg-background/90 p-2 shadow-xl shadow-black/10 backdrop-blur-xl">
+        <span className="hidden px-2 text-xs text-muted-foreground sm:inline">{isDirty ? "You have unsaved changes" : "Profile is up to date"}</span>
+        <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>{isSaving ? <Loader2 aria-hidden className="animate-spin" /> : <Save aria-hidden />}{isSaving ? "Saving…" : "Save profile"}</Button>
+      </div>
+
+      <Card className="border-destructive/20 bg-destructive/[0.025]">
+        <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><p className="text-sm font-medium">Clear career profile</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Remove all profile sections without deleting applications or documents.</p></div>
+          <Button variant="destructive" size="sm" onClick={() => setConfirmDelete(true)}><Trash2 aria-hidden />Clear profile</Button>
+        </CardContent>
+      </Card>
 
       <Dialog open={confirmDelete} onOpenChange={setConfirmDelete}>
         <DialogContent>
@@ -493,6 +542,14 @@ function PersonalSection({
         </Field>
         <Field label="Email" htmlFor="email" required>
           <FieldInput id="email" value={email ?? ""} disabled />
+        </Field>
+        <Field label="Professional headline" htmlFor="headline" className="sm:col-span-2">
+          <FieldInput
+            id="headline"
+            value={data.headline}
+            onChange={(e) => patch({ headline: e.target.value })}
+            placeholder="e.g. Product-minded software engineer"
+          />
         </Field>
         <Field label="Phone" htmlFor="phone">
           <FieldInput

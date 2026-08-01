@@ -8,7 +8,6 @@ import {
   CalendarDays,
   ExternalLink,
   FileCheck,
-  GripVertical,
   MapPin,
   NotebookPen,
   PanelTopOpen,
@@ -57,40 +56,40 @@ export function ApplicationCardFace({
   return (
     <article
       className={cn(
-        "group/card relative w-full overflow-hidden rounded-2xl border border-zinc-700/70 bg-zinc-900/95 text-zinc-100 shadow-[0_1px_0_rgba(0,0,0,0.45)] transition duration-150",
-        "hover:-translate-y-0.5 hover:border-zinc-500 hover:bg-zinc-800/95 hover:shadow-xl hover:shadow-black/30",
-        overlay && "w-72 rotate-[1.5deg] border-zinc-500 shadow-2xl shadow-black/40",
+        "group/card relative w-full overflow-hidden rounded-lg border border-border bg-elevated shadow-paper transition duration-150",
+        "hover:border-border-strong hover:shadow-[0_1px_3px_rgb(41_40_36/0.06)]",
+        overlay && "w-[260px] rotate-[1.5deg] border-primary/40 shadow-[0_12px_32px_-14px_rgb(0_0_0/0.38)]",
       )}
     >
       <div
         aria-hidden
-        className={cn("absolute inset-x-0 top-0 h-1 rounded-t-2xl", accent.dot)}
+        className={cn("absolute inset-y-2 left-0 w-[3px] rounded-r", accent.dot)}
       />
 
       {!overlay && onOpen ? (
         <CardActions application={application} onOpen={onOpen} />
       ) : null}
 
-      <div className="p-3.5">
+      <div className="p-2.5 pl-3">
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-sm leading-5 font-semibold text-zinc-100">
+          <h3 className="line-clamp-2 text-[13px] leading-5 font-semibold">
             {application.jobTitle}
           </h3>
-          <p className="mt-1 truncate text-sm text-zinc-400">
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {application.companyName}
           </p>
         </div>
 
         {application.location ? (
-          <p className="mt-2.5 flex min-w-0 items-center gap-1.5 text-xs text-zinc-400">
+          <p className="mt-2 flex min-w-0 items-center gap-1.5 text-[11.5px] text-muted-foreground">
             <MapPin aria-hidden className="size-3.5 shrink-0" />
             <span className="truncate">{application.location}</span>
           </p>
         ) : null}
 
-        <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="mt-2.5 flex items-center justify-between gap-2">
           {visibleDateLabel ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-zinc-400">
+            <span className="inline-flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
               <CalendarDays aria-hidden className="size-3.5" />
               {visibleDateLabel}
             </span>
@@ -147,7 +146,7 @@ function CardActions({
           <button
             type="button"
             aria-label="Open details"
-            className="grid size-7 place-items-center rounded-lg bg-zinc-800/95 text-zinc-200 shadow-sm ring-1 ring-zinc-700 transition hover:bg-zinc-700"
+            className="grid size-7 place-items-center rounded-md border border-border bg-popover/95 text-muted-foreground shadow-paper transition hover:bg-accent hover:text-foreground"
             onClick={(event) => {
               event.stopPropagation();
               onOpen(application.id);
@@ -164,7 +163,7 @@ function CardActions({
           <Link
             href={`/applications/${application.id}/edit`}
             aria-label="Edit application"
-            className="grid size-7 place-items-center rounded-lg bg-zinc-800/95 text-zinc-200 shadow-sm ring-1 ring-zinc-700 transition hover:bg-zinc-700"
+            className="grid size-7 place-items-center rounded-md border border-border bg-popover/95 text-muted-foreground shadow-paper transition hover:bg-accent hover:text-foreground"
             onClick={stopCardAction}
           >
             <Pencil aria-hidden className="size-3.5" />
@@ -181,7 +180,7 @@ function CardActions({
               target="_blank"
               rel="noreferrer"
               aria-label="Open job post"
-              className="grid size-7 place-items-center rounded-lg bg-zinc-800/95 text-zinc-200 shadow-sm ring-1 ring-zinc-700 transition hover:bg-zinc-700"
+              className="grid size-7 place-items-center rounded-md border border-border bg-popover/95 text-muted-foreground shadow-paper transition hover:bg-accent hover:text-foreground"
               onClick={stopCardAction}
             >
               <ExternalLink aria-hidden className="size-3.5" />
@@ -242,7 +241,7 @@ export const SortableApplicationCard = memo(function SortableApplicationCard({
       style={style}
       aria-label={`${application.jobTitle} at ${application.companyName}. Press Enter to open details.`}
       className={cn(
-        "group/card w-full rounded-2xl outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950",
+        "group/card w-full rounded-lg outline-none transition duration-150 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         isDragging && "opacity-40",
       )}
       {...attributes}

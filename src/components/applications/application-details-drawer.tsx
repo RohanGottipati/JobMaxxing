@@ -81,7 +81,7 @@ export function ApplicationDetailsDrawer({
     <Dialog open={applicationId !== null} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="h-[min(90dvh,700px)] w-[min(94vw,900px)] max-w-none overflow-hidden border-zinc-700 bg-zinc-900 p-0 text-zinc-100 shadow-2xl shadow-black/60"
+        className="h-[min(92dvh,760px)] w-[min(96vw,940px)] max-w-none overflow-hidden rounded-xl border-border-strong bg-popover p-0 text-popover-foreground shadow-[0_18px_56px_-24px_rgb(0_0_0/0.4)]"
       >
         {applicationId ? (
           <ModalBody key={applicationId} applicationId={applicationId} />
@@ -135,10 +135,10 @@ function ModalBody({ applicationId }: { applicationId: string }) {
     return (
       <div className="grid h-full place-items-center p-8">
         <div className="max-w-sm text-center">
-          <h2 className="text-lg font-semibold text-zinc-100">
+          <h2 className="text-lg font-semibold">
             Application unavailable
           </h2>
-          <p className="mt-2 text-sm text-zinc-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             {error ?? "This application could not be loaded."}
           </p>
         </div>
@@ -160,12 +160,12 @@ function ModalBody({ applicationId }: { applicationId: string }) {
   return (
     <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <main className="min-h-0 overflow-y-auto">
-        <DialogHeader className="border-b border-zinc-700/70 px-5 py-4 pr-14 text-left">
+        <DialogHeader className="border-b border-border bg-parchment/35 px-5 py-5 pr-14 text-left sm:px-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
               className={cn(
-                "gap-1 border-zinc-600 bg-zinc-950/70 text-zinc-200",
+                "gap-1 bg-background/70",
                 statusAccents[application.status].badge,
               )}
             >
@@ -181,7 +181,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
             {deadlineLabel ? (
               <Badge
                 variant="outline"
-                className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-200"
+                className="gap-1 border-warning/40 bg-warning/10 text-warning"
               >
                 <Clock aria-hidden className="size-3" />
                 Due {deadlineLabel}
@@ -189,10 +189,10 @@ function ModalBody({ applicationId }: { applicationId: string }) {
             ) : null}
           </div>
 
-          <DialogTitle className="max-w-3xl text-3xl leading-tight font-bold text-zinc-100">
+          <DialogTitle className="max-w-3xl text-2xl leading-tight font-semibold tracking-[-0.035em] sm:text-3xl">
             {application.jobTitle}
           </DialogTitle>
-          <DialogDescription className="flex items-center gap-2 text-base text-zinc-400">
+          <DialogDescription className="flex items-center gap-2 text-base">
             <Building2 aria-hidden className="size-4" />
             {application.companyName}
           </DialogDescription>
@@ -203,10 +203,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
                 href={application.jobUrl}
                 target="_blank"
                 rel="noreferrer"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "border-zinc-700 bg-zinc-950/70 text-zinc-200 hover:bg-zinc-800",
-                )}
+                className={buttonVariants({ variant: "outline", size: "sm" })}
               >
                 <ExternalLink aria-hidden className="size-3.5" />
                 Job post
@@ -214,17 +211,14 @@ function ModalBody({ applicationId }: { applicationId: string }) {
             ) : null}
             <Link
               href={`/applications/${application.id}`}
-              className={cn(
-                buttonVariants({ variant: "outline", size: "sm" }),
-                "border-zinc-700 bg-zinc-950/70 text-zinc-200 hover:bg-zinc-800",
-              )}
+              className={buttonVariants({ variant: "outline", size: "sm" })}
             >
               <FileText aria-hidden className="size-3.5" />
               Full page
             </Link>
             <Link
               href={`/applications/${application.id}/edit`}
-              className={cn(buttonVariants({ size: "sm" }), "bg-sky-600 text-white hover:bg-sky-500")}
+              className={buttonVariants({ size: "sm" })}
             >
               <Pencil aria-hidden className="size-3.5" />
               Edit
@@ -232,13 +226,13 @@ function ModalBody({ applicationId }: { applicationId: string }) {
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="Overview" className="px-5 py-4">
-          <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-lg bg-zinc-950/70 p-1">
+        <Tabs defaultValue="Overview" className="px-5 py-4 sm:px-6">
+          <TabsList className="h-auto w-full justify-start overflow-x-auto rounded-md border border-border bg-parchment p-1">
             {TABS.map((tab) => (
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="flex-none px-3 py-2 text-sm font-medium text-zinc-400 data-active:bg-zinc-800 data-active:text-zinc-100"
+                className="flex-none px-3 py-2 text-sm font-medium"
               >
                 {tab}
               </TabsTrigger>
@@ -278,7 +272,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
         </Tabs>
       </main>
 
-      <aside className="min-h-0 overflow-y-auto border-t border-zinc-700/70 bg-zinc-950/70 p-4 lg:border-t-0 lg:border-l">
+      <aside className="surface-grid-sm min-h-0 overflow-y-auto border-t border-border bg-parchment/55 p-5 lg:border-t-0 lg:border-l">
         <ActivityPanel
           application={application}
           submittedCoverLetter={submittedCoverLetter}
@@ -320,8 +314,8 @@ function OverviewTab({ application }: { application: JobApplication }) {
       </div>
 
       {application.jobUrl ? (
-        <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold text-zinc-200">
+        <div className="rounded-lg border border-border bg-elevated p-4">
+          <p className="flex items-center gap-2 text-sm font-semibold">
             <Link2 aria-hidden className="size-4" />
             Source
           </p>
@@ -329,20 +323,20 @@ function OverviewTab({ application }: { application: JobApplication }) {
             href={application.jobUrl}
             target="_blank"
             rel="noreferrer"
-            className="mt-2 block truncate text-sm text-sky-300 underline-offset-4 hover:underline"
+            className="mt-2 block truncate text-sm text-primary underline-offset-4 hover:underline"
           >
             {application.jobUrl}
           </Link>
         </div>
       ) : null}
 
-      <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
-        <p className="text-sm font-semibold text-zinc-200">Timeline</p>
-        <Separator className="my-3 bg-zinc-800" />
-        <p className="text-sm text-zinc-400">
+      <div className="rounded-lg border border-border bg-elevated p-4">
+        <p className="text-sm font-semibold">Timeline</p>
+        <Separator className="my-3" />
+        <p className="text-sm text-muted-foreground">
           Created {createdLabel}
         </p>
-        <p className="mt-1 text-sm text-zinc-400">
+        <p className="mt-1 text-sm text-muted-foreground">
           Updated {updatedLabel}
         </p>
       </div>
@@ -362,8 +356,8 @@ function ActivityPanel({
   return (
     <div className="grid gap-5">
       <div className="flex items-center gap-3">
-        <MessageSquareText aria-hidden className="size-5 text-zinc-400" />
-        <h3 className="text-base font-bold text-zinc-100">Activity</h3>
+        <MessageSquareText aria-hidden className="size-5 text-muted-foreground" />
+        <h3 className="text-base font-semibold">Activity</h3>
       </div>
 
       <div className="grid gap-4">
@@ -400,9 +394,9 @@ function ActivityPanel({
       </div>
 
       {application.notes ? (
-        <div className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-4">
-          <p className="text-sm font-semibold text-zinc-200">Latest note</p>
-          <p className="mt-2 line-clamp-5 text-sm leading-6 text-zinc-400">
+        <div className="rounded-lg border border-border bg-elevated p-4">
+          <p className="text-sm font-semibold">Latest note</p>
+          <p className="mt-2 line-clamp-5 text-sm leading-6 text-muted-foreground">
             {application.notes}
           </p>
         </div>
@@ -422,12 +416,12 @@ function ActivityEntry({
 }) {
   return (
     <div className="flex gap-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cyan-500 text-xs font-bold text-zinc-950">
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
         {initials}
       </span>
       <div className="min-w-0">
-        <p className="text-sm font-semibold leading-5 text-zinc-200">{title}</p>
-        <p className="mt-0.5 text-xs text-sky-300">{time}</p>
+        <p className="text-sm font-semibold leading-5">{title}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">{time}</p>
       </div>
     </div>
   );
@@ -448,13 +442,13 @@ function DocumentVersions({
 }) {
   return (
     <div className="grid gap-5">
-      <section className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
+      <section className="rounded-lg border border-border bg-elevated p-4">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-zinc-200">Submitted</p>
+          <p className="text-sm font-semibold">Submitted</p>
           {submitted ? (
             <Badge
               variant="outline"
-              className="gap-1 border-emerald-500/40 bg-emerald-500/10 text-emerald-300"
+              className="gap-1 border-success/40 bg-success/10 text-success"
             >
               <CheckCircle2 aria-hidden className="size-3" />
               Submitted
@@ -476,14 +470,14 @@ function DocumentVersions({
         )}
       </section>
 
-      <section className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
-        <p className="text-sm font-semibold text-zinc-200">{heading}</p>
+      <section className="rounded-lg border border-border bg-elevated p-4">
+        <p className="text-sm font-semibold">{heading}</p>
         {items.length ? (
           <ul className="mt-3 grid gap-2">
             {items.map((item) => (
               <li
                 key={item.id}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/70 p-3"
+                className="rounded-md border border-border bg-parchment/45 p-3"
               >
                 <DocumentHeader item={item} />
               </li>
@@ -502,12 +496,12 @@ function DocumentHeader({ item }: { item: DocumentItem }) {
 
   return (
     <div className="flex items-center justify-between gap-3">
-      <p className="min-w-0 truncate text-sm font-medium text-zinc-200">
+      <p className="min-w-0 truncate text-sm font-medium">
         Version {item.version_number}
         {item.title ? ` · ${item.title}` : ""}
       </p>
       {submittedLabel ? (
-        <span className="shrink-0 text-xs text-zinc-500">
+        <span className="shrink-0 text-xs text-muted-foreground">
           {submittedLabel}
         </span>
       ) : null}
@@ -523,8 +517,8 @@ function FileAttachment({ filePath }: { filePath: string | null }) {
   const fileName = filePath.split("/").filter(Boolean).at(-1) ?? "Attachment";
 
   return (
-    <p className="flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900/70 px-3 py-2 text-sm text-zinc-300">
-      <FileText aria-hidden className="size-4 shrink-0 text-zinc-500" />
+    <p className="flex items-center gap-2 rounded-md border border-border bg-parchment/45 px-3 py-2 text-sm">
+      <FileText aria-hidden className="size-4 shrink-0 text-muted-foreground" />
       <span className="min-w-0 truncate">{fileName}</span>
       <Badge variant="secondary" className="ml-auto shrink-0">
         File
@@ -545,7 +539,7 @@ function DocumentText({
   }
 
   return (
-    <div className="max-h-[28rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-zinc-800 bg-zinc-950/60 p-4 text-sm leading-6 text-zinc-300">
+    <div className="paper-rule max-h-[28rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-parchment/40 p-4 text-sm leading-8 text-muted-foreground">
       {value}
     </div>
   );
@@ -561,12 +555,12 @@ function InfoTile({
   value: string | null;
 }) {
   return (
-    <div className="rounded-lg border border-zinc-700 bg-zinc-950/50 p-4">
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase text-zinc-500">
+    <div className="rounded-lg border border-border bg-elevated p-4">
+      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         {icon}
         {label}
       </p>
-      <p className="mt-2 min-h-5 text-sm font-medium text-zinc-200">
+      <p className="mt-2 min-h-5 text-sm font-medium">
         {value || "Not set"}
       </p>
     </div>
@@ -575,7 +569,7 @@ function InfoTile({
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-3 grid place-items-center rounded-lg border border-dashed border-zinc-800 bg-zinc-950/50 px-4 py-8 text-center text-sm text-zinc-500">
+    <div className="surface-grid-sm mt-3 grid place-items-center rounded-lg border border-dashed border-border-strong bg-parchment/35 px-4 py-8 text-center text-sm text-muted-foreground">
       <NotebookPen aria-hidden className="mb-2 size-5 opacity-60" />
       {children}
     </div>
@@ -586,23 +580,23 @@ function ModalSkeleton() {
   return (
     <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
       <div className="space-y-5 p-6">
-        <Skeleton className="h-6 w-28 bg-zinc-800" />
-        <Skeleton className="h-10 w-3/4 bg-zinc-800" />
-        <Skeleton className="h-5 w-48 bg-zinc-800" />
+        <Skeleton className="h-6 w-28" />
+        <Skeleton className="h-10 w-3/4" />
+        <Skeleton className="h-5 w-48" />
         <div className="flex gap-2">
-          <Skeleton className="h-9 w-24 bg-zinc-800" />
-          <Skeleton className="h-9 w-24 bg-zinc-800" />
-          <Skeleton className="h-9 w-20 bg-zinc-800" />
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-24" />
+          <Skeleton className="h-9 w-20" />
         </div>
-        <Skeleton className="h-10 w-full bg-zinc-800" />
-        <Skeleton className="h-48 w-full bg-zinc-800" />
-        <Skeleton className="h-32 w-full bg-zinc-800" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-48 w-full" />
+        <Skeleton className="h-32 w-full" />
       </div>
-      <div className="space-y-4 border-t border-zinc-700 bg-zinc-950/70 p-4 lg:border-t-0 lg:border-l">
-        <Skeleton className="h-6 w-32 bg-zinc-800" />
-        <Skeleton className="h-14 w-full bg-zinc-800" />
-        <Skeleton className="h-14 w-full bg-zinc-800" />
-        <Skeleton className="h-28 w-full bg-zinc-800" />
+      <div className="surface-grid-sm space-y-4 border-t border-border bg-parchment/55 p-4 lg:border-t-0 lg:border-l">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-14 w-full" />
+        <Skeleton className="h-28 w-full" />
       </div>
     </div>
   );

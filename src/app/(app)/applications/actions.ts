@@ -47,6 +47,9 @@ function readApplicationInput(formData: FormData) {
     job_url: readOptionalText(formData, "job_url"),
     location: readOptionalText(formData, "location"),
     date_applied: readOptionalText(formData, "applied_at"),
+    deadline: readOptionalText(formData, "deadline"),
+    referral_contact: readOptionalText(formData, "referral_contact"),
+    next_action: readOptionalText(formData, "next_action"),
     job_description: readOptionalText(formData, "job_description"),
     notes: readOptionalText(formData, "notes"),
   };

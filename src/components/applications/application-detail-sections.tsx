@@ -1,12 +1,21 @@
 import {
-  addCoverLetter,
-  addResumeVersion,
   duplicateCoverLetterAction,
   duplicateResumeVersionAction,
   markCoverLetterSubmittedAction,
   markResumeVersionSubmittedAction,
 } from "@/app/(app)/applications/actions";
+import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Card,
   CardContent,
@@ -14,10 +23,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { SubmitButton } from "@/components/ui/submit-button";
-import { Textarea } from "@/components/ui/textarea";
 import {
   getPackageStatus,
   type CoverLetter,
@@ -37,9 +44,9 @@ const packageStatusVariant: Record<
   ReturnType<typeof getPackageStatus>,
   string
 > = {
-  "Package Complete": "border-emerald-500/40 text-emerald-600",
-  "Resume Missing": "border-amber-500/40 text-amber-600",
-  "Cover Letter Missing": "border-amber-500/40 text-amber-600",
+  "Package Complete": "border-success/40 text-success",
+  "Resume Missing": "border-warning/40 text-warning",
+  "Cover Letter Missing": "border-warning/40 text-warning",
   "Package Incomplete": "text-muted-foreground",
 };
 
@@ -57,7 +64,7 @@ export function ApplicationPackageSection({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-border bg-parchment/35">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <CardTitle>Application package</CardTitle>
@@ -70,7 +77,7 @@ export function ApplicationPackageSection({
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-4">
         <DocumentGroup
           applicationId={applicationId}
           heading="Resume versions"
@@ -80,12 +87,14 @@ export function ApplicationPackageSection({
             versionNumber: version.version_number,
             title: version.title,
             isSubmitted: version.id === submittedResumeVersionId,
+            hasBeenSubmitted: Boolean(version.submitted_at),
             submittedAt: version.submitted_at,
           }))}
-          addAction={addResumeVersion}
           submitAction={markResumeVersionSubmittedAction}
           duplicateAction={duplicateResumeVersionAction}
           idField="version_id"
+          createHref={`/resumes/versions/new?application=${applicationId}`}
+          itemHref={(id) => `/resumes/versions/${id}`}
         />
 
         <DocumentGroup
@@ -97,12 +106,14 @@ export function ApplicationPackageSection({
             versionNumber: letter.version_number,
             title: letter.title,
             isSubmitted: letter.id === submittedCoverLetterId,
+            hasBeenSubmitted: Boolean(letter.submitted_at),
             submittedAt: letter.submitted_at,
           }))}
-          addAction={addCoverLetter}
           submitAction={markCoverLetterSubmittedAction}
           duplicateAction={duplicateCoverLetterAction}
           idField="cover_letter_id"
+          createHref={`/cover-letters/new?application=${applicationId}`}
+          itemHref={(id) => `/cover-letters/${id}`}
         />
       </CardContent>
     </Card>
@@ -114,6 +125,7 @@ type DocumentItem = {
   versionNumber: number;
   title: string | null;
   isSubmitted: boolean;
+  hasBeenSubmitted: boolean;
   submittedAt: string | null;
 };
 
@@ -122,10 +134,11 @@ type DocumentGroupProps = {
   heading: string;
   emptyLabel: string;
   items: DocumentItem[];
-  addAction: (formData: FormData) => void | Promise<void>;
   submitAction: (formData: FormData) => void | Promise<void>;
   duplicateAction: (formData: FormData) => void | Promise<void>;
   idField: "version_id" | "cover_letter_id";
+  createHref: string;
+  itemHref: (id: string) => string;
 };
 
 function DocumentGroup({
@@ -133,21 +146,22 @@ function DocumentGroup({
   heading,
   emptyLabel,
   items,
-  addAction,
   submitAction,
   duplicateAction,
   idField,
+  createHref,
+  itemHref,
 }: DocumentGroupProps) {
   return (
-    <section className="grid gap-3">
-      <h3 className="text-sm font-semibold">{heading}</h3>
+    <section className="overflow-hidden rounded-lg border border-border">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-parchment/50 px-4 py-3"><h3 className="text-sm font-semibold">{heading}</h3><Link href={createHref} className={buttonVariants({ variant: "outline", size: "sm" })}>Create new</Link></div>
 
       {items.length ? (
-        <ul className="grid gap-2">
+        <ul className="grid gap-2 p-3">
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-2 rounded-lg border border-border p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-md border border-border bg-elevated p-3 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
@@ -158,20 +172,23 @@ function DocumentGroup({
                   {item.isSubmitted ? (
                     <Badge
                       variant="outline"
-                      className="border-emerald-500/40 text-emerald-600"
+                      className="border-success/40 text-success"
                     >
                       Submitted
                     </Badge>
+                  ) : item.hasBeenSubmitted ? (
+                    <Badge variant="secondary">Submitted previously</Badge>
                   ) : null}
                 </div>
-                {item.isSubmitted && item.submittedAt ? (
+                {item.submittedAt ? (
                   <p className="mt-1 text-xs text-muted-foreground">
                     Submitted {formatDateTime(item.submittedAt)}
                   </p>
                 ) : null}
               </div>
 
-              <div className="flex shrink-0 gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Link href={itemHref(item.id)} className={buttonVariants({ variant: "ghost", size: "sm" })}>Open</Link>
                 {item.isSubmitted ? (
                   <form action={duplicateAction}>
                     <input type="hidden" name="application_id" value={applicationId} />
@@ -186,53 +203,40 @@ function DocumentGroup({
                     </SubmitButton>
                   </form>
                 ) : (
-                  <form action={submitAction}>
-                    <input type="hidden" name="application_id" value={applicationId} />
-                    <input type="hidden" name={idField} value={item.id} />
-                    <SubmitButton
-                      type="submit"
-                      variant="outline"
-                      size="sm"
-                      pendingLabel="Marking..."
-                    >
-                      Mark submitted
-                    </SubmitButton>
-                  </form>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">Mark submitted</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Mark this version as submitted?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This preserves the exact document used for the application. Its text and attachment will be locked, but you can duplicate it later.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <form action={submitAction}>
+                          <input type="hidden" name="application_id" value={applicationId} />
+                          <input type="hidden" name={idField} value={item.id} />
+                          <SubmitButton type="submit" pendingLabel="Marking…">
+                            Mark submitted
+                          </SubmitButton>
+                        </form>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+        <p className="m-3 rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">
           {emptyLabel}
         </p>
       )}
 
-      <form action={addAction} className="grid gap-3 rounded-lg border p-4">
-        <input type="hidden" name="application_id" value={applicationId} />
-        <div className="grid gap-2">
-          <Label htmlFor={`${idField}-title`}>Title</Label>
-          <Input
-            id={`${idField}-title`}
-            name="title"
-            placeholder="e.g. Tailored for the platform team"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor={`${idField}-content`}>Content</Label>
-          <Textarea
-            id={`${idField}-content`}
-            name="content"
-            placeholder="Paste the document content for this version."
-          />
-        </div>
-        <div>
-          <SubmitButton type="submit" size="sm" pendingLabel="Adding...">
-            Add {heading.toLowerCase().replace(/s$/, "")}
-          </SubmitButton>
-        </div>
-      </form>
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
 import type {
   Application,
   ApplicationInsert,
@@ -87,6 +88,24 @@ export async function updateApplication(
 export async function deleteApplication(id: string): Promise<void> {
   const { supabase, userId } = await getAuthContext();
 
+  const [resumeFiles, coverLetterFiles] = await Promise.all([
+    supabase
+      .from("resume_versions")
+      .select("file_path")
+      .eq("application_id", id)
+      .eq("user_id", userId)
+      .not("file_path", "is", null),
+    supabase
+      .from("cover_letters")
+      .select("file_path")
+      .eq("application_id", id)
+      .eq("user_id", userId)
+      .not("file_path", "is", null),
+  ]);
+
+  if (resumeFiles.error) throw resumeFiles.error;
+  if (coverLetterFiles.error) throw coverLetterFiles.error;
+
   const { error } = await supabase
     .from("applications")
     .delete()
@@ -94,6 +113,19 @@ export async function deleteApplication(id: string): Promise<void> {
     .eq("user_id", userId);
 
   if (error) throw error;
+
+  const filePaths = [
+    ...(resumeFiles.data ?? []),
+    ...(coverLetterFiles.data ?? []),
+  ]
+    .map((document) => document.file_path)
+    .filter((path): path is string => Boolean(path));
+
+  if (filePaths.length) {
+    // The database deletion is authoritative. Storage cleanup is best-effort so a
+    // transient object-store failure cannot make a completed deletion look retryable.
+    await supabase.storage.from(DOCUMENT_BUCKET).remove(filePaths);
+  }
 }
 
 export async function getApplications(): Promise<Application[]> {
@@ -271,7 +303,9 @@ export async function duplicateResumeVersion(
       base_resume_id: source.base_resume_id,
       title: source.title ? `${source.title} (copy)` : null,
       content: source.content,
-      file_path: source.file_path,
+      // Storage objects are never shared between records. A duplicated document
+      // keeps its editable text and can receive its own private attachment.
+      file_path: null,
       rules_used: source.rules_used,
       job_description_snapshot: source.job_description_snapshot,
     })
@@ -373,7 +407,7 @@ export async function duplicateCoverLetter(
       application_id: source.application_id,
       title: source.title ? `${source.title} (copy)` : null,
       content: source.content,
-      file_path: source.file_path,
+      file_path: null,
       template_used: source.template_used,
       job_description_snapshot: source.job_description_snapshot,
     })

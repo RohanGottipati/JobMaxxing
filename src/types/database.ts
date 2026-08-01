@@ -568,6 +568,10 @@ export type Database = {
         Args: { p_updates: Json };
         Returns: undefined;
       };
+      set_default_resume: {
+        Args: { p_resume_id: string };
+        Returns: Database["public"]["Tables"]["resumes"]["Row"];
+      };
     };
     Enums: {
       application_status: ApplicationStatus;

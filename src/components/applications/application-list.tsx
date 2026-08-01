@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { Search } from "lucide-react";
 
-import { ApplicationBoard } from "@/components/applications/application-board";
+import { ApplicationViews } from "@/components/applications/application-views";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -32,14 +33,17 @@ export function ApplicationList({
 
   return (
     <div className="grid gap-5">
-      <form className="grid gap-3 rounded-lg border border-border/70 bg-card p-4 shadow-xs sm:grid-cols-[minmax(0,1fr)_10rem_auto_auto] sm:items-center sm:gap-3">
+      <form className="grid gap-2 rounded-xl border border-border bg-card p-2.5 shadow-paper sm:grid-cols-[minmax(0,1fr)_11rem_auto_auto] sm:items-center">
+          <div className="relative">
+            <Search aria-hidden className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               name="q"
               defaultValue={query}
               placeholder="Search company or job title"
-              className="h-9"
+              className="h-8 pl-8 text-[13px]"
             />
-            <Select name="status" defaultValue={status} className="h-9">
+          </div>
+            <Select name="status" defaultValue={status} className="h-8 text-[13px]">
               <option value="all">All statuses</option>
               {applicationStatuses.map((item) => (
                 <option key={item} value={item}>
@@ -47,18 +51,18 @@ export function ApplicationList({
                 </option>
               ))}
             </Select>
-            <Button type="submit" size="sm" className="h-9 px-4">
+            <Button type="submit" size="sm" className="h-8 px-4">
               Search
             </Button>
             <Link
               href="/applications"
-              className={cn(buttonVariants({ variant: "outline", size: "sm" }), "h-9 px-4")}
+              className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-8 px-4")}
             >
               Reset
             </Link>
       </form>
 
-      <ApplicationBoard
+      <ApplicationViews
         key={`${status}:${query}:${boardKey}`}
         applications={applications}
         visibleStatus={status}

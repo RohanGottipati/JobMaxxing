@@ -31,26 +31,26 @@ export const statusAccents: Record<
   ApplicationStatus,
   { dot: string; badge: string }
 > = {
-  saved: { dot: "bg-slate-400", badge: "border-slate-400/40 text-slate-500" },
-  applied: { dot: "bg-sky-500", badge: "border-sky-500/40 text-sky-500" },
+  saved: { dot: "bg-stage-saved", badge: "border-stage-saved/30 bg-stage-saved/10 text-stage-saved" },
+  applied: { dot: "bg-stage-applied", badge: "border-stage-applied/30 bg-stage-applied/10 text-stage-applied" },
   online_assessment: {
-    dot: "bg-violet-500",
-    badge: "border-violet-500/40 text-violet-500",
+    dot: "bg-stage-assessment",
+    badge: "border-stage-assessment/30 bg-stage-assessment/10 text-stage-assessment",
   },
   interview: {
-    dot: "bg-amber-500",
-    badge: "border-amber-500/40 text-amber-600",
+    dot: "bg-stage-interview",
+    badge: "border-stage-interview/30 bg-stage-interview/10 text-stage-interview",
   },
   final_round: {
-    dot: "bg-orange-500",
-    badge: "border-orange-500/40 text-orange-500",
+    dot: "bg-stage-final",
+    badge: "border-stage-final/30 bg-stage-final/10 text-stage-final",
   },
   offer: {
-    dot: "bg-emerald-500",
-    badge: "border-emerald-500/40 text-emerald-600",
+    dot: "bg-stage-offer",
+    badge: "border-stage-offer/30 bg-stage-offer/10 text-stage-offer",
   },
-  rejected: { dot: "bg-rose-500", badge: "border-rose-500/40 text-rose-500" },
-  withdrawn: { dot: "bg-zinc-500", badge: "border-zinc-500/40 text-zinc-500" },
+  rejected: { dot: "bg-stage-rejected", badge: "border-stage-rejected/30 bg-stage-rejected/10 text-stage-rejected" },
+  withdrawn: { dot: "bg-stage-withdrawn", badge: "border-stage-withdrawn/30 bg-stage-withdrawn/10 text-stage-withdrawn" },
 };
 
 export function parseApplicationStatus(

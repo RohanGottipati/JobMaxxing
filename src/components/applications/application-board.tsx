@@ -62,7 +62,7 @@ export function ApplicationBoard({
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 text-zinc-100 shadow-xl">
+    <div className="relative overflow-hidden">
 
       <DndContext
         id={boardId}
@@ -73,8 +73,8 @@ export function ApplicationBoard({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <ScrollArea className="relative h-[calc(100dvh-9.5rem)] min-h-[32rem]">
-          <div className="flex min-w-max gap-3 p-3">
+        <ScrollArea className="relative h-[calc(100dvh-14rem)] min-h-[32rem] max-h-[52rem]">
+          <div className="flex min-w-max gap-3 p-0.5 pb-3">
             {visibleStatuses.map((status) => (
               <ApplicationColumn
                 key={status}

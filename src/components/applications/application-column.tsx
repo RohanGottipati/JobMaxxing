@@ -14,7 +14,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import type { ApplicationStatus, JobApplication } from "@/lib/applications/types";
 import {
   statusAccents,
-  statusDescriptions,
   statusLabels,
 } from "@/lib/applications/status";
 import { cn } from "@/lib/utils";
@@ -44,25 +43,25 @@ export const ApplicationColumn = memo(function ApplicationColumn({
     <section
       ref={setNodeRef}
       className={cn(
-        "flex h-[calc(100dvh-11rem)] min-h-[26rem] w-72 shrink-0 flex-col overflow-hidden rounded-2xl border border-black/30 bg-black/[0.88] text-zinc-100 shadow-2xl shadow-black/35 backdrop-blur-md transition",
-        isOver && "border-sky-300/70 bg-zinc-950/95 ring-2 ring-sky-300/40",
+        "flex h-[calc(100dvh-15.5rem)] min-h-[27rem] max-h-[49rem] w-[268px] shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-parchment/70 transition-colors",
+        isOver && "border-primary/60 bg-primary/5",
       )}
       aria-label={`${statusLabels[status]} applications`}
     >
-      <header className="flex items-center justify-between gap-3 px-4 py-2.5">
+      <header className="flex items-center justify-between gap-3 border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("size-2 rounded-full", accent.dot)} />
-          <h2 className="truncate text-sm font-bold tracking-normal text-zinc-100">
+          <h2 className="truncate text-sm font-semibold tracking-normal">
             {statusLabels[status]}
           </h2>
-          <span className="rounded-full bg-zinc-800/60 px-1.5 py-0.5 text-xs font-medium text-zinc-400 tabular-nums">
+          <span className="rounded bg-background px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground tabular-nums">
             {applications.length}
           </span>
         </div>
 
         <button
           type="button"
-          className="grid size-8 shrink-0 place-items-center rounded-md text-zinc-400 transition hover:bg-white/10 hover:text-zinc-100"
+          className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
           aria-label={`${statusLabels[status]} column options`}
         >
           <MoreHorizontal aria-hidden className="size-5" />
@@ -74,7 +73,7 @@ export const ApplicationColumn = memo(function ApplicationColumn({
         strategy={verticalListSortingStrategy}
       >
         <ScrollArea className="min-h-0 flex-1 px-2.5">
-          <div className="flex flex-col gap-2.5 pb-3">
+          <div className="flex flex-col gap-2 p-2">
             {applications.length ? (
               applications.map((application) => (
                 <SortableApplicationCard
@@ -84,8 +83,9 @@ export const ApplicationColumn = memo(function ApplicationColumn({
                 />
               ))
             ) : (
-              <div className="rounded-lg border border-dashed border-zinc-700/80 bg-zinc-900/60 px-4 py-8 text-center text-sm text-zinc-500">
-                Drop applications here.
+              <div className="flex min-h-28 flex-col items-center justify-center rounded-lg border border-dashed border-border-strong px-4 py-6 text-center">
+                <p className="text-xs font-medium text-foreground">Nothing here yet</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">Drag a card in, or add one.</p>
               </div>
             )}
           </div>
@@ -93,16 +93,16 @@ export const ApplicationColumn = memo(function ApplicationColumn({
         </ScrollArea>
       </SortableContext>
 
-      <footer className="mt-auto border-t border-white/5 px-3 py-2.5">
+      <footer className="mt-auto border-t border-border px-3 py-2">
         <Link
           href={`/applications/new?status=${status}`}
-          className="flex h-9 items-center justify-between rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:bg-white/10 hover:text-white"
+          className="flex h-9 items-center justify-between rounded-lg px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
         >
           <span className="inline-flex items-center gap-2">
             <Plus aria-hidden className="size-5" />
             Add a card
           </span>
-          <SquarePlus aria-hidden className="size-5 text-zinc-500" />
+          <SquarePlus aria-hidden className="size-5 text-muted-foreground" />
         </Link>
       </footer>
     </section>

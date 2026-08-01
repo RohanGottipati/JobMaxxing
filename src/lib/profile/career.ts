@@ -44,6 +44,7 @@ export type AchievementInput = {
 
 export type CareerProfilePayload = {
   fullName: string;
+  headline: string;
   phone: string;
   location: string;
   summary: string;
@@ -127,6 +128,7 @@ export async function getCareerProfile(): Promise<CareerProfile> {
     email,
     memberSince: profile.data?.created_at ?? null,
     fullName: profile.data?.full_name ?? "",
+    headline: profile.data?.headline ?? "",
     phone: profile.data?.phone ?? "",
     location: profile.data?.location ?? "",
     summary: profile.data?.summary ?? "",
@@ -232,6 +234,7 @@ export async function saveCareerProfile(payload: CareerProfilePayload) {
   const profileUpdate = {
     id: userId,
     full_name: nullable(payload.fullName),
+    headline: nullable(payload.headline),
     phone: nullable(payload.phone),
     location: nullable(payload.location),
     summary: nullable(payload.summary),
@@ -327,6 +330,7 @@ export async function clearCareerProfile() {
     .from("profiles")
     .update({
       full_name: null,
+      headline: null,
       phone: null,
       location: null,
       summary: null,

@@ -7,6 +7,9 @@ export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
+  const requestedNext = requestUrl.searchParams.get("next");
+  const allowedNext = new Set(["/dashboard", "/reset-password"]);
+  const next = requestedNext && allowedNext.has(requestedNext) ? requestedNext : "/dashboard";
 
   if (!isSupabaseConfigured()) {
     return NextResponse.redirect(`${origin}/login?error=auth`);
@@ -17,7 +20,7 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
-      return NextResponse.redirect(`${origin}/applications`);
+      return NextResponse.redirect(`${origin}${next}`);
     }
   }
 

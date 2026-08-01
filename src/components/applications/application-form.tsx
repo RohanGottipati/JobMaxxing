@@ -45,7 +45,7 @@ export function ApplicationForm({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-border bg-parchment/35">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <CardTitle>{title}</CardTitle>
@@ -59,7 +59,7 @@ export function ApplicationForm({
           </Link>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-1">
         <form action={action} className="grid gap-5">
           {application ? (
             <input type="hidden" name="application_id" value={application.id} />
@@ -126,12 +126,41 @@ export function ApplicationForm({
             </Field>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Deadline" htmlFor="deadline">
+              <Input
+                id="deadline"
+                name="deadline"
+                defaultValue={application?.deadline ?? ""}
+                type="date"
+              />
+            </Field>
+            <Field label="Referral contact" htmlFor="referral_contact">
+              <Input
+                id="referral_contact"
+                name="referral_contact"
+                defaultValue={application?.referralContact ?? ""}
+                placeholder="Name, email, or relationship"
+              />
+            </Field>
+          </div>
+
+          <Field label="Next action" htmlFor="next_action">
+            <Input
+              id="next_action"
+              name="next_action"
+              defaultValue={application?.nextAction ?? ""}
+              placeholder="e.g. Follow up with recruiter on Tuesday"
+            />
+          </Field>
+
           <Field label="Job description" htmlFor="job_description">
             <Textarea
               id="job_description"
               name="job_description"
               defaultValue={application?.jobDescription ?? ""}
               placeholder="Paste the role description or key requirements."
+              className="paper-rule min-h-44"
             />
           </Field>
 
@@ -141,6 +170,7 @@ export function ApplicationForm({
               name="notes"
               defaultValue={application?.notes ?? ""}
               placeholder="Follow-up dates, recruiter notes, interview prep, compensation details."
+              className="paper-rule min-h-36"
             />
           </Field>
 
