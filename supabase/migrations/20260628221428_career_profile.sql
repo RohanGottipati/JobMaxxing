@@ -1,4 +1,4 @@
--- JobMaxxing career profile
+-- JobMaxxing career profile schema
 --
 -- The profile page is the user's "career source of truth": free-form personal info plus
 -- repeatable sections (experience, education, projects, skills, achievements) that later

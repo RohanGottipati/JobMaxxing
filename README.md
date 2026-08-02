@@ -99,6 +99,26 @@ Email + password auth via Supabase. Enable the Email provider in your Supabase d
 
 If "Confirm email" is enabled, new users confirm via an emailed link that lands on `/auth/callback`; add `http://localhost:3000/auth/callback` to your redirect URLs in Supabase Auth settings. To allow instant sign-in during development, you can disable email confirmation.
 
+## Railway deployment
+
+The repository includes `railway.json` and builds a minimal Next.js standalone server. Railway must provide these variables during both the build and runtime phases:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY
+GEMINI_API_KEY
+```
+
+`GEMINI_MODEL` remains optional. A production build fails with the missing variable names when any required value is absent, and Railway promotes a deployment only after `/api/health` can reach Supabase Auth and the Data API.
+
+For email confirmation and password recovery in production, set the Supabase Auth Site URL to the Railway public origin and add this redirect URL:
+
+```text
+https://<your-railway-domain>/auth/callback
+```
+
+Railway injects `PORT`; the standalone Next.js server reads it automatically.
+
 ## License
 
 Private
