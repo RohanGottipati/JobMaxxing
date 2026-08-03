@@ -58,10 +58,10 @@ export default async function HomePage() {
   const primaryLabel = user ? "Open your workspace" : "Start organizing";
 
   return (
-    <main className="flex flex-1 flex-col">
+    <main className="flex flex-1 flex-col overflow-x-clip">
       <section className="border-b border-border bg-parchment surface-grid">
         <div className="mx-auto grid w-full max-w-[1200px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center lg:py-20">
-          <div>
+          <div className="motion-rise">
             <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground shadow-paper">
               <span aria-hidden className="size-1.5 rounded-full bg-success" />
               A private workspace for one job search
@@ -154,7 +154,7 @@ export default async function HomePage() {
               ["02", "Tailor the package", "Duplicate a master resume, adjust it for the role, and attach the final file."],
               ["03", "Move it and lock it", "Advance the application and mark sent documents submitted so history stays exact."],
             ].map(([number, title, body]) => (
-              <li key={number} className="rounded-xl border border-border bg-card p-6 shadow-paper">
+              <li key={number} className="interactive-card rounded-xl border border-border bg-card p-6 shadow-paper hover:border-border-strong hover:shadow-lg">
                 <span className="text-xs font-semibold tabular-nums text-primary">{number}</span>
                 <h3 className="mt-2 text-[1.05rem] font-semibold tracking-[-0.02em]">{title}</h3>
                 <p className="mt-2 text-[0.84rem] leading-6 text-muted-foreground">{body}</p>
@@ -196,7 +196,7 @@ export default async function HomePage() {
 
 function FeatureCard({ className, icon: Icon, title, children }: { className?: string; icon: typeof Columns3; title: string; children: React.ReactNode }) {
   return (
-    <article className={cn("rounded-xl border border-border bg-card p-6 shadow-paper", className)}>
+    <article className={cn("interactive-card rounded-xl border border-border bg-card p-6 shadow-paper hover:border-border-strong hover:bg-elevated hover:shadow-lg", className)}>
       <div className="flex items-center gap-2"><Icon aria-hidden className="size-4 text-primary" /><h3 className="text-[1.05rem] font-semibold">{title}</h3></div>
       <div className="mt-2 text-[0.84rem] leading-6 text-muted-foreground">{children}</div>
     </article>
@@ -222,7 +222,7 @@ function ProductPreview() {
     { status: "offer", label: "Offer", cards: [["Product Designer, Platform", "Retool"]] },
   ];
   return (
-    <div className="overflow-hidden rounded-xl border border-border-strong bg-background shadow-[0_12px_32px_-18px_rgb(41_40_36/0.45)]">
+    <div className="motion-rise interactive-card overflow-hidden rounded-xl border border-border-strong bg-background shadow-[0_12px_32px_-18px_rgb(41_40_36/0.45)] hover:shadow-xl">
       <div className="flex items-center gap-2 border-b border-border bg-parchment px-3 py-2">
         <span aria-hidden className="flex gap-1.5"><span className="size-2 rounded-full bg-border-strong" /><span className="size-2 rounded-full bg-border-strong" /><span className="size-2 rounded-full bg-border-strong" /></span>
         <span className="mx-auto rounded border border-border bg-card px-3 py-0.5 font-mono text-[0.6rem] text-muted-foreground">jobmaxxing.app/applications</span>

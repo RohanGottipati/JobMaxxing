@@ -58,9 +58,9 @@ export function DocumentLibrary(props: ResumeLibraryProps | CoverLibraryProps) {
     <div className="grid gap-4">
       {props.mode === "resumes" ? (
         <Tabs value={tab} onValueChange={(value) => setTab(value as "master" | "tailored")}>
-          <TabsList className="h-auto gap-1 rounded-none bg-transparent p-0">
-            <TabsTrigger value="master" className="folder-tab h-9 rounded-none border border-b-0 border-transparent bg-parchment/60 px-4 data-active:border-border data-active:bg-card data-active:shadow-none">Master resumes <Badge variant="secondary" className="ml-1 h-5 px-1.5">{props.masterResumes.length}</Badge></TabsTrigger>
-            <TabsTrigger value="tailored" className="folder-tab h-9 rounded-none border border-b-0 border-transparent bg-parchment/60 px-4 data-active:border-border data-active:bg-card data-active:shadow-none">Tailored versions <Badge variant="secondary" className="ml-1 h-5 px-1.5">{props.resumeVersions.length}</Badge></TabsTrigger>
+          <TabsList className="h-auto max-w-full justify-start gap-1 overflow-x-auto rounded-none bg-transparent p-0">
+            <TabsTrigger value="master" className="folder-tab h-9 shrink-0 rounded-none border border-b-0 border-transparent bg-parchment/60 px-4 data-active:border-border data-active:bg-card data-active:shadow-none">Master resumes <Badge variant="secondary" className="ml-1 h-5 px-1.5">{props.masterResumes.length}</Badge></TabsTrigger>
+            <TabsTrigger value="tailored" className="folder-tab h-9 shrink-0 rounded-none border border-b-0 border-transparent bg-parchment/60 px-4 data-active:border-border data-active:bg-card data-active:shadow-none">Tailored versions <Badge variant="secondary" className="ml-1 h-5 px-1.5">{props.resumeVersions.length}</Badge></TabsTrigger>
           </TabsList>
         </Tabs>
       ) : null}
@@ -86,7 +86,7 @@ function DocumentCard({ item, kind }: { item: MasterResumeItem | TailoredResumeI
   const title = master?.name || version?.title || `${kind === "cover_letter" ? "Cover letter" : "Resume"} v${version?.version_number}`;
   const href = kind === "master_resume" ? `/resumes/${item.id}` : kind === "resume_version" ? `/resumes/versions/${item.id}` : `/cover-letters/${item.id}`;
   return (
-    <Card className="group bg-card transition-colors duration-200 hover:border-border-strong hover:bg-elevated hover:shadow-[0_8px_24px_-14px_rgb(41_40_36/0.35)]">
+    <Card className="interactive-card group bg-card hover:border-border-strong hover:bg-elevated hover:shadow-[0_12px_28px_-14px_rgb(41_40_36/0.4)]">
       <CardContent className="flex min-h-56 flex-col">
         <div className="flex items-start justify-between gap-3"><span className="grid size-9 place-items-center rounded-md border border-border bg-parchment text-primary">{kind === "master_resume" ? <Files aria-hidden className="size-4" /> : kind === "resume_version" ? <FileCheck2 aria-hidden className="size-4" /> : <FileText aria-hidden className="size-4" />}</span><div className="flex flex-wrap justify-end gap-1.5">{master?.is_default ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}{version?.submitted_at ? <Badge className="bg-success/12 text-success hover:bg-success/12">Submitted</Badge> : null}{item.file_path ? <Badge variant="outline"><UploadCloud aria-hidden className="mr-1 size-3" />File</Badge> : null}</div></div>
         <h2 className="mt-5 line-clamp-2 text-base font-semibold tracking-[-0.025em]">{title}</h2>

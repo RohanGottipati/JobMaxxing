@@ -18,7 +18,7 @@ export function AuthShell({
 }) {
   return (
     <main className="relative isolate flex flex-1 items-center bg-parchment px-4 py-10 surface-grid sm:px-6 sm:py-16">
-      <div className="mx-auto grid w-full max-w-4xl overflow-hidden rounded-xl border border-border-strong bg-card shadow-[0_12px_36px_-22px_rgb(41_40_36/0.45)] lg:grid-cols-[1fr_0.92fr]">
+      <div className="motion-rise mx-auto grid w-full max-w-4xl overflow-hidden rounded-xl border border-border-strong bg-card shadow-[0_12px_36px_-22px_rgb(41_40_36/0.45)] lg:grid-cols-[1fr_0.92fr]">
         <section className="paper-rule relative hidden overflow-hidden border-r border-border bg-parchment/65 p-9 lg:flex lg:flex-col lg:justify-between">
           <div>
             <BrandMark className="size-10" />

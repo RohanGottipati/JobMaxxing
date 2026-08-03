@@ -62,7 +62,7 @@ export function ApplicationBoard({
   }
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative min-w-0">
 
       <DndContext
         id={boardId}
@@ -73,7 +73,11 @@ export function ApplicationBoard({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <ScrollArea className="relative h-[calc(100dvh-14rem)] min-h-[32rem] max-h-[52rem]">
+        <ScrollArea
+          className="relative h-[clamp(24rem,calc(100dvh-15rem),52rem)]"
+          viewportAriaLabel="Application board. Scroll horizontally between status columns."
+          viewportTabIndex={0}
+        >
           <div className="flex min-w-max gap-3 p-0.5 pb-3">
             {visibleStatuses.map((status) => (
               <ApplicationColumn

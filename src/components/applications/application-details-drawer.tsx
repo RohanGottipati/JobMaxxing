@@ -81,7 +81,7 @@ export function ApplicationDetailsDrawer({
     <Dialog open={applicationId !== null} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton
-        className="h-[min(92dvh,760px)] w-[min(96vw,940px)] max-w-none overflow-hidden rounded-xl border-border-strong bg-popover p-0 text-popover-foreground shadow-[0_18px_56px_-24px_rgb(0_0_0/0.4)]"
+        className="h-[calc(100dvh-1rem)] w-[calc(100vw-1rem)] max-w-none overflow-hidden rounded-xl border-border-strong bg-popover p-0 text-popover-foreground shadow-[0_18px_56px_-24px_rgb(0_0_0/0.4)] sm:h-[min(92dvh,760px)] sm:w-[min(96vw,940px)]"
       >
         {applicationId ? (
           <ModalBody key={applicationId} applicationId={applicationId} />
@@ -158,8 +158,8 @@ function ModalBody({ applicationId }: { applicationId: string }) {
   const deadlineLabel = safeFormatDate(application.deadline);
 
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <main className="min-h-0 overflow-y-auto">
+    <div className="h-full min-h-0 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden">
+      <main className="min-h-0 lg:overflow-y-auto">
         <DialogHeader className="border-b border-border bg-parchment/35 px-5 py-5 pr-14 text-left sm:px-6">
           <div className="flex flex-wrap items-center gap-2">
             <Badge
@@ -272,7 +272,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
         </Tabs>
       </main>
 
-      <aside className="surface-grid-sm min-h-0 overflow-y-auto border-t border-border bg-parchment/55 p-5 lg:border-t-0 lg:border-l">
+      <aside className="surface-grid-sm min-h-0 border-t border-border bg-parchment/55 p-5 lg:overflow-y-auto lg:border-t-0 lg:border-l">
         <ActivityPanel
           application={application}
           submittedCoverLetter={submittedCoverLetter}
@@ -578,7 +578,7 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 
 function ModalSkeleton() {
   return (
-    <div className="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <div className="h-full min-h-0 overflow-y-auto lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:overflow-hidden">
       <div className="space-y-5 p-6">
         <Skeleton className="h-6 w-28" />
         <Skeleton className="h-10 w-3/4" />

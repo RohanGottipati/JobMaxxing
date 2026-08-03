@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowRight,
   CalendarDays,
   Columns3,
   ExternalLink,
@@ -132,7 +133,7 @@ function ScopeTab({
       aria-selected={active}
       onClick={() => onSelect(value)}
       className={cn(
-        "folder-tab -mb-px flex shrink-0 items-center gap-2 border border-b-0 px-4 pb-2.5 pt-2 text-[13px] font-medium transition-colors",
+        "folder-tab -mb-px flex shrink-0 items-center gap-2 border border-b-0 px-4 pt-2 pb-2.5 text-[13px] font-medium transition duration-200 hover:-translate-y-0.5",
         active
           ? "border-border bg-card text-foreground"
           : "border-transparent bg-parchment/70 text-muted-foreground hover:bg-parchment hover:text-foreground",
@@ -160,12 +161,19 @@ function ApplicationTable({ applications }: { applications: JobApplication[] }) 
 
   return (
     <>
-      <div className="surface-grid hidden overflow-x-auto rounded-b-xl rounded-tr-xl border border-border bg-card shadow-paper md:block">
-        <Table className="min-w-[1120px] border-collapse">
+      <div className="hidden md:block">
+        <p className="mb-2 flex items-center gap-1.5 text-[0.68rem] text-muted-foreground xl:hidden">
+          <ArrowRight aria-hidden className="size-3" />Scroll sideways to review every column
+        </p>
+        <Table
+          className="min-w-[1120px] border-collapse"
+          containerClassName="surface-grid rounded-b-xl rounded-tr-xl border border-border bg-card shadow-paper"
+          scrollLabel="Applications table. Scroll horizontally to view every column."
+        >
           <TableHeader>
             <TableRow className="border-b border-border-strong bg-parchment/95 hover:bg-parchment/95">
-              <TableHead className="w-14 border-r border-border">Open</TableHead>
-              <TableHead className="min-w-56 border-r border-border">Job title</TableHead>
+              <TableHead className="sticky left-0 z-20 w-14 border-r border-border bg-parchment">Open</TableHead>
+              <TableHead className="sticky left-14 z-20 min-w-56 border-r border-border bg-parchment shadow-[5px_0_8px_-8px_rgb(41_40_36/0.5)]">Job title</TableHead>
               <TableHead className="min-w-36 border-r border-border">Company</TableHead>
               <TableHead className="min-w-40 border-r border-border">Status</TableHead>
               <TableHead className="min-w-40 border-r border-border">Location</TableHead>
@@ -183,14 +191,14 @@ function ApplicationTable({ applications }: { applications: JobApplication[] }) 
               );
               return (
                 <TableRow key={application.id} className="border-b border-border bg-card/95 hover:bg-accent/60">
-                  <TableCell className="border-r border-border">
+                  <TableCell className="sticky left-0 z-10 border-r border-border bg-card">
                     {application.jobUrl ? (
                       <a href={application.jobUrl} target="_blank" rel="noreferrer" aria-label={`Open ${application.companyName} job post`} className="grid size-7 place-items-center rounded text-muted-foreground hover:bg-background hover:text-foreground">
                         <ExternalLink aria-hidden className="size-3.5" />
                       </a>
                     ) : "—"}
                   </TableCell>
-                  <TableCell className="border-r border-border">
+                  <TableCell className="sticky left-14 z-10 border-r border-border bg-card shadow-[5px_0_8px_-8px_rgb(41_40_36/0.5)]">
                     <Link href={`/applications/${application.id}`} className="font-medium underline-offset-2 hover:underline">
                       {application.jobTitle}
                     </Link>
@@ -209,21 +217,37 @@ function ApplicationTable({ applications }: { applications: JobApplication[] }) 
         </Table>
       </div>
 
-      <div className="overflow-hidden rounded-b-xl border border-border bg-card md:hidden">
+      <div className="overflow-hidden rounded-b-xl border border-border bg-card shadow-paper md:hidden">
         {applications.map((application) => (
-          <Link href={`/applications/${application.id}`} key={application.id} className="block border-b border-border p-4 last:border-b-0 hover:bg-accent/50">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate font-medium">{application.jobTitle}</p>
-                <p className="mt-0.5 truncate text-sm text-muted-foreground">{application.companyName}</p>
+          <details key={application.id} className="group border-b border-border last:border-b-0 open:bg-accent/20">
+            <summary className="motion-list-item flex min-h-24 cursor-pointer list-none items-start justify-between gap-3 p-4 transition-colors hover:bg-accent/45 [&::-webkit-details-marker]:hidden">
+              <span className="min-w-0 flex-1">
+                <span className="block truncate font-medium">{application.jobTitle}</span>
+                <span className="mt-0.5 block truncate text-sm text-muted-foreground">{application.companyName}</span>
+                <span className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
+                  {application.location ? <span className="flex min-w-0 items-center gap-1"><MapPin aria-hidden className="size-3.5 shrink-0" /><span className="truncate">{application.location}</span></span> : null}
+                  <span className="flex items-center gap-1"><CalendarDays aria-hidden className="size-3.5" />{formatDate(application.deadline)}</span>
+                </span>
+              </span>
+              <span className="flex shrink-0 flex-col items-end gap-3">
+                <StatusBadge status={application.status} />
+                <span className="text-[0.68rem] text-muted-foreground group-open:hidden">More</span>
+                <span className="hidden text-[0.68rem] text-muted-foreground group-open:block">Less</span>
+              </span>
+            </summary>
+            <div className="motion-drop border-t border-border bg-parchment/35 px-4 py-4">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-xs">
+                <div><dt className="micro-label text-muted-foreground">Applied</dt><dd className="mt-1.5">{formatDate(application.appliedAt)}</dd></div>
+                <div><dt className="micro-label text-muted-foreground">Deadline</dt><dd className="mt-1.5">{formatDate(application.deadline)}</dd></div>
+                <div className="col-span-2"><dt className="micro-label text-muted-foreground">Package</dt><dd className="mt-1.5"><Badge variant={application.submittedResumeVersionId && application.submittedCoverLetterId ? "default" : "outline"}>{application.submittedResumeVersionId && application.submittedCoverLetterId ? "Complete" : "Incomplete"}</Badge></dd></div>
+                <div className="col-span-2"><dt className="micro-label text-muted-foreground">Next action</dt><dd className="mt-1.5 leading-5 text-muted-foreground">{application.nextAction || "No next action saved."}</dd></div>
+              </dl>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Link href={`/applications/${application.id}`} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">View details<ArrowRight aria-hidden className="size-4" /></Link>
+                {application.jobUrl ? <a href={application.jobUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium">Job post<ExternalLink aria-hidden className="size-4" /></a> : null}
               </div>
-              <StatusBadge status={application.status} />
             </div>
-            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground">
-              {application.location ? <span className="flex items-center gap-1"><MapPin aria-hidden className="size-3.5" />{application.location}</span> : null}
-              <span className="flex items-center gap-1"><CalendarDays aria-hidden className="size-3.5" />{formatDate(application.deadline)}</span>
-            </div>
-          </Link>
+          </details>
         ))}
       </div>
     </>

@@ -7,10 +7,10 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { MoreHorizontal, Plus, SquarePlus } from "lucide-react";
+import { Plus, SquarePlus } from "lucide-react";
 
 import { SortableApplicationCard } from "@/components/applications/application-card";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { ApplicationStatus, JobApplication } from "@/lib/applications/types";
 import {
   statusAccents,
@@ -43,12 +43,12 @@ export const ApplicationColumn = memo(function ApplicationColumn({
     <section
       ref={setNodeRef}
       className={cn(
-        "flex h-[calc(100dvh-15.5rem)] min-h-[27rem] max-h-[49rem] w-[268px] shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-parchment/70 transition-colors",
+        "flex h-full w-[min(84vw,268px)] shrink-0 flex-col overflow-hidden rounded-xl border border-border bg-parchment/70 transition duration-200",
         isOver && "border-primary/60 bg-primary/5",
       )}
       aria-label={`${statusLabels[status]} applications`}
     >
-      <header className="flex items-center justify-between gap-3 border-b border-border px-3 py-2.5">
+      <header className="flex min-h-12 items-center gap-3 border-b border-border px-3 py-2.5">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn("size-2 rounded-full", accent.dot)} />
           <h2 className="truncate text-sm font-semibold tracking-normal">
@@ -59,20 +59,17 @@ export const ApplicationColumn = memo(function ApplicationColumn({
           </span>
         </div>
 
-        <button
-          type="button"
-          className="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
-          aria-label={`${statusLabels[status]} column options`}
-        >
-          <MoreHorizontal aria-hidden className="size-5" />
-        </button>
       </header>
 
       <SortableContext
         items={applications.map((application) => application.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ScrollArea className="min-h-0 flex-1 px-2.5">
+        <ScrollArea
+          className="min-h-0 flex-1 px-2.5"
+          viewportAriaLabel={`${statusLabels[status]} application cards`}
+          viewportTabIndex={0}
+        >
           <div className="flex flex-col gap-2 p-2">
             {applications.length ? (
               applications.map((application) => (
@@ -89,14 +86,13 @@ export const ApplicationColumn = memo(function ApplicationColumn({
               </div>
             )}
           </div>
-          <ScrollBar orientation="vertical" />
         </ScrollArea>
       </SortableContext>
 
       <footer className="mt-auto border-t border-border px-3 py-2">
         <Link
           href={`/applications/new?status=${status}`}
-          className="flex h-9 items-center justify-between rounded-lg px-3 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
+          className="flex min-h-10 items-center justify-between rounded-lg px-3 text-sm font-medium text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted hover:text-foreground"
         >
           <span className="inline-flex items-center gap-2">
             <Plus aria-hidden className="size-5" />

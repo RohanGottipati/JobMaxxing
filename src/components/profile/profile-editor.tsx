@@ -345,7 +345,7 @@ export function ProfileEditor({ profile }: { profile: CareerProfile }) {
         </Card>
       </div>
 
-      <div className="sticky bottom-3 z-20 ml-auto flex w-fit items-center gap-3 rounded-xl border border-border/70 bg-background/90 p-2 shadow-xl shadow-black/10 backdrop-blur-xl">
+      <div className="sticky bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-20 ml-auto flex w-full items-center justify-between gap-3 rounded-xl border border-border/70 bg-background/90 p-2 shadow-xl shadow-black/10 backdrop-blur-xl sm:w-fit">
         <span className="hidden px-2 text-xs text-muted-foreground sm:inline">{isDirty ? "You have unsaved changes" : "Profile is up to date"}</span>
         <Button size="sm" onClick={handleSave} disabled={isSaving || !isDirty}>{isSaving ? <Loader2 aria-hidden className="animate-spin" /> : <Save aria-hidden />}{isSaving ? "Saving…" : "Save profile"}</Button>
       </div>

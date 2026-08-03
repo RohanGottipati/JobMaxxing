@@ -55,7 +55,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Maxwell workspace assistant
 
-Open **Maxwell** from the app header. Conversations are private, saved to your account, and available from every authenticated page.
+Open **Maxwell** from the app sidebar. It has a dedicated full-page chat workspace with saved conversation history. Opening it from an application or document carries that page in as removable, validated context.
 
 Maxwell can:
 
@@ -90,6 +90,8 @@ supabase/
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
 | `npm test` | Run focused unit tests |
+| `npm run test:e2e:public` | Run public responsive Playwright checks |
+| `npm run test:e2e` | Run the complete authenticated responsive browser suite |
 | `npm run db:push` | Push migrations to linked Supabase project |
 | `npm run db:reset` | Reset local Supabase database |
 
@@ -98,6 +100,10 @@ supabase/
 Email + password auth via Supabase. Enable the Email provider in your Supabase dashboard under Authentication → Providers. Register at `/signup` and sign in at `/login`.
 
 If "Confirm email" is enabled, new users confirm via an emailed link that lands on `/auth/callback`; add `http://localhost:3000/auth/callback` to your redirect URLs in Supabase Auth settings. To allow instant sign-in during development, you can disable email confirmation.
+
+## Browser regression tests
+
+Install Playwright browsers once with `npx playwright install`. Public marketing and auth checks run without credentials. The complete suite requires `E2E_EMAIL` and `E2E_PASSWORD` for a dedicated disposable account; it creates and removes a namespaced application fixture. Set `E2E_BASE_URL` to test an already-running deployment instead of the local development server.
 
 ## Railway deployment
 

@@ -113,6 +113,8 @@
   --sidebar-accent-foreground: #292824;
   --sidebar-border: #ded9cf;
   --sidebar-ring: #4c6fa5;
+  --motion-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .dark {
@@ -189,6 +191,12 @@
   :focus-visible {
     scroll-margin-block: 6rem;
   }
+
+  button,
+  a,
+  summary {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 @layer utilities {
@@ -232,6 +240,99 @@
     background-clip: text;
     color: transparent;
   }
+
+  .motion-page > * {
+    animation: motion-rise 420ms var(--motion-standard) both;
+  }
+
+  .motion-page > :nth-child(2) { animation-delay: 55ms; }
+  .motion-page > :nth-child(3) { animation-delay: 100ms; }
+  .motion-page > :nth-child(4) { animation-delay: 145ms; }
+  .motion-page > :nth-child(n + 5) { animation-delay: 180ms; }
+
+  .motion-rise {
+    animation: motion-rise 360ms var(--motion-standard) both;
+  }
+
+  .motion-drop {
+    animation: motion-drop 280ms var(--motion-standard) both;
+  }
+
+  .motion-pop {
+    animation: motion-pop 240ms var(--motion-standard) both;
+  }
+
+  .motion-list-item {
+    animation: motion-list 360ms var(--motion-standard) both;
+  }
+
+  .interactive-card {
+    transition-property: transform, box-shadow, border-color, background-color;
+    transition-duration: 240ms;
+    transition-timing-function: var(--motion-standard);
+  }
+
+  .interactive-card:hover {
+    transform: translateY(-4px) scale(1.008);
+  }
+
+  .table-scroll {
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: auto;
+  }
+
+  .table-scroll::-webkit-scrollbar {
+    height: 12px;
+  }
+
+  .table-scroll::-webkit-scrollbar-track {
+    background: color-mix(in srgb, var(--parchment) 80%, transparent);
+    border-top: 1px solid var(--border);
+  }
+
+  .table-scroll::-webkit-scrollbar-thumb {
+    min-width: 48px;
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background: var(--border-strong);
+    background-clip: padding-box;
+  }
+}
+
+@keyframes motion-rise {
+  from { opacity: 0; translate: 0 16px; scale: 0.992; }
+  to { opacity: 1; translate: 0 0; scale: 1; }
+}
+
+@keyframes motion-drop {
+  from { opacity: 0; translate: 0 -10px; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@keyframes motion-pop {
+  from { opacity: 0; scale: 0.9; }
+  to { opacity: 1; scale: 1; }
+}
+
+@keyframes motion-list {
+  from { opacity: 0; translate: -10px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+@media (pointer: coarse) {
+  [data-slot="button"][data-size="sm"],
+  [data-slot="button"][data-size="icon-sm"],
+  [data-slot="dropdown-menu-item"] {
+    min-height: 2.5rem;
+  }
+
+  [data-slot="button"][data-size="icon-sm"] {
+    min-width: 2.5rem;
+  }
+
+  [data-slot="sidebar-menu-button"] {
+    min-height: 2.75rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -242,5 +343,10 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .interactive-card:hover,
+  [data-slot="button"]:hover {
+    transform: none !important;
   }
 }

@@ -67,12 +67,8 @@ function initials(value: string) {
 
 export function AppSidebar({
   user,
-  maxwellOpen,
-  onMaxwellToggle,
 }: {
   user: { email: string | null; name: string };
-  maxwellOpen: boolean;
-  onMaxwellToggle: () => void;
 }) {
   const pathname = usePathname();
   const { isMobile, state, setOpenMobile } = useSidebar();
@@ -80,11 +76,6 @@ export function AppSidebar({
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  function toggleMaxwell() {
-    setOpenMobile(false);
-    onMaxwellToggle();
   }
 
   function renderItems(items: typeof navigation) {
@@ -96,7 +87,7 @@ export function AppSidebar({
           tooltip={label}
           className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
         >
-          <Link href={href}>
+          <Link href={href} onClick={() => setOpenMobile(false)}>
             <Icon aria-hidden className="size-4" />
             <span>{label}</span>
           </Link>
@@ -104,6 +95,10 @@ export function AppSidebar({
       </SidebarMenuItem>
     ));
   }
+
+  const maxwellHref = pathname.startsWith("/maxwell")
+    ? "/maxwell"
+    : `/maxwell?from=${encodeURIComponent(pathname)}`;
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" className="border-sidebar-border">
@@ -133,22 +128,22 @@ export function AppSidebar({
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
-                    <Link href="/applications/new">
+                    <Link href="/applications/new" onClick={() => setOpenMobile(false)}>
                       <BriefcaseBusiness aria-hidden /> Application
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/resumes/new">
+                    <Link href="/resumes/new" onClick={() => setOpenMobile(false)}>
                       <Files aria-hidden /> Master resume
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/resumes/versions/new">
+                    <Link href="/resumes/versions/new" onClick={() => setOpenMobile(false)}>
                       <FilePlus2 aria-hidden /> Tailored resume
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href="/cover-letters/new">
+                    <Link href="/cover-letters/new" onClick={() => setOpenMobile(false)}>
                       <FileText aria-hidden /> Cover letter
                     </Link>
                   </DropdownMenuItem>
@@ -167,15 +162,15 @@ export function AppSidebar({
               {renderItems(navigation)}
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  isActive={maxwellOpen}
+                  asChild
+                  isActive={pathname.startsWith("/maxwell")}
                   tooltip="Maxwell"
-                  aria-label="Toggle Maxwell assistant"
-                  aria-expanded={maxwellOpen}
-                  onClick={toggleMaxwell}
                   className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
                 >
-                  <Sparkles aria-hidden className="size-4" />
-                  <span>Maxwell</span>
+                  <Link href={maxwellHref} onClick={() => setOpenMobile(false)}>
+                    <Sparkles aria-hidden className="size-4" />
+                    <span>Maxwell</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -216,10 +211,10 @@ export function AppSidebar({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile"><UserRound aria-hidden /> User profile</Link>
+                  <Link href="/profile" onClick={() => setOpenMobile(false)}><UserRound aria-hidden /> User profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/documentation"><BookOpenText aria-hidden /> Documentation</Link>
+                  <Link href="/documentation" onClick={() => setOpenMobile(false)}><BookOpenText aria-hidden /> Documentation</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="px-1">

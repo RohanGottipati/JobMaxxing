@@ -72,7 +72,7 @@ export function ApplicationCardFace({
 
       <div className="p-2.5 pl-3">
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-[13px] leading-5 font-semibold">
+          <h3 className={cn("line-clamp-2 text-[13px] leading-5 font-semibold", !overlay && onOpen && "pr-24")}>
             {application.jobTitle}
           </h3>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -137,7 +137,7 @@ function CardActions({
 }) {
   return (
     <div
-      className="pointer-events-none absolute top-2.5 right-2.5 flex translate-y-1 items-center gap-1 opacity-0 transition group-hover/card:pointer-events-auto group-hover/card:translate-y-0 group-hover/card:opacity-100 group-focus-within/card:pointer-events-auto group-focus-within/card:translate-y-0 group-focus-within/card:opacity-100"
+      className="absolute top-2.5 right-2.5 flex items-center gap-1 opacity-70 transition duration-200 hover:opacity-100 group-focus-within/card:opacity-100"
       onPointerDown={stopCardAction}
       onClick={stopCardAction}
     >
