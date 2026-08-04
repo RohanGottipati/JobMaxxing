@@ -19,6 +19,7 @@ test("authenticated routes remain visible and vertically reachable", async ({ pa
     "/applications/new",
     `/applications/${applicationId}`,
     `/applications/${applicationId}/edit`,
+    `/applications/${applicationId}/match`,
     "/resumes",
     "/resumes/new",
     "/resumes/versions/new",

@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
   const requestedNext = requestUrl.searchParams.get("next");
-  const allowedNext = new Set(["/dashboard", "/reset-password"]);
+  const allowedNext = new Set(["/dashboard", "/onboarding", "/reset-password"]);
   const next = requestedNext && allowedNext.has(requestedNext) ? requestedNext : "/dashboard";
 
   if (!isSupabaseConfigured()) {

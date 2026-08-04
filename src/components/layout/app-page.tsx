@@ -2,12 +2,13 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-type AppPageSize = "narrow" | "form" | "wide";
+type AppPageSize = "narrow" | "form" | "wide" | "full";
 
 const pageSizes: Record<AppPageSize, string> = {
   narrow: "max-w-2xl",
   form: "max-w-4xl",
   wide: "max-w-[88rem]",
+  full: "max-w-none",
 };
 
 type AppPageProps = {

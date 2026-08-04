@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
+import { assertNoStoredUnsupportedClaims } from "@/lib/maxwell/claims";
 import type {
   Application,
   ApplicationInsert,
@@ -268,7 +269,10 @@ export async function getResumeVersions(
 export async function markResumeVersionSubmitted(
   versionId: string,
 ): Promise<ResumeVersion> {
-  const { supabase } = await getAuthContext();
+  const { supabase, userId } = await getAuthContext();
+  const existing = await supabase.from("resume_versions").select("generation_metadata").eq("id", versionId).eq("user_id", userId).maybeSingle();
+  if (existing.error || !existing.data) throw existing.error ?? new Error("Resume version not found.");
+  assertNoStoredUnsupportedClaims(existing.data.generation_metadata);
 
   const { data, error } = await supabase.rpc("submit_resume_version", {
     p_version_id: versionId,
@@ -308,6 +312,13 @@ export async function duplicateResumeVersion(
       file_path: null,
       rules_used: source.rules_used,
       job_description_snapshot: source.job_description_snapshot,
+      content_format: source.content_format,
+      generation_metadata: source.generation_metadata,
+      editor_mode: source.editor_mode,
+      document_schema_version: source.document_schema_version,
+      structured_content: source.structured_content,
+      template_id: source.template_id,
+      row_version: 0,
     })
     .select("*")
     .single();
@@ -373,7 +384,10 @@ export async function getCoverLetters(
 export async function markCoverLetterSubmitted(
   coverLetterId: string,
 ): Promise<CoverLetter> {
-  const { supabase } = await getAuthContext();
+  const { supabase, userId } = await getAuthContext();
+  const existing = await supabase.from("cover_letters").select("generation_metadata").eq("id", coverLetterId).eq("user_id", userId).maybeSingle();
+  if (existing.error || !existing.data) throw existing.error ?? new Error("Cover letter not found.");
+  assertNoStoredUnsupportedClaims(existing.data.generation_metadata);
 
   const { data, error } = await supabase.rpc("submit_cover_letter", {
     p_cover_letter_id: coverLetterId,

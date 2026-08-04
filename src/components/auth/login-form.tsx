@@ -10,9 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 
-type LoginFormProps = { mode?: "login" | "signup" };
+type LoginFormProps = {
+  mode?: "login" | "signup";
+  providers?: { google: boolean; github: boolean };
+};
 
-export function LoginForm({ mode = "login" }: LoginFormProps) {
+export function LoginForm({
+  mode = "login",
+  providers = { google: false, github: false },
+}: LoginFormProps) {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -24,6 +30,22 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
   const [error, setError] = useState<string | null>(null);
 
   const isSignup = mode === "signup";
+
+  async function handleSocial(provider: "google" | "github") {
+    setError(null);
+    setIsLoading(true);
+    const supabase = createClient();
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+      },
+    });
+    if (oauthError) {
+      setIsLoading(false);
+      setError(oauthError.message);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -47,7 +69,7 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
           data: { full_name: fullName.trim() },
         },
       });
@@ -57,7 +79,7 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         setMessage("Account created. Check your inbox to confirm your email, then log in.");
         return;
       }
-      router.push("/dashboard");
+      router.push("/onboarding");
       router.refresh();
       return;
     }
@@ -70,7 +92,30 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="space-y-5">
+      {providers.google || providers.github ? (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {providers.google ? (
+            <Button type="button" variant="outline" disabled={isLoading} onClick={() => void handleSocial("google")}>
+              <span aria-hidden className="text-sm font-semibold">G</span>
+              Google
+            </Button>
+          ) : null}
+          {providers.github ? (
+            <Button type="button" variant="outline" disabled={isLoading} onClick={() => void handleSocial("github")}>
+              <span aria-hidden className="text-sm font-semibold">GH</span> GitHub
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+      {providers.google || providers.github ? (
+        <div className="flex items-center gap-3" aria-hidden>
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">or continue with email</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+      ) : null}
+      <form onSubmit={handleSubmit} className="space-y-4">
       {isSignup ? (
         <Field label="Full name" htmlFor="full-name">
           <Input id="full-name" autoComplete="name" value={fullName} onChange={(event) => setFullName(event.target.value)} placeholder="Your name" required />
@@ -96,7 +141,8 @@ export function LoginForm({ mode = "login" }: LoginFormProps) {
         {isLoading ? <Loader2 aria-hidden className="animate-spin" /> : null}
         {isLoading ? "Please wait..." : isSignup ? "Create account" : "Log in"}
       </Button>
-    </form>
+      </form>
+    </div>
   );
 }
 

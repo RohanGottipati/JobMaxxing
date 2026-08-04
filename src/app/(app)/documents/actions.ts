@@ -28,6 +28,9 @@ import {
   updateTailoredResume,
 } from "@/lib/documents/repository";
 import type { DocumentKind } from "@/lib/documents/types";
+import { RESUME_TEMPLATE_IDS } from "@/lib/resumes/schema";
+import { createStructuredMasterResume } from "@/lib/resumes/repository";
+import { updateOnboardingStatus } from "@/lib/onboarding/repository";
 
 const requiredTitle = z.string().trim().min(1).max(160);
 const optionalText = z.string().trim().max(100_000).transform((value) => value || null);
@@ -58,6 +61,21 @@ export async function createMasterResumeAction(formData: FormData) {
   const resume = await createMasterResume(parsed.data);
   revalidateDocumentSurfaces();
   redirect(`/resumes/${resume.id}`);
+}
+
+export async function createStructuredMasterResumeAction(formData: FormData) {
+  const parsed = z.object({ name: requiredTitle, templateId: z.enum(RESUME_TEMPLATE_IDS), returnTo: z.enum(["onboarding", "resumes"]).default("resumes") }).safeParse({
+    name: text(formData, "name"),
+    templateId: text(formData, "template_id"),
+    returnTo: text(formData, "return_to") || "resumes",
+  });
+  if (!parsed.success) redirect("/resumes/new?error=invalid");
+  const resume = await createStructuredMasterResume(parsed.data);
+  if (parsed.data.returnTo === "onboarding") {
+    await updateOnboardingStatus({ status: "in_progress", step: 3 });
+  }
+  revalidateDocumentSurfaces();
+  redirect(parsed.data.returnTo === "onboarding" ? "/onboarding" : `/resumes/${resume.id}`);
 }
 
 export async function updateMasterResumeAction(id: string, formData: FormData) {
@@ -107,10 +125,10 @@ export async function createTailoredResumeAction(formData: FormData) {
 
   const application = await getApplicationById(parsed.data.applicationId);
   if (!application) redirect("/resumes/versions/new?error=application");
-  if (parsed.data.baseResumeId) {
-    const base = await getMasterResume(parsed.data.baseResumeId);
-    if (!base) redirect("/resumes/versions/new?error=resume");
-  }
+  const base = parsed.data.baseResumeId
+    ? await getMasterResume(parsed.data.baseResumeId)
+    : null;
+  if (parsed.data.baseResumeId && !base) redirect("/resumes/versions/new?error=resume");
 
   const version = await createResumeVersion({
     application_id: parsed.data.applicationId,
@@ -118,6 +136,15 @@ export async function createTailoredResumeAction(formData: FormData) {
     title: parsed.data.title,
     content: parsed.data.content,
     job_description_snapshot: application.jobDescription,
+    ...(base?.editor_mode === "structured"
+      ? {
+          editor_mode: "structured" as const,
+          document_schema_version: base.document_schema_version,
+          structured_content: base.structured_content,
+          template_id: base.template_id,
+          row_version: 0,
+        }
+      : {}),
   });
   revalidateDocumentSurfaces();
   redirect(`/resumes/versions/${version.id}`);

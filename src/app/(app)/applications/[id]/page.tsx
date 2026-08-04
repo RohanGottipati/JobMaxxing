@@ -10,6 +10,7 @@ import {
   ExternalLink,
   FileCheck2,
   FileText,
+  GitCompareArrows,
   MapPin,
   Pencil,
   Trash2,
@@ -122,6 +123,13 @@ export default async function ApplicationDetailPage({
                 Job post
               </Link>
             ) : null}
+            <Link
+              href={`/applications/${application.id}/match`}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              <GitCompareArrows aria-hidden />
+              Career match
+            </Link>
             <Link
               href={`/applications/${application.id}/edit`}
               className={buttonVariants()}

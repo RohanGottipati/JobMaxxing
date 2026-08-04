@@ -24,25 +24,22 @@ Copy the example env file and add your Supabase credentials:
 cp .env.example .env.local
 ```
 
-Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your [Supabase project API settings](https://supabase.com/dashboard/project/_/settings/api).
+Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your [hosted Supabase project API settings](https://supabase.com/dashboard/project/_/settings/api).
 
-Maxwell, the built-in workspace assistant, also needs a [Gemini API key](https://aistudio.google.com/app/apikey). Set it as `GEMINI_API_KEY`; it is read only by server routes and must never use a `NEXT_PUBLIC_` prefix. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`.
+Resume import and deterministic parsing work without an AI key. To enable AI-assisted parsing and Maxwell, add a [Gemini API key](https://aistudio.google.com/app/apikey) as `GEMINI_API_KEY`; it is read only by server routes and must never use a `NEXT_PUBLIC_` prefix. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`.
+
+Google and GitHub login are optional. Configure the provider in Supabase Auth, then set `AUTH_GOOGLE_ENABLED=true` or `AUTH_GITHUB_ENABLED=true` on the Next.js server.
 
 ### 3. Set up the database
 
-Link your Supabase project and push migrations:
+Link your hosted Supabase project, review the pending migration, and push it. No local Supabase stack or Docker installation is required.
 
 ```bash
 supabase login
 supabase link --project-ref <your-project-ref>
-supabase db push
-```
-
-Or run locally with Docker:
-
-```bash
-supabase start
-supabase db reset
+supabase migration list --linked
+supabase db push --linked --dry-run
+npm run db:push
 ```
 
 ### 4. Run the dev server
@@ -66,6 +63,17 @@ Maxwell can:
 - move cards, mark documents submitted, and manage saved conversation threads.
 
 Explicit create or update instructions run automatically. Ambiguous writes ask for confirmation, and deletes always require confirmation. Maxwell does not browse the web, submit job applications, send email, or compile PDF/DOCX output.
+
+## AI resume and application intelligence
+
+Open **Career match** from a saved application to:
+
+- parse and explicitly confirm job requirements before they affect a score;
+- compare a structured resume with the job through an explainable score and evidence matrix;
+- review safe tailoring diffs and create a separate application-specific resume without overwriting the master;
+- generate grounded, versioned cover letters with evidence per paragraph, history, shorten/expand, paragraph regeneration, copy, and editor/export handoff.
+
+Saved HTTPS job URLs can be imported from Greenhouse, Lever, Ashby, Workday, iCIMS, Workable, SmartRecruiters, LinkedIn, and Indeed. The server validates hosts and resolved IPs, revalidates redirects, limits time/content type/response size, and never treats imported fields as confirmed. Some providers block server-side access; paste the description when the import fallback message appears.
 
 ## Project structure
 
@@ -92,8 +100,8 @@ supabase/
 | `npm test` | Run focused unit tests |
 | `npm run test:e2e:public` | Run public responsive Playwright checks |
 | `npm run test:e2e` | Run the complete authenticated responsive browser suite |
-| `npm run db:push` | Push migrations to linked Supabase project |
-| `npm run db:reset` | Reset local Supabase database |
+| `npm run db:push` | Push migrations to the linked hosted Supabase project |
+| `npm run db:types` | Generate types from the linked hosted Supabase project |
 
 ## Auth
 
@@ -103,7 +111,7 @@ If "Confirm email" is enabled, new users confirm via an emailed link that lands 
 
 ## Browser regression tests
 
-Install Playwright browsers once with `npx playwright install`. Public marketing and auth checks run without credentials. The complete suite requires `E2E_EMAIL` and `E2E_PASSWORD` for a dedicated disposable account; it creates and removes a namespaced application fixture. Set `E2E_BASE_URL` to test an already-running deployment instead of the local development server.
+Install Playwright browsers once with `npx playwright install`. Public marketing and auth checks run without credentials. The complete suite requires `E2E_EMAIL` and `E2E_PASSWORD` for a dedicated disposable hosted account; it creates and removes its application, resume, and import fixtures. Set `E2E_BASE_URL` to test an already-running deployment instead of the local Next.js development server.
 
 ## Railway deployment
 
@@ -112,10 +120,9 @@ The repository includes `railway.json` and builds a minimal Next.js standalone s
 ```text
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
-GEMINI_API_KEY
 ```
 
-`GEMINI_MODEL` remains optional. A production build fails with the missing variable names when any required value is absent, and Railway promotes a deployment only after `/api/health` can reach Supabase Auth and the Data API.
+`GEMINI_API_KEY`, `GEMINI_MODEL`, `AUTH_GOOGLE_ENABLED`, and `AUTH_GITHUB_ENABLED` are optional. Railway promotes a deployment only after `/api/health` can reach hosted Supabase Auth and the Data API; the health endpoint reports Gemini availability without failing when optional AI is disabled.
 
 For email confirmation and password recovery in production, set the Supabase Auth Site URL to the Railway public origin and add this redirect URL:
 

@@ -204,7 +204,7 @@ export async function duplicateMasterResume(id: string): Promise<Resume> {
   const { supabase, userId } = await getAuthContext();
   const { data: source, error: readError } = await supabase
     .from("resumes")
-    .select("name, content")
+    .select("name, content, content_format, generation_metadata, editor_mode, document_schema_version, structured_content, template_id, row_version")
     .eq("id", id)
     .eq("user_id", userId)
     .maybeSingle();
@@ -220,6 +220,13 @@ export async function duplicateMasterResume(id: string): Promise<Resume> {
       user_id: userId,
       name: copyName,
       content: source.content,
+      content_format: source.content_format,
+      generation_metadata: source.generation_metadata,
+      editor_mode: source.editor_mode,
+      document_schema_version: source.document_schema_version,
+      structured_content: source.structured_content,
+      template_id: source.template_id,
+      row_version: 0,
       is_default: false,
       file_path: null,
     })

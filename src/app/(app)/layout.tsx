@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { redirect } from "next/navigation";
 
 import { AppShell } from "@/components/layout/app-shell";
 import { requireCurrentUser } from "@/lib/auth/current-user";
@@ -11,6 +12,9 @@ export default async function AppLayout({
 }) {
   const user = await requireCurrentUser();
   const { profile } = await getProfile();
+  if (profile?.onboarding_status === "not_started") {
+    redirect("/onboarding");
+  }
 
   return (
     <AppShell
@@ -19,6 +23,7 @@ export default async function AppLayout({
         email: user.email,
         name: profile?.full_name?.trim() || user.email?.split("@")[0] || "User",
       }}
+      onboardingIncomplete={profile?.onboarding_status === "deferred" || profile?.onboarding_status === "in_progress"}
     >
       {children}
     </AppShell>

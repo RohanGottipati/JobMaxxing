@@ -17,6 +17,19 @@ setup("authenticate and prepare a representative application", async ({ page }) 
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Log in" }).click();
+  await page.waitForURL(/\/(?:dashboard|onboarding)(?:\?|$)/);
+  if (/\/onboarding(?:\?|$)/.test(page.url())) {
+    await page.getByLabel("Full name").fill("Playwright Candidate");
+    await page.getByLabel("Professional headline").fill("Platform Engineer");
+    await page.getByRole("button", { name: /Continue/ }).click();
+    await page.getByRole("button", { name: /Continue for now/ }).click();
+    await page.getByLabel("Target roles").fill("Platform Engineer");
+    await page.getByLabel("Preferred locations").fill("Toronto, Remote");
+    await page.getByRole("button", { name: /Continue/ }).click();
+    await page.getByText("Remote", { exact: true }).click();
+    await page.getByRole("button", { name: /Review/ }).click();
+    await page.getByRole("button", { name: /Finish setup/ }).click();
+  }
   await expect(page).toHaveURL(/\/dashboard$/);
   await page.context().storageState({ path: authFile });
 

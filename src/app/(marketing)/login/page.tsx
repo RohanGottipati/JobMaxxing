@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   const params = await searchParams;
   return <AuthShell title="Welcome back" description="Log in to pick up exactly where you left off." footer={<>New to JobMaxxing? <Link href="/signup" className="font-medium text-foreground underline underline-offset-4">Create an account</Link></>}>
     {params.error ? <Alert variant="destructive"><AlertDescription>Your sign-in link was invalid or expired. Try again.</AlertDescription></Alert> : null}
-    <LoginForm />
+    <LoginForm providers={{ google: process.env.AUTH_GOOGLE_ENABLED === "true", github: process.env.AUTH_GITHUB_ENABLED === "true" }} />
     <div className="text-right"><Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">Forgot your password?</Link></div>
   </AuthShell>;
 }

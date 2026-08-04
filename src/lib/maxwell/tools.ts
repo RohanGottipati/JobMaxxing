@@ -29,6 +29,7 @@ import {
   toAction,
   updateMaxwellAction,
 } from "@/lib/maxwell/repository";
+import { assertGeneratedDocumentSafe } from "@/lib/maxwell/claims";
 import {
   shouldConfirmMaxwellWrite,
   type MaxwellWriteToolName,
@@ -451,13 +452,15 @@ async function resolveDocumentInput(
 ) {
   let content = input.content?.trim() || null;
   let filePath: string | null = null;
+  let attachmentText: string | null = null;
   if (input.attachment_id) {
     const [attachment] = await getMaxwellAttachmentContext(threadId, [input.attachment_id]);
     if (!attachment) throw new Error("The selected attachment was not found.");
     filePath = attachment.file_path;
-    content ||= attachment.extracted_text;
+    attachmentText = attachment.extracted_text;
+    content ||= attachmentText;
   }
-  return { content, filePath };
+  return { content, filePath, attachmentText };
 }
 
 async function searchWorkspace(args: z.infer<typeof schemas.search_workspace>) {
@@ -518,6 +521,15 @@ async function createApplicationPackage(
         })),
       }
     : undefined;
+  const profile = await getCareerProfile();
+  const sharedSources = [context.currentUserMessage, profile, args.job_description ?? ""];
+  if (resume) {
+    const base = resume.base_resume_id ? await getMasterResume(resume.base_resume_id) : null;
+    assertGeneratedDocumentSafe({ content: resume.content, unsupportedClaims: resume.unsupported_claims, sources: [...sharedSources, resume.attachmentText ?? "", base ?? ""] });
+  }
+  if (coverLetter) {
+    assertGeneratedDocumentSafe({ content: coverLetter.content, unsupportedClaims: coverLetter.unsupported_claims, sources: [...sharedSources, coverLetter.attachmentText ?? "", resume?.content ?? ""] });
+  }
 
   const payload = {
     company_name: args.company_name,
@@ -578,8 +590,10 @@ async function createDocument(
   const { supabase, userId } = await getMaxwellAuthContext();
   const resolved = await resolveDocumentInput(context.threadId, args.document);
   const metadata = generationMetadata(args.document.unsupported_claims);
+  const profile = await getCareerProfile();
 
   if (args.kind === "master_resume") {
+    assertGeneratedDocumentSafe({ content: resolved.content, unsupportedClaims: args.document.unsupported_claims, sources: [context.currentUserMessage, profile, resolved.attachmentText ?? ""] });
     const countResult = await supabase
       .from("resumes")
       .select("id", { count: "exact", head: true })
@@ -615,6 +629,8 @@ async function createDocument(
   if (applicationError || !application) {
     throw applicationError ?? new Error("Application not found.");
   }
+  const base = args.document.base_resume_id ? await getMasterResume(args.document.base_resume_id) : null;
+  assertGeneratedDocumentSafe({ content: resolved.content, unsupportedClaims: args.document.unsupported_claims, sources: [context.currentUserMessage, profile, application.job_description ?? "", resolved.attachmentText ?? "", base ?? ""] });
 
   if (args.kind === "resume_version") {
     let baseResumeId = args.document.base_resume_id ?? null;
@@ -719,11 +735,17 @@ async function moveApplication(args: z.infer<typeof schemas.move_application>) {
   return { application_id: data.id, status: data.status, application_url: `/applications/${data.id}` };
 }
 
-async function updateDocumentTool(args: z.infer<typeof schemas.update_document>) {
+async function updateDocumentTool(args: z.infer<typeof schemas.update_document>, context: ToolExecutionContext) {
   const { supabase, userId } = await getMaxwellAuthContext();
   const metadata = args.unsupported_claims
     ? generationMetadata(args.unsupported_claims)
     : undefined;
+  if (args.content !== undefined) {
+    const [profile, existing] = await Promise.all([getCareerProfile(), getDocumentTool({ kind: args.kind, document_id: args.document_id })]);
+    assertGeneratedDocumentSafe({ content: args.content, unsupportedClaims: args.unsupported_claims ?? [], sources: [context.currentUserMessage, profile, existing ?? ""] });
+  } else if (args.unsupported_claims?.length) {
+    assertGeneratedDocumentSafe({ content: null, unsupportedClaims: args.unsupported_claims, sources: [] });
+  }
 
   if (args.kind === "master_resume") {
     const update: Database["public"]["Tables"]["resumes"]["Update"] = {};
@@ -918,7 +940,7 @@ async function runParsedTool(
     case "move_application":
       return moveApplication(args as z.infer<typeof schemas.move_application>);
     case "update_document":
-      return updateDocumentTool(args as z.infer<typeof schemas.update_document>);
+      return updateDocumentTool(args as z.infer<typeof schemas.update_document>, context);
     case "update_profile_basics":
       return updateProfileBasics(args as z.infer<typeof schemas.update_profile_basics>);
     case "add_profile_item":
