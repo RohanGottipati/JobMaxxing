@@ -43,6 +43,57 @@ type ProvenanceInsert = Partial<ProvenanceRow>;
 export type Database = {
   public: {
     Tables: {
+      tracked_jobs: {
+        Row: {
+          id: string;
+          user_id: string;
+          title: string | null;
+          company: string | null;
+          location: string | null;
+          description: string | null;
+          description_hash: string | null;
+          applied_at: string | null;
+          status: string | null;
+          source_host: string | null;
+          season: string | null;
+          notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          title?: string | null;
+          company?: string | null;
+          location?: string | null;
+          description?: string | null;
+          description_hash?: string | null;
+          applied_at?: string | null;
+          status?: string | null;
+          source_host?: string | null;
+          season?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          title?: string | null;
+          company?: string | null;
+          location?: string | null;
+          description?: string | null;
+          description_hash?: string | null;
+          applied_at?: string | null;
+          status?: string | null;
+          source_host?: string | null;
+          season?: string | null;
+          notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           id: string;
