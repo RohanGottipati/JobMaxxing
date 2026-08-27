@@ -1,0 +1,30 @@
+# ── Web app (Next.js / JobMaxxing) ───────────────────────────────────────────
+web/node_modules/
+web/.next/
+web/out/
+web/.env
+web/.env.local
+web/.env*.local
+web/next-env.d.ts
+web/.vercel/
+web/playwright-report/
+web/test-results/
+
+# ── Extension (JobTrack) ─────────────────────────────────────────────────────
+# Local secrets — copy config.example.js -> config.local.js and fill Supabase values.
+extension/config.local.js
+extension/node_modules/
+extension/dist/
+
+# ── Editor / OS ──────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.user
+
+# ── Agent / MCP tooling (local only) ─────────────────────────────────────────
+.agents/
+.claude/
+.mcp.json

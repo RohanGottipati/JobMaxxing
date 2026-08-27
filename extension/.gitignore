@@ -1,0 +1,29 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Icon generator (helper only, not part of the extension)
+icons/generate-icons.html
+
+# If a build step is ever added
+dist/
+node_modules/
+
+# Agent / MCP tooling — local only, not part of the extension.
+.agents/
+.claude/
+.mcp.json
+skills-lock.json
+
+# Local secrets / config — NEVER commit real keys.
+# Copy config.example.js -> config.local.js and fill in your Supabase values.
+config.local.js
+.env
+.env.local
+.env.*.local
