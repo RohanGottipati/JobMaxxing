@@ -1,0 +1,2 @@
+import { applyTailoringRun } from "@/lib/job-intelligence/tailoring"; import { tailoringApplySchema } from "@/lib/job-intelligence/schemas"; import { routeError } from "@/lib/http/api";
+export const runtime = "nodejs"; export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) { try { const [{ id }, body] = await Promise.all([params, request.json()]); return Response.json(await applyTailoringRun(id, tailoringApplySchema.parse(body)), { status: 201 }); } catch (error) { return routeError(error); } }

@@ -1,0 +1,2 @@
+import { generateCoverLetter } from "@/lib/job-intelligence/cover-letters"; import { coverLetterRequestSchema } from "@/lib/job-intelligence/schemas"; import { routeError } from "@/lib/http/api";
+export const runtime = "nodejs"; export async function POST(request: Request) { try { return Response.json(await generateCoverLetter(coverLetterRequestSchema.parse(await request.json())), { status: 201 }); } catch (error) { return routeError(error); } }

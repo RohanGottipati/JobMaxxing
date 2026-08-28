@@ -1,0 +1,26 @@
+---
+pid: 62964
+cwd: /Users/rohangottipati/Documents/JobMaxxing
+command: cd /Users/rohangottipati/Documents/JobMaxxing && npm run dev
+---
+
+> jobmaxxing@0.1.0 dev
+> next dev --webpack
+
+⚠ Port 3000 is in use by process 14677, using available port 3001 instead.
+▲ Next.js 16.2.9 (webpack)
+- Local:         http://localhost:3001
+- Network:       http://10.0.0.21:3001
+- Environments: .env.local
+✓ Ready in 421ms
+⨯ Another next dev server is already running.
+
+- Local:        http://localhost:3000
+- PID:          14677
+- Dir:          /Users/rohangottipati/Documents/JobMaxxing
+- Log:          .next/dev/logs/next-development.log
+
+Run kill 14677 to stop it.
+[?25h
+
+--- exit_code: 1 ---
