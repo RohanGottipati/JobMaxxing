@@ -442,6 +442,12 @@ async function refreshAuth() {
   return loggedIn;
 }
 
+// "View Website" → open the web app's applications dashboard in a new tab.
+linkWebsite.addEventListener('click', (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: `${WEB_APP_ORIGIN}/applications` });
+});
+
 // "Log in with JobMaxxing" → open the web login page. After the user logs in
 // there, the auth-bridge content script pushes the session back to the extension
 // (Phase 2 wires the real session), and storage.onChanged below flips this view.
