@@ -8,6 +8,21 @@ Job search tracker built with Next.js and Supabase. Track applications from save
 - **Backend:** Supabase (Postgres, Auth, RLS)
 - **Language:** TypeScript
 
+## Repository
+
+This web app is its own standalone repository:
+
+- **Remote:** `https://github.com/RohanGottipati/JobMaxxing.git`
+- **Working branch:** `update`
+
+```bash
+git clone -b update https://github.com/RohanGottipati/JobMaxxing.git
+cd JobMaxxing
+```
+
+The companion Chrome extension lives in a separate repository
+(`https://github.com/zhao0524/JobMax-Extension.git`).
+
 ## Getting started
 
 ### 1. Install dependencies
@@ -29,6 +44,8 @@ Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your [ho
 Resume import and deterministic parsing work without an AI key. To enable AI-assisted parsing and Maxwell, add a [Gemini API key](https://aistudio.google.com/app/apikey) as `GEMINI_API_KEY`; it is read only by server routes and must never use a `NEXT_PUBLIC_` prefix. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`.
 
 Google and GitHub login are optional. Configure the provider in Supabase Auth, then set `AUTH_GOOGLE_ENABLED=true` or `AUTH_GITHUB_ENABLED=true` on the Next.js server.
+
+> **Secrets never enter git.** `.gitignore` excludes every `.env*` file except `.env.example`, so your local `.env` / `.env.local` (with `GEMINI_API_KEY` and Supabase values) stays out of the repository. `GEMINI_API_KEY` is server-only — never give it a `NEXT_PUBLIC_` prefix. In production, inject these as platform environment variables (e.g. Railway) rather than committing them.
 
 ### 3. Set up the database
 

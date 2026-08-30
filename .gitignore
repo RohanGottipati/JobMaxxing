@@ -33,9 +33,18 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files — NEVER commit real secrets (GEMINI_API_KEY etc.).
+# Only the template is tracked; copy it to .env and fill in real values.
 .env*
 !.env.example
+
+# Agent / editor tooling — local only, never committed.
+.agents/
+.claude/
+.cursor/
+.backboard/
+.mcp.json
+skills-lock.json
 
 # accidental nested repo directory
 /JobMaxxing/
