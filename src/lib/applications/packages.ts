@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
+import { hashJobDescription } from "@/lib/applications/description-hash";
 import { assertNoStoredUnsupportedClaims } from "@/lib/maxwell/claims";
 import type {
   Application,
@@ -57,10 +58,32 @@ export async function createApplication(
   input: CreateApplicationInput,
 ): Promise<Application> {
   const { supabase, userId } = await getAuthContext();
+  const descriptionHash = input.job_description
+    ? hashJobDescription(input.job_description)
+    : null;
+
+  if (descriptionHash) {
+    const { data: duplicate, error: duplicateError } = await supabase
+      .from("applications")
+      .select("id, company_name, role_title")
+      .eq("user_id", userId)
+      .eq("description_hash", descriptionHash)
+      .maybeSingle();
+    if (duplicateError) throw duplicateError;
+    if (duplicate) {
+      throw new Error(
+        `DUPLICATE_DESCRIPTION:${duplicate.company_name}:${duplicate.role_title}`,
+      );
+    }
+  }
 
   const { data, error } = await supabase
     .from("applications")
-    .insert({ ...input, user_id: userId })
+    .insert({
+      ...input,
+      user_id: userId,
+      description_hash: descriptionHash,
+    })
     .select("*")
     .single();
 

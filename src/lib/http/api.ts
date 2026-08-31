@@ -17,6 +17,14 @@ export function routeError(error: unknown) {
   const databaseCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"
     ? error.code
     : null;
+  if (/DUPLICATE_DESCRIPTION:/i.test(message)) {
+    const [, company, role] = message.split(":");
+    return apiError(
+      "CONFLICT",
+      `You already tracked ${role ?? "this role"} at ${company ?? "this company"} with the same job description.`,
+      409,
+    );
+  }
   if (/AI_RATE_LIMITED/i.test(message)) {
     const resetAt = /AI_RATE_LIMITED:([^"]+)/i.exec(message)?.[1]?.trim();
     return apiError("RATE_LIMITED", "You reached the daily limit for this AI action. Try again after the reset time.", 429, resetAt ? { resetAt } : undefined);

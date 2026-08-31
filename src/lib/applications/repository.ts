@@ -27,6 +27,9 @@ function toJobApplication(
     | "position"
     | "submitted_resume_version_id"
     | "submitted_cover_letter_id"
+    | "source_host"
+    | "description_hash"
+    | "recruiting_season"
     | "created_at"
     | "updated_at"
   >,
@@ -48,6 +51,9 @@ function toJobApplication(
     position: row.position,
     submittedResumeVersionId: row.submitted_resume_version_id,
     submittedCoverLetterId: row.submitted_cover_letter_id,
+    sourceHost: row.source_host,
+    descriptionHash: row.description_hash,
+    recruitingSeason: row.recruiting_season,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

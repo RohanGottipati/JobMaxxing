@@ -29,6 +29,9 @@ export type JobApplication = {
   position: number;
   submittedResumeVersionId: string | null;
   submittedCoverLetterId: string | null;
+  sourceHost: string | null;
+  descriptionHash: string | null;
+  recruitingSeason: string | null;
   createdAt: string;
   updatedAt: string;
 };

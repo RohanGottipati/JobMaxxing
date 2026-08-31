@@ -23,7 +23,14 @@ export default async function NewApplicationPage({
         description="Add a new job application with all the essential details."
       />
 
-      {params.error ? (
+      {params.error === "duplicate-description" ? (
+        <Alert variant="destructive">
+          <AlertDescription>
+            You already tracked an application with this job description. Open the
+            existing application or change the description before saving.
+          </AlertDescription>
+        </Alert>
+      ) : params.error ? (
         <Alert variant="destructive">
           <AlertDescription>
             Company name and job title are required.

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getGeminiModel, isGeminiConfigured } from "@/lib/ai/gemini";
+import type { AuthContext } from "@/lib/supabase/request-client";
 import { createClient } from "@/lib/supabase/server";
 
 export const AI_ACTIONS = [
@@ -15,7 +16,8 @@ export const AI_ACTIONS = [
 export type AiAction = (typeof AI_ACTIONS)[number];
 export type AiResourceType = "profile_bullet" | "resume" | "resume_version" | "application";
 
-async function context() {
+async function context(auth?: AuthContext) {
+  if (auth) return auth;
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,12 +27,15 @@ async function context() {
   return { supabase, userId: user.id };
 }
 
-export async function beginAiOperation(input: {
-  action: AiAction;
-  resourceType?: AiResourceType;
-  resourceId?: string;
-}) {
-  const { supabase, userId } = await context();
+export async function beginAiOperation(
+  input: {
+    action: AiAction;
+    resourceType?: AiResourceType;
+    resourceId?: string;
+  },
+  auth?: AuthContext,
+) {
+  const { supabase, userId } = await context(auth);
   const { data, error } = await supabase.rpc("claim_ai_usage", {
     p_action: input.action,
     p_resource_type: input.resourceType ?? null,
@@ -50,9 +55,9 @@ export async function beginAiOperation(input: {
   };
 }
 
-export async function externalAiAvailability() {
+export async function externalAiAvailability(auth?: AuthContext) {
   if (!isGeminiConfigured()) return { available: false as const, reason: "not_configured" as const };
-  const { supabase, userId } = await context();
+  const { supabase, userId } = await context(auth);
   const { data, error } = await supabase
     .from("profiles")
     .select("ai_processing_consent_at")
@@ -63,17 +68,20 @@ export async function externalAiAvailability() {
   return { available: true as const, model: getGeminiModel() };
 }
 
-export async function recordAiAudit(input: {
-  action: AiAction;
-  outcome: "succeeded" | "failed" | "fallback";
-  resourceType?: AiResourceType;
-  resourceId?: string;
-  model?: string | null;
-  startedAt: number;
-  errorCode?: string | null;
-}) {
+export async function recordAiAudit(
+  input: {
+    action: AiAction;
+    outcome: "succeeded" | "failed" | "fallback";
+    resourceType?: AiResourceType;
+    resourceId?: string;
+    model?: string | null;
+    startedAt: number;
+    errorCode?: string | null;
+  },
+  auth?: AuthContext,
+) {
   try {
-    const { supabase, userId } = await context();
+    const { supabase, userId } = await context(auth);
     const { error } = await supabase.from("ai_audit_events").insert({
       user_id: userId,
       action: input.action,

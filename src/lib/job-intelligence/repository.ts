@@ -13,6 +13,7 @@ import { jobAnalysisReviewSchema, jobMatchResultSchema, parsedJobSchema } from "
 import { createResumeRenderModel } from "@/lib/resumes/render-model";
 import { getStructuredResume } from "@/lib/resumes/repository";
 import { createClient } from "@/lib/supabase/server";
+import type { AuthContext } from "@/lib/supabase/request-client";
 import type { Database, Json } from "@/types/database";
 
 type JobAnalysisRow = Database["public"]["Tables"]["job_analyses"]["Row"];
@@ -21,16 +22,60 @@ type JobMatchRow = Database["public"]["Tables"]["job_match_analyses"]["Row"];
 const jobMatchRequestSchema = z.object({ applicationId: z.uuid(), kind: z.enum(["master", "tailored"]), resumeId: z.uuid() });
 export { jobAnalysisReviewSchema, jobMatchRequestSchema };
 
-async function authContext() {
+async function authContext(auth?: AuthContext) {
+  if (auth) return auth;
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) throw new Error("Authentication is required.");
   return { supabase, userId: user.id };
 }
 
-export async function analyzeApplicationJob(applicationId: string, importedSource?: string) {
-  const operation = await beginAiOperation({ action: "job_parse", resourceType: "application", resourceId: applicationId });
-  const application = await getApplicationById(applicationId);
+async function getApplicationForUser(auth: AuthContext, applicationId: string) {
+  const { data, error } = await auth.supabase
+    .from("applications")
+    .select("*")
+    .eq("id", applicationId)
+    .eq("user_id", auth.userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    id: data.id,
+    userId: data.user_id,
+    companyName: data.company_name,
+    jobTitle: data.role_title,
+    jobUrl: data.job_url,
+    location: data.location,
+    appliedAt: data.date_applied,
+    deadline: data.deadline,
+    status: data.status,
+    jobDescription: data.job_description,
+    notes: data.notes,
+    referralContact: data.referral_contact,
+    nextAction: data.next_action,
+    position: data.position,
+    submittedResumeVersionId: data.submitted_resume_version_id,
+    submittedCoverLetterId: data.submitted_cover_letter_id,
+    sourceHost: data.source_host,
+    descriptionHash: data.description_hash,
+    recruitingSeason: data.recruiting_season,
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
+}
+
+export async function analyzeApplicationJob(
+  applicationId: string,
+  importedSource?: string,
+  auth?: AuthContext,
+) {
+  const operation = await beginAiOperation(
+    { action: "job_parse", resourceType: "application", resourceId: applicationId },
+    auth,
+  );
+  const application = auth
+    ? await getApplicationForUser(auth, applicationId)
+    : await getApplicationById(applicationId);
   if (!application) throw new Error("Application not found.");
   const source = importedSource?.trim() || application.jobDescription?.trim() || "";
   if (!source) throw new Error("A job description is required before analysis.");
@@ -50,7 +95,7 @@ export async function analyzeApplicationJob(applicationId: string, importedSourc
     if (snapshotError) throw snapshotError;
   }
   const deterministic = parseJobDescription({ sourceText: source, company: application.companyName, roleTitle: application.jobTitle, location: application.location });
-  const availability = await externalAiAvailability();
+  const availability = await externalAiAvailability(auth);
   let parsed = deterministic;
   let parser: "deterministic" | "hybrid" = "deterministic";
   let model: string | null = null;
@@ -106,7 +151,7 @@ export async function analyzeApplicationJob(applicationId: string, importedSourc
     confirmed_at: null,
   }, { onConflict: "application_id" }).select("*").single();
   if (error) throw error;
-  await recordAiAudit({ action: "job_parse", outcome: parser === "hybrid" ? "succeeded" : "fallback", resourceType: "application", resourceId: applicationId, model, startedAt: operation.startedAt, errorCode });
+  await recordAiAudit({ action: "job_parse", outcome: parser === "hybrid" ? "succeeded" : "fallback", resourceType: "application", resourceId: applicationId, model, startedAt: operation.startedAt, errorCode }, auth);
   return {
     ...mapJobAnalysis(data),
     reanalysisDiff: reanalysisDiff.length ? reanalysisDiff : undefined,

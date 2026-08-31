@@ -67,10 +67,17 @@ function readApplicationId(formData: FormData) {
 
 export async function createApplication(formData: FormData) {
   const input = readApplicationInput(formData);
-  const application = await createApplicationRecord(input);
-
-  revalidatePath("/applications");
-  redirect(`/applications/${application.id}`);
+  try {
+    const application = await createApplicationRecord(input);
+    revalidatePath("/applications");
+    redirect(`/applications/${application.id}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/DUPLICATE_DESCRIPTION:/i.test(message)) {
+      redirect("/applications/new?error=duplicate-description");
+    }
+    throw error;
+  }
 }
 
 export async function updateApplication(formData: FormData) {

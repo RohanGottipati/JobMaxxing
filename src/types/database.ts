@@ -1094,6 +1094,9 @@ export type Database = {
           position: number;
           submitted_resume_version_id: string | null;
           submitted_cover_letter_id: string | null;
+          source_host: string | null;
+          description_hash: string | null;
+          recruiting_season: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -1114,6 +1117,9 @@ export type Database = {
           position?: number;
           submitted_resume_version_id?: string | null;
           submitted_cover_letter_id?: string | null;
+          source_host?: string | null;
+          description_hash?: string | null;
+          recruiting_season?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1134,6 +1140,9 @@ export type Database = {
           position?: number;
           submitted_resume_version_id?: string | null;
           submitted_cover_letter_id?: string | null;
+          source_host?: string | null;
+          description_hash?: string | null;
+          recruiting_season?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -1287,6 +1296,9 @@ export type Database = {
           position: number;
           submitted_resume_version_id: string | null;
           submitted_cover_letter_id: string | null;
+          source_host: string | null;
+          description_hash: string | null;
+          recruiting_season: string | null;
           created_at: string;
           updated_at: string;
           submitted_resume_version: Database["public"]["Tables"]["resume_versions"]["Row"] | null;

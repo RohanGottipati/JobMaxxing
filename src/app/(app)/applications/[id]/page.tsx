@@ -20,6 +20,7 @@ import {
 import { deleteApplication } from "@/app/(app)/applications/actions";
 import { ApplicationPackageSection } from "@/components/applications/application-detail-sections";
 import { StatusBadge } from "@/components/applications/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { AppPage } from "@/components/layout/app-page";
 import {
   AlertDialog,
@@ -94,6 +95,12 @@ export default async function ApplicationDetailPage({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status={application.status} />
+                {application.sourceHost ? (
+                  <Badge variant="outline">Captured via extension · {application.sourceHost}</Badge>
+                ) : null}
+                {application.recruitingSeason ? (
+                  <Badge variant="secondary">{application.recruitingSeason}</Badge>
+                ) : null}
                 {application.deadline ? (
                   <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                     <CalendarClock aria-hidden className="size-3.5" />

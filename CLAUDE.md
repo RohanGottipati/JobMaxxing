@@ -21,6 +21,8 @@ Job application tracker — help users organize their job search pipeline.
 | `/applications/[id]` | Application detail + package manager (auth required) |
 | `/profile` | User profile (auth required) |
 | `/auth/callback` | Supabase email-confirmation callback |
+| `/api/extension/applications` | Chrome extension: save/list applications (Bearer JWT) |
+| `/api/extension/applications/[id]/analyze` | Chrome extension: trigger job parse (Bearer JWT) |
 
 ## Database
 
@@ -46,6 +48,18 @@ Required in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_APP_URL` (optional; used for extension deep links, defaults to production)
+
+## Chrome extension
+
+The [JobMaxxing-extension](https://github.com/RohanGottipati/JobMaxxing-extension) repo is a capture-focused Chrome extension that shares this Supabase backend:
+
+- Sign in with the same account as the web app
+- Scrape job postings from LinkedIn, Workday, Greenhouse, Lever, Ashby, and other pages
+- Save applications via `/api/extension/applications` with duplicate detection
+- Optionally trigger server-side job parsing when AI consent is enabled
+
+After pulling extension-related migrations, run `npm run db:push` so `applications` gains `source_host`, `description_hash`, and `recruiting_season`, and the `application_packages` view is recreated.
 
 ## Conventions
 

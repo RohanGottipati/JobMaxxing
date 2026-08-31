@@ -187,6 +187,14 @@ function ModalBody({ applicationId }: { applicationId: string }) {
                 Due {deadlineLabel}
               </Badge>
             ) : null}
+            {application.sourceHost ? (
+              <Badge variant="outline">
+                Captured via extension · {application.sourceHost}
+              </Badge>
+            ) : null}
+            {application.recruitingSeason ? (
+              <Badge variant="secondary">{application.recruitingSeason}</Badge>
+            ) : null}
           </div>
 
           <DialogTitle className="max-w-3xl text-2xl leading-tight font-semibold tracking-[-0.035em] sm:text-3xl">
