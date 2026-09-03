@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
@@ -16,15 +16,20 @@ export const metadata: Metadata = {
     "Track every opportunity, manage tailored resumes and cover letters, and move your job search forward with clarity.",
 };
 
+export const viewport: Viewport = {
+  colorScheme: "light",
+  themeColor: "#f7f4ed",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
   return (
-    <html lang="en" className="min-h-full" suppressHydrationWarning>
+    <html lang="en" className="light min-h-full" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className="min-h-full font-sans antialiased">
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} forcedTheme="light">
           <TooltipProvider delayDuration={100}>{children}</TooltipProvider>
           <Toaster richColors closeButton />
         </ThemeProvider>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { deleteTailoredResumeAction, duplicateTailoredResumeAction, submitTailoredResumeAction, updateTailoredResumeAction } from "@/app/(app)/documents/actions";
 import { DocumentEditor } from "@/components/documents/document-editor";
@@ -15,6 +15,7 @@ export default async function TailoredResumePage({ params, searchParams }: { par
   const [{ id }, state, user] = await Promise.all([params, searchParams, requireCurrentUser()]);
   const [resume, library] = await Promise.all([getTailoredResume(id), getDocumentLibraryData()]);
   if (!resume) notFound();
+  if (resume.content_format === "latex") redirect(`/latex/resume_version/${id}`);
   if (resume.editor_mode === "structured") {
     const structured = await getStructuredResume("tailored", id);
     if (!structured) notFound();

@@ -15,6 +15,7 @@
 /.playwright/
 /playwright-report/
 /test-results/
+/.jez-screenshots/
 
 # next.js
 /.next/
@@ -46,3 +47,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# runtime workers and TeX Live assets copied/downloaded by scripts/
+/public/pdf.worker.min.mjs
+/public/latex/

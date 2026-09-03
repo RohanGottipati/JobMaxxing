@@ -4,13 +4,20 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, FileCheck2, FileText, Files, Search, Star, UploadCloud } from "lucide-react";
 
+import { DocumentOpenLink } from "@/components/documents/document-open-link";
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CoverLetterItem, MasterResumeItem, TailoredResumeItem } from "@/lib/documents/types";
+import type {
+  CoverLetterItem,
+  MasterResumeItem,
+  TailoredResumeItem,
+} from "@/lib/documents/types";
+import { documentWorkspaceHref } from "@/lib/latex/types";
 import { cn } from "@/lib/utils";
 
 type ResumeLibraryProps = {
@@ -84,15 +91,15 @@ function DocumentCard({ item, kind }: { item: MasterResumeItem | TailoredResumeI
   const master = kind === "master_resume" ? item as MasterResumeItem : null;
   const version = kind !== "master_resume" ? item as TailoredResumeItem | CoverLetterItem : null;
   const title = master?.name || version?.title || `${kind === "cover_letter" ? "Cover letter" : "Resume"} v${version?.version_number}`;
-  const href = kind === "master_resume" ? `/resumes/${item.id}` : kind === "resume_version" ? `/resumes/versions/${item.id}` : `/cover-letters/${item.id}`;
+  const href = documentWorkspaceHref(kind, item.id, item.content_format);
   return (
     <Card className="interactive-card group bg-card hover:border-border-strong hover:bg-elevated hover:shadow-[0_12px_28px_-14px_rgb(41_40_36/0.4)]">
       <CardContent className="flex min-h-56 flex-col">
-        <div className="flex items-start justify-between gap-3"><span className="grid size-9 place-items-center rounded-md border border-border bg-parchment text-primary">{kind === "master_resume" ? <Files aria-hidden className="size-4" /> : kind === "resume_version" ? <FileCheck2 aria-hidden className="size-4" /> : <FileText aria-hidden className="size-4" />}</span><div className="flex flex-wrap justify-end gap-1.5">{master?.is_default ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}{version?.submitted_at ? <Badge className="bg-success/12 text-success hover:bg-success/12">Submitted</Badge> : null}{item.file_path ? <Badge variant="outline"><UploadCloud aria-hidden className="mr-1 size-3" />File</Badge> : null}</div></div>
+        <div className="flex items-start justify-between gap-3"><span className="grid size-9 place-items-center rounded-md border border-border bg-parchment text-primary">{kind === "master_resume" ? <Files aria-hidden className="size-4" /> : kind === "resume_version" ? <FileCheck2 aria-hidden className="size-4" /> : <FileText aria-hidden className="size-4" />}</span><div className="flex flex-wrap justify-end gap-1.5">{master?.is_default ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}{version?.submitted_at ? <Badge className="bg-success/12 text-success hover:bg-success/12">Submitted</Badge> : null}{item.content_format === "latex" ? <Badge variant="outline">LaTeX</Badge> : null}{item.file_path ? <Badge variant="outline"><UploadCloud aria-hidden className="mr-1 size-3" />File</Badge> : null}</div></div>
         <h2 className="mt-5 line-clamp-2 text-base font-semibold tracking-[-0.025em]">{title}</h2>
         {version?.application ? <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{version.application.companyName} · {version.application.jobTitle}</p> : <p className="mt-1 text-sm text-muted-foreground">{master ? "Reusable master resume" : "Application document"}</p>}
         <p className="paper-rule mt-4 line-clamp-3 min-h-16 whitespace-pre-wrap rounded-md border border-border bg-parchment/45 px-3 py-2 text-xs leading-5 text-muted-foreground">{item.content || "No text content added yet."}</p>
-        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4"><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays aria-hidden className="size-3.5" />Updated {new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(item.updated_at))}</span><Link href={href} className={buttonVariants({ variant: "outline", size: "sm" })}>Open</Link></div>
+        <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4"><span className="flex items-center gap-1.5 text-xs text-muted-foreground"><CalendarDays aria-hidden className="size-3.5" />Updated {new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(item.updated_at))}</span><div className="flex gap-2"><DocumentPreviewButton kind={kind} id={item.id} title={title} variant="ghost" /><DocumentOpenLink href={href}>Open</DocumentOpenLink></div></div>
       </CardContent>
     </Card>
   );

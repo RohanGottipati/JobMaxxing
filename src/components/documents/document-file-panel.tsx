@@ -6,6 +6,7 @@ import { Download, FileText, Loader2, Paperclip, Trash2, UploadCloud } from "luc
 import { toast } from "sonner";
 
 import { attachDocumentFileAction, removeDocumentFileAction } from "@/app/(app)/documents/actions";
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
@@ -112,6 +113,7 @@ export function DocumentFilePanel({
           <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-card text-primary"><FileText aria-hidden className="size-4" /></span>
           <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{name}</span><span className="block text-xs text-muted-foreground">Private {isPdf ? "PDF" : "DOCX"} attachment</span></span>
           <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:flex-nowrap">
+            <DocumentPreviewButton kind={kind} id={id} title={name ?? undefined} className="flex-1 sm:flex-none" />
             {signedUrl ? <Button asChild variant="outline" size="sm" className="flex-1 sm:flex-none"><a href={signedUrl} target="_blank" rel="noreferrer"><Download aria-hidden />Download</a></Button> : null}
             {!locked ? <Button variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()} className="flex-1 sm:flex-none">{uploading ? <Loader2 aria-hidden className="animate-spin" /> : <UploadCloud aria-hidden />}Replace</Button> : null}
             {!locked ? <Button variant="ghost" size="icon-sm" disabled={removing} onClick={handleRemove} aria-label="Remove attachment" className="text-destructive hover:text-destructive">{removing ? <Loader2 aria-hidden className="animate-spin" /> : <Trash2 aria-hidden />}</Button> : null}
@@ -123,12 +125,7 @@ export function DocumentFilePanel({
         </Button>
       )}
 
-      {filePath && isPdf && signedUrl ? (
-        <div className="overflow-hidden rounded-lg border border-border bg-parchment/30">
-          <iframe src={signedUrl} title={`Preview of ${name}`} className="h-[min(34rem,65dvh)] min-h-80 w-full bg-white" />
-        </div>
-      ) : null}
-      {filePath && !isPdf ? <p className="text-xs leading-5 text-muted-foreground">DOCX preview is not supported in the browser. Download the private file to open it in your document editor.</p> : null}
+      {filePath ? <p className="text-xs leading-5 text-muted-foreground">Preview opens {isPdf ? "the PDF" : "a readable version of the DOCX"} in a full-screen viewer without leaving this page.</p> : null}
     </div>
   );
 }

@@ -70,7 +70,7 @@ export function DocumentEditor({
       </Card>
 
       <div className="grid content-start gap-5">
-        <Card><CardHeader><CardTitle>Private attachment</CardTitle><CardDescription>PDF or DOCX, up to 10 MB. Preview links expire after five minutes.</CardDescription></CardHeader><CardContent><DocumentFilePanel kind={model.kind} id={model.id} userId={userId} filePath={model.filePath} signedUrl={signedUrl} locked={model.isSubmitted} /></CardContent></Card>
+        <Card><CardHeader><CardTitle>Private attachment</CardTitle><CardDescription>PDF or DOCX, up to 10 MB. Preview opens in a full-screen viewer.</CardDescription></CardHeader><CardContent><DocumentFilePanel kind={model.kind} id={model.id} userId={userId} filePath={model.filePath} signedUrl={signedUrl} locked={model.isSubmitted} /></CardContent></Card>
         {model.content ? <Card><CardHeader><CardTitle>Text preview</CardTitle><CardDescription>A clean reading view of the saved text.</CardDescription></CardHeader><CardContent><div className="paper-rule max-h-[30rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-parchment/45 p-4 text-sm leading-8 text-muted-foreground">{model.content}</div></CardContent></Card> : null}
         <Card><CardHeader><CardTitle>Document actions</CardTitle><CardDescription>Manage this document without losing submitted history.</CardDescription></CardHeader><CardContent className="grid gap-2">
           {model.content ? <Button asChild variant="outline" className="w-full justify-start"><a href={`/api/documents/${model.kind}/${model.id}/source`}><Download aria-hidden />Download {model.contentFormat === "latex" ? ".tex" : model.contentFormat === "markdown" ? ".md" : ".txt"} source</a></Button> : null}

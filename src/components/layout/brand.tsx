@@ -1,28 +1,18 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 32 32"
+    <Image
+      src="/jobmaxxing-logo-transparent.png"
+      alt=""
       aria-hidden
-      className={cn("size-8 shrink-0", className)}
-    >
-      <rect width="32" height="32" rx="8" fill="var(--primary)" />
-      <g fill="var(--primary-foreground)">
-        <rect x="7" y="19" width="4.5" height="6" rx="1.25" opacity="0.55" />
-        <rect x="13.75" y="14" width="4.5" height="11" rx="1.25" opacity="0.8" />
-        <rect x="20.5" y="7" width="4.5" height="18" rx="1.25" />
-      </g>
-      <path
-        d="M7 27.25h18"
-        stroke="var(--primary-foreground)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        opacity="0.4"
-      />
-    </svg>
+      width={64}
+      height={64}
+      className={cn("size-8 shrink-0 object-contain", className)}
+    />
   );
 }
 

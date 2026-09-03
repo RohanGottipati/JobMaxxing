@@ -2,7 +2,6 @@ import Link from "next/link";
 import { Menu } from "lucide-react";
 
 import { Brand } from "@/components/layout/brand";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { cn } from "@/lib/utils";
@@ -20,7 +19,6 @@ export async function MarketingHeader() {
           <Link href="/#faq" className="rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-accent hover:text-foreground">FAQ</Link>
         </nav>
         <div className="flex items-center gap-1.5">
-          <ThemeToggle className="text-muted-foreground" />
           {user ? (
             <Link href="/dashboard" className={buttonVariants({ size: "sm" })}>
               Open app

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { getApplicationDetails } from "@/app/(app)/applications/actions";
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import {
@@ -259,6 +260,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
           <TabsContent value="Resume" className="mt-4">
             <DocumentVersions
               heading="Resume versions"
+              kind="resume_version"
               submitted={submittedResume}
               items={resumeVersions}
               emptyLabel="No resume versions yet."
@@ -268,6 +270,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
           <TabsContent value="Cover Letter" className="mt-4">
             <DocumentVersions
               heading="Cover letters"
+              kind="cover_letter"
               submitted={submittedCoverLetter}
               items={coverLetters}
               emptyLabel="No cover letters yet."
@@ -438,12 +441,14 @@ function ActivityEntry({
 function DocumentVersions({
   emptyLabel,
   heading,
+  kind,
   items,
   submitted,
   submittedEmptyLabel,
 }: {
   emptyLabel: string;
   heading: string;
+  kind: "resume_version" | "cover_letter";
   items: DocumentItem[];
   submitted: DocumentItem | null;
   submittedEmptyLabel: string;
@@ -466,8 +471,8 @@ function DocumentVersions({
 
         {submitted ? (
           <div className="mt-3 grid gap-3">
-            <DocumentHeader item={submitted} />
-            <FileAttachment filePath={submitted.file_path ?? null} />
+            <DocumentHeader kind={kind} item={submitted} />
+            <FileAttachment kind={kind} item={submitted} />
             <DocumentText
               value={submitted.content ?? null}
               emptyLabel="This version has no text content saved."
@@ -487,7 +492,7 @@ function DocumentVersions({
                 key={item.id}
                 className="rounded-md border border-border bg-parchment/45 p-3"
               >
-                <DocumentHeader item={item} />
+                <DocumentHeader kind={kind} item={item} />
               </li>
             ))}
           </ul>
@@ -499,7 +504,13 @@ function DocumentVersions({
   );
 }
 
-function DocumentHeader({ item }: { item: DocumentItem }) {
+function DocumentHeader({
+  kind,
+  item,
+}: {
+  kind: "resume_version" | "cover_letter";
+  item: DocumentItem;
+}) {
   const submittedLabel = safeFormatDate(item.submitted_at);
 
   return (
@@ -508,29 +519,36 @@ function DocumentHeader({ item }: { item: DocumentItem }) {
         Version {item.version_number}
         {item.title ? ` · ${item.title}` : ""}
       </p>
-      {submittedLabel ? (
-        <span className="shrink-0 text-xs text-muted-foreground">
-          {submittedLabel}
-        </span>
-      ) : null}
+      <div className="flex shrink-0 items-center gap-2">
+        <DocumentPreviewButton kind={kind} id={item.id} title={item.title ?? undefined} variant="ghost" />
+        {submittedLabel ? (
+          <span className="shrink-0 text-xs text-muted-foreground">
+            {submittedLabel}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }
 
-function FileAttachment({ filePath }: { filePath: string | null }) {
-  if (!filePath) {
+function FileAttachment({
+  kind,
+  item,
+}: {
+  kind: "resume_version" | "cover_letter";
+  item: DocumentItem;
+}) {
+  if (!item.file_path) {
     return null;
   }
 
-  const fileName = filePath.split("/").filter(Boolean).at(-1) ?? "Attachment";
+  const fileName = item.file_path.split("/").filter(Boolean).at(-1) ?? "Attachment";
 
   return (
     <p className="flex items-center gap-2 rounded-md border border-border bg-parchment/45 px-3 py-2 text-sm">
       <FileText aria-hidden className="size-4 shrink-0 text-muted-foreground" />
       <span className="min-w-0 truncate">{fileName}</span>
-      <Badge variant="secondary" className="ml-auto shrink-0">
-        File
-      </Badge>
+      <DocumentPreviewButton kind={kind} id={item.id} title={fileName} variant="ghost" className="ml-auto" />
     </p>
   );
 }

@@ -24,6 +24,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -247,6 +248,7 @@ function MessageBubble({
             {message.attachments.map((attachment) => (
               <span key={attachment.id} className={user ? "inline-flex min-w-0 items-center gap-1 rounded-md bg-white/12 px-2 py-1 text-[0.7rem]" : "inline-flex min-w-0 items-center gap-1 rounded-md bg-muted px-2 py-1 text-[0.7rem] text-muted-foreground"}>
                 <FileText className="size-3 shrink-0" /><span className="truncate">{attachment.fileName}</span>
+                <DocumentPreviewButton kind="assistant_attachment" id={attachment.id} title={attachment.fileName} variant="ghost" size="icon-xs" iconOnly className={user ? "size-5 text-primary-foreground hover:bg-white/15" : "size-5"} />
               </span>
             ))}
           </div>
@@ -762,6 +764,7 @@ export function MaxwellPanel({
                 {pendingAttachments.map((attachment) => (
                   <span key={attachment.id} className="motion-pop inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-muted px-2 py-1 text-[0.68rem]">
                     <FileText className="size-3 shrink-0" /><span className="max-w-48 truncate">{attachment.fileName}</span>
+                    <DocumentPreviewButton kind="assistant_attachment" id={attachment.id} title={attachment.fileName} variant="ghost" size="icon-xs" iconOnly className="size-5" />
                     <Button type="button" variant="ghost" size="icon-xs" onClick={() => setPendingAttachments((items) => items.filter((item) => item.id !== attachment.id))} aria-label={`Remove ${attachment.fileName}`} className="size-5 hover:bg-background"><X className="size-3" /></Button>
                   </span>
                 ))}

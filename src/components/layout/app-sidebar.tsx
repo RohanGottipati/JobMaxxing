@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, type MouseEvent } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BookOpenText,
   BriefcaseBusiness,
   ChevronRight,
   ChevronUp,
+  FileCode2,
   FilePlus2,
   Files,
   FileText,
@@ -51,7 +52,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuSub,
@@ -66,6 +66,7 @@ const navigation = [
   { href: "/applications", icon: BriefcaseBusiness, label: "Applications" },
   { href: "/resumes", icon: Files, label: "My Resumes" },
   { href: "/cover-letters", icon: FileText, label: "My Cover Letters" },
+  { href: "/latex", icon: FileCode2, label: "LaTeX Studio", fullNavigation: true },
   { href: "/documentation", icon: BookOpenText, label: "Documentation" },
   { href: "/profile", icon: UserRound, label: "User Profile" },
 ] as const;
@@ -88,62 +89,80 @@ export function AppSidebar({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { isMobile, state, setOpenMobile } = useSidebar();
+  const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
   const collapsed = !isMobile && state === "collapsed";
   const [applicationsMenuOpen, setApplicationsMenuOpen] = useState<boolean | null>(null);
   const applicationsExpanded =
     applicationsMenuOpen ?? pathname.startsWith("/applications");
+
+  function toggleApplicationsMenu() {
+    if (collapsed) {
+      setOpen(true);
+      setApplicationsMenuOpen(true);
+      return;
+    }
+    setApplicationsMenuOpen(!applicationsExpanded);
+  }
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
   function renderItems(items: typeof navigation) {
-    return items.map(({ href, icon: Icon, label }) => {
+    return items.map((item) => {
+      const { href, icon: Icon, label } = item;
+      const fullNavigation = "fullNavigation" in item && item.fullNavigation;
       const isApplications = href === "/applications";
       return (
         <SidebarMenuItem key={href}>
-        <SidebarMenuButton
-          asChild
-          isActive={isActive(href)}
-          tooltip={label}
-          className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
-        >
-          <Link
-            href={href}
-            onClick={() => {
-              if (isApplications) setApplicationsMenuOpen(true);
-              setOpenMobile(false);
-            }}
-          >
-            <Icon aria-hidden className="size-4" />
-            <span>{label}</span>
-          </Link>
-        </SidebarMenuButton>
-        {isApplications ? (
-          <SidebarMenuAction
-            type="button"
-            aria-label={applicationsExpanded ? "Collapse Applications menu" : "Expand Applications menu"}
-            aria-expanded={applicationsExpanded}
-            aria-controls="applications-sidebar-submenu"
-            title={applicationsExpanded ? "Collapse Applications menu" : "Expand Applications menu"}
-            onClick={() => setApplicationsMenuOpen(!applicationsExpanded)}
-            className="top-2 text-sidebar-foreground/55"
-          >
-            <ChevronRight
-              aria-hidden
-              className={cn("transition-transform", applicationsExpanded && "rotate-90")}
+          {isApplications ? (
+            <SidebarMenuButton
+              type="button"
+              isActive={isActive(href)}
+              tooltip={label}
+              aria-expanded={applicationsExpanded}
+              aria-controls="applications-sidebar-submenu"
+              onClick={toggleApplicationsMenu}
+              className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
+            >
+              <Icon aria-hidden className="size-4" />
+              <span>{label}</span>
+              <ChevronRight
+                aria-hidden
+                className={cn(
+                  "ml-auto text-sidebar-foreground/55 transition-transform group-data-[collapsible=icon]:hidden",
+                  applicationsExpanded && "rotate-90",
+                )}
+              />
+            </SidebarMenuButton>
+          ) : (
+            <SidebarMenuButton
+              asChild
+              isActive={isActive(href)}
+              tooltip={label}
+              className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
+            >
+              {fullNavigation ? (
+                <a href={href} onClick={() => setOpenMobile(false)}>
+                  <Icon aria-hidden className="size-4" />
+                  <span>{label}</span>
+                </a>
+              ) : (
+                <Link href={href} onClick={() => setOpenMobile(false)}>
+                  <Icon aria-hidden className="size-4" />
+                  <span>{label}</span>
+                </Link>
+              )}
+            </SidebarMenuButton>
+          )}
+          {isApplications && applicationsExpanded ? (
+            <ApplicationsSidebarNavigation
+              pathname={pathname}
+              searchParams={searchParams}
+              onNavigate={() => setOpenMobile(false)}
             />
-          </SidebarMenuAction>
-        ) : null}
-        {isApplications && applicationsExpanded ? (
-          <ApplicationsSidebarNavigation
-            pathname={pathname}
-            searchParams={searchParams}
-            onNavigate={() => setOpenMobile(false)}
-          />
-        ) : null}
-      </SidebarMenuItem>
+          ) : null}
+        </SidebarMenuItem>
       );
     });
   }
@@ -318,6 +337,24 @@ function ApplicationsSidebarNavigation({
     return query ? `/applications?${query}` : "/applications";
   }
 
+  function handleNavigation(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+    if (onMailbox) {
+      event.preventDefault();
+      window.history.pushState(null, "", event.currentTarget.href);
+    }
+    onNavigate();
+  }
+
   return (
     <SidebarMenuSub id="applications-sidebar-submenu" className="mb-2 mt-1 gap-0.5">
       <li className="px-2 pb-1 pt-1.5 text-[0.62rem] font-bold uppercase tracking-[0.09em] text-sidebar-foreground/45">
@@ -332,7 +369,7 @@ function ApplicationsSidebarNavigation({
           >
             <Link
               href={hrefFor({ scope: item.id === "all" ? null : item.id })}
-              onClick={onNavigate}
+              onClick={handleNavigation}
             >
               <span className="min-w-0 flex-1 truncate">{item.label}</span>
               {counts ? (
@@ -363,7 +400,7 @@ function ApplicationsSidebarNavigation({
               >
                 <Link
                   href={hrefFor({ view: item.id === "overview" ? null : item.id })}
-                  onClick={onNavigate}
+                  onClick={handleNavigation}
                 >
                   <span>{item.label}</span>
                 </Link>

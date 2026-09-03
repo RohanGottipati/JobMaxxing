@@ -19,7 +19,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
   applicationStatuses,
   type ApplicationStatus,
@@ -117,7 +116,10 @@ export function ApplicationMailbox({
     return () => setApplicationSidebarCounts(null);
   }, [applications, stats.active, stats.total]);
 
-  function navigate(updates: Record<string, string | null | undefined>) {
+  function navigate(
+    updates: Record<string, string | null | undefined>,
+    options: { loadServerData?: boolean } = {},
+  ) {
     const href = buildHref({
       q: query || null,
       status: status === "all" ? null : status,
@@ -128,7 +130,11 @@ export function ApplicationMailbox({
       error: composeError,
       ...updates,
     });
-    router.push(href);
+    if (options.loadServerData) {
+      router.push(href, { scroll: false });
+      return;
+    }
+    window.history.pushState(null, "", href);
   }
 
   function selectApplication(id: string) {
@@ -149,11 +155,11 @@ export function ApplicationMailbox({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <header className="flex shrink-0 items-center gap-3 border-b border-border bg-primary px-4 py-2.5 text-primary-foreground">
-        <SidebarTrigger className="-ml-1 text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground md:hidden" />
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
+        <SidebarTrigger className="-ml-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground md:hidden" />
         <div className="flex min-w-0 items-baseline gap-2">
           <h1 className="text-base font-bold tracking-[-0.02em]">Applications</h1>
-          <span className="hidden text-xs text-primary-foreground/80 sm:inline">JobMaxxing</span>
+          <span className="hidden text-xs text-muted-foreground sm:inline">JobMaxxing</span>
         </div>
         <div className="hidden items-center gap-1.5 sm:flex">
           <StatPill label="Total" value={stats.total} />
@@ -167,7 +173,7 @@ export function ApplicationMailbox({
             event.preventDefault();
             const formData = new FormData(event.currentTarget);
             const q = String(formData.get("q") ?? "").trim();
-            navigate({ q: q || null });
+            navigate({ q: q || null }, { loadServerData: true });
           }}
         >
           <div className="relative">
@@ -179,16 +185,19 @@ export function ApplicationMailbox({
               name="q"
               defaultValue={query}
               placeholder="Search title or company…"
-              className="h-8 w-52 border-transparent bg-background pl-8 text-[13px] text-foreground"
+              className="h-8 w-52 border-border bg-background pl-8 text-[13px] text-foreground"
             />
           </div>
           <Select
             name="status"
             defaultValue={status}
-            className="h-8 w-36 border-transparent bg-background text-[13px] text-foreground"
+            className="h-8 w-36 border-border bg-background text-[13px] text-foreground"
             onChange={(event) => {
               const nextStatus = event.target.value;
-              navigate({ status: nextStatus === "all" ? null : nextStatus });
+              navigate(
+                { status: nextStatus === "all" ? null : nextStatus },
+                { loadServerData: true },
+              );
             }}
           >
             <option value="all">All statuses</option>
@@ -203,12 +212,11 @@ export function ApplicationMailbox({
           type="button"
           size="sm"
           onClick={openComposer}
-          className="h-8 gap-1 bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+          className="h-8 gap-1"
         >
           <Plus aria-hidden className="size-3.5" />
           New role
         </Button>
-        <ThemeToggle className="text-primary-foreground hover:bg-primary-foreground/15 hover:text-primary-foreground" />
       </header>
 
       <div className="grid min-h-0 flex-1 lg:grid-cols-[minmax(19rem,24rem)_minmax(0,1fr)]">
@@ -233,13 +241,13 @@ export function ApplicationMailbox({
             <ul>
               {scopedApplications.map((application) => (
                 <li key={application.id}>
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
                     onClick={() => selectApplication(application.id)}
                     className={cn(
-                      "h-auto w-full justify-start gap-3 rounded-none border-b border-border px-3 py-3 text-left whitespace-normal transition-colors",
+                      "flex w-full items-start gap-3 border-b border-border px-3 py-3 text-left transition-colors duration-150",
                       "border-l-[3px] border-l-transparent hover:bg-muted/50",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset",
                       selectedId === application.id && "border-l-primary bg-primary/5",
                     )}
                   >
@@ -275,7 +283,7 @@ export function ApplicationMailbox({
                         ) : null}
                       </span>
                     </span>
-                  </Button>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -335,9 +343,9 @@ export function ApplicationMailbox({
 
 function StatPill({ label, value }: { label: string; value: number }) {
   return (
-    <span className="inline-flex items-baseline gap-1 rounded-full bg-primary-foreground/15 px-2.5 py-0.5">
+    <span className="inline-flex items-baseline gap-1 rounded-full border border-border bg-background/70 px-2.5 py-0.5">
       <span className="text-xs font-bold tabular-nums">{value}</span>
-      <span className="text-[10px] uppercase tracking-wide text-primary-foreground/85">{label}</span>
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
     </span>
   );
 }

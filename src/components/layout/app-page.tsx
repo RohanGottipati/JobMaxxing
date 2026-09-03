@@ -21,7 +21,7 @@ function AppPage({ children, className, size = "wide" }: AppPageProps) {
   return (
     <main
       className={cn(
-        "motion-page mx-auto flex w-full flex-1 flex-col gap-5 px-4 py-5 sm:px-5 sm:py-7 lg:px-7 lg:py-8",
+        "mx-auto flex w-full flex-1 flex-col gap-5 px-4 py-5 sm:px-5 sm:py-7 lg:px-7 lg:py-8",
         pageSizes[size],
         className
       )}

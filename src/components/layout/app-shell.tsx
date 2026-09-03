@@ -10,7 +10,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 type AppShellProps = {
   children: ReactNode;
@@ -22,6 +21,7 @@ const routeLabels: Array<[string, string]> = [
   ["/dashboard", "Home"],
   ["/applications/new", "New application"],
   ["/applications", "Applications"],
+  ["/latex", "LaTeX Studio"],
   ["/resumes/versions/new", "New tailored resume"],
   ["/resumes/versions", "Tailored resume"],
   ["/resumes/new", "New master resume"],
@@ -36,6 +36,9 @@ const routeLabels: Array<[string, string]> = [
 
 export function AppShell({ children, user, onboardingIncomplete = false }: AppShellProps) {
   const pathname = usePathname();
+  const latexEditor = /^\/latex\/(master_resume|resume_version|cover_letter)\//.test(pathname);
+  if (latexEditor) return children;
+
   const applicationsWorkspace = pathname === "/applications";
   const title = pathname.match(/^\/applications\/[^/]+\/match(?:\/|$)/)
     ? "Career match"
@@ -47,12 +50,11 @@ export function AppShell({ children, user, onboardingIncomplete = false }: AppSh
       <AppSidebar user={user} />
       <SidebarInset className="h-svh min-w-0 overflow-hidden">
         {!applicationsWorkspace ? (
-          <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/90 px-3 backdrop-blur-md sm:px-5">
+          <header className="z-30 flex h-14 shrink-0 items-center gap-2 border-b border-sidebar-border bg-sidebar/95 px-3 backdrop-blur-md sm:px-5">
             <SidebarTrigger className="-ml-1 text-muted-foreground md:hidden" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-[0.82rem] font-medium">{title}</p>
             </div>
-            <ThemeToggle className="text-muted-foreground" />
           </header>
         ) : null}
         <div

@@ -3,8 +3,8 @@ import Link from "next/link";
 import {
   ArrowRight,
   CalendarClock,
-  Columns3,
   FileSignature,
+  Inbox,
   FileText,
   Lock,
   Shield,
@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/accordion";
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/current-user";
-import { statusAccents } from "@/lib/applications/status";
 import type { ApplicationStatus } from "@/lib/applications/types";
 import { cn } from "@/lib/utils";
 
@@ -43,8 +42,8 @@ const faqs = [
     "PDF and DOCX, up to 10 MB each. Files are stored privately and opened through signed links that expire after five minutes.",
   ],
   [
-    "Do I have to use the Kanban board?",
-    "No. The board and table are two views of the same live data. Use the board to triage and the table to review.",
+    "How are applications organized?",
+    "A mailbox lists every role and opens the selected posting beside it. Filter by status when you need a narrower view, without switching tools.",
   ],
   [
     "Does anyone else see my applications?",
@@ -98,8 +97,8 @@ export default async function HomePage() {
           </h2>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-6">
-            <FeatureCard className="lg:col-span-4" icon={Columns3} title="Application pipeline">
-              Eight honest stages, from Saved to Offer. Move a card when something changes, or switch to the structured table and review the whole search at once.
+            <FeatureCard className="lg:col-span-4" icon={Inbox} title="Application mailbox">
+              Every role lives in one reading list. Filter by status, open a posting, and keep the submitted package attached to the opportunity it belongs to.
               <div className="mt-5 flex flex-wrap gap-1.5">
                 {(["saved", "applied", "online_assessment", "interview", "final_round", "offer"] as ApplicationStatus[]).map((status) => (
                   <StatusBadge key={status} status={status} />
@@ -194,7 +193,7 @@ export default async function HomePage() {
   );
 }
 
-function FeatureCard({ className, icon: Icon, title, children }: { className?: string; icon: typeof Columns3; title: string; children: React.ReactNode }) {
+function FeatureCard({ className, icon: Icon, title, children }: { className?: string; icon: typeof Inbox; title: string; children: React.ReactNode }) {
   return (
     <article className={cn("interactive-card rounded-xl border border-border bg-card p-6 shadow-paper hover:border-border-strong hover:bg-elevated hover:shadow-lg", className)}>
       <div className="flex items-center gap-2"><Icon aria-hidden className="size-4 text-primary" /><h3 className="text-[1.05rem] font-semibold">{title}</h3></div>
@@ -216,10 +215,11 @@ function MiniDocuments() {
 }
 
 function ProductPreview() {
-  const columns: Array<{ status: ApplicationStatus; label: string; cards: Array<[string, string]> }> = [
-    { status: "applied", label: "Applied", cards: [["Product Designer, Systems", "Figma"], ["Product Designer II", "Airtable"]] },
-    { status: "interview", label: "Interview", cards: [["Product Designer, Payments", "Stripe"], ["Product Designer, Claude", "Anthropic"]] },
-    { status: "offer", label: "Offer", cards: [["Product Designer, Platform", "Retool"]] },
+  const rows: Array<{ company: string; role: string; status: ApplicationStatus; initials: string }> = [
+    { company: "Figma", role: "Product Designer, Systems", status: "applied", initials: "FI" },
+    { company: "Stripe", role: "Product Designer, Payments", status: "interview", initials: "ST" },
+    { company: "Anthropic", role: "Product Designer, Claude", status: "interview", initials: "AN" },
+    { company: "Retool", role: "Product Designer, Platform", status: "offer", initials: "RE" },
   ];
   return (
     <div className="motion-rise interactive-card overflow-hidden rounded-xl border border-border-strong bg-background shadow-[0_12px_32px_-18px_rgb(41_40_36/0.45)] hover:shadow-xl">
@@ -235,22 +235,39 @@ function ProductPreview() {
             <div key={item} className={cn("mb-0.5 rounded px-1.5 py-1 text-[0.58rem]", index === 1 ? "bg-sidebar-accent font-medium" : "text-muted-foreground")}>{item}</div>
           ))}
         </div>
-        <div className="min-w-0 flex-1 p-3">
-          <div className="flex items-center justify-between"><div><p className="text-xs font-semibold">Applications</p><p className="text-[0.58rem] text-muted-foreground">12 tracked · 3 due this week</p></div><span className="rounded border border-border bg-card px-1.5 py-0.5 text-[0.56rem]">Board&nbsp;&nbsp; Table</span></div>
-          <div className="mt-2.5 grid grid-cols-4 gap-px overflow-hidden rounded-lg border border-border bg-border">
-            {[["Total", "12"], ["Active", "8"], ["Interviews", "3"], ["Offers", "1"]].map(([label, value]) => <div key={label} className="bg-card px-2 py-1.5"><p className="micro-label text-[0.47rem] text-muted-foreground">{label}</p><p className="text-sm font-semibold tabular-nums">{value}</p></div>)}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 bg-primary px-3 py-2 text-primary-foreground">
+            <span className="text-[0.62rem] font-semibold">Applications</span>
+            <span className="rounded-full bg-primary-foreground/15 px-1.5 py-0.5 text-[0.48rem]">12 total</span>
+            <span className="rounded-full bg-primary-foreground/15 px-1.5 py-0.5 text-[0.48rem]">8 active</span>
+            <span className="ml-auto rounded bg-primary-foreground px-1.5 py-0.5 text-[0.48rem] font-medium text-primary">New role</span>
           </div>
-          <div className="mt-2.5 grid grid-cols-3 gap-2">
-            {columns.map((column) => (
-              <div key={column.status} className="rounded-lg border border-border bg-parchment/70 p-1.5">
-                <div className="flex items-center gap-1 pb-1.5"><span className={cn("size-1.5 rounded-full", statusAccents[column.status].dot)} /><span className="text-[0.58rem] font-semibold">{column.label}</span><span className="ml-auto text-[0.52rem] tabular-nums text-muted-foreground">{column.cards.length}</span></div>
-                <div className="grid gap-1.5">{column.cards.map(([role, company]) => <div key={role} className="relative overflow-hidden rounded border border-border bg-elevated p-1.5 pl-2 shadow-paper"><span className={cn("absolute inset-y-1 left-0 w-0.5 rounded-r", statusAccents[column.status].dot)} /><p className="truncate text-[0.58rem] font-semibold">{role}</p><p className="truncate text-[0.54rem] text-muted-foreground">{company}</p><div className="mt-1 flex gap-1"><span className="rounded bg-success/15 px-1 text-[0.48rem] font-medium text-success">CV</span><span className="rounded bg-background px-1 text-[0.48rem] text-muted-foreground">CL</span></div></div>)}</div>
+          <div className="grid min-h-[220px] grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+            <div className="border-r border-border">
+              {rows.map((row, index) => (
+                <div key={row.role} className={cn("flex items-start gap-2 border-b border-border px-2 py-2", index === 1 && "border-l-2 border-l-primary bg-primary/5")}>
+                  <span className="grid size-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[0.48rem] font-bold text-primary">{row.initials}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[0.58rem] font-semibold">{row.role}</span>
+                    <span className="block truncate text-[0.52rem] text-muted-foreground">{row.company}</span>
+                    <span className="mt-1 inline-flex"><StatusBadge status={row.status} className="h-4 px-1.5 text-[0.48rem]" /></span>
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="bg-parchment/35 p-2.5">
+              <StatusBadge status="interview" className="h-4 px-1.5 text-[0.48rem]" />
+              <p className="mt-1.5 text-[0.68rem] font-semibold leading-tight">Product Designer, Payments</p>
+              <p className="mt-0.5 text-[0.54rem] text-muted-foreground">Stripe</p>
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <div className="rounded border border-border bg-elevated px-1.5 py-1"><p className="text-[0.46rem] uppercase tracking-wide text-muted-foreground">Location</p><p className="text-[0.54rem]">San Francisco</p></div>
+                <div className="rounded border border-border bg-elevated px-1.5 py-1"><p className="text-[0.46rem] uppercase tracking-wide text-muted-foreground">Next</p><p className="text-[0.54rem]">Prep loop</p></div>
               </div>
-            ))}
-          </div>
-          <div className="mt-2.5 rounded-lg border border-border bg-card p-2">
-            <div className="flex items-center justify-between"><span className="text-[0.58rem] font-semibold">Documents for Stripe</span><span className="inline-flex items-center gap-1 rounded bg-success/15 px-1 text-[0.48rem] text-success"><Lock className="size-2" />Submitted</span></div>
-            <div className="mt-1.5 flex items-center gap-1.5 border-t border-border pt-1.5 text-[0.54rem] text-muted-foreground"><FileText className="size-2.5" />avery-stripe-v3.pdf</div>
+              <div className="mt-2 rounded border border-border bg-card p-1.5">
+                <div className="flex items-center justify-between"><span className="text-[0.54rem] font-semibold">Application package</span><span className="inline-flex items-center gap-1 rounded bg-success/15 px-1 text-[0.46rem] text-success"><Lock className="size-2" />Submitted</span></div>
+                <div className="mt-1 flex items-center gap-1.5 border-t border-border pt-1 text-[0.5rem] text-muted-foreground"><FileText className="size-2.5" />avery-stripe-v3.pdf</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -136,7 +136,7 @@ export function ApplicationComposePane({
   return (
     <form
       action={createApplication}
-      className="flex h-full min-h-0 flex-col bg-background"
+      className="motion-rise flex h-full min-h-0 flex-col bg-background"
       onSubmit={(event) => {
         event.preventDefault()
         void submitComposer(event.currentTarget)

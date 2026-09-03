@@ -5,6 +5,8 @@ import {
   markResumeVersionSubmittedAction,
 } from "@/app/(app)/applications/actions";
 import Link from "next/link";
+import { DocumentOpenLink } from "@/components/documents/document-open-link";
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog,
@@ -31,6 +33,7 @@ import {
   type ResumeVersion,
 } from "@/lib/applications/package-types";
 import { formatDateTime } from "@/lib/applications/status";
+import { documentWorkspaceHref } from "@/lib/latex/types";
 
 type ApplicationPackageSectionProps = {
   applicationId: string;
@@ -89,12 +92,12 @@ export function ApplicationPackageSection({
             isSubmitted: version.id === submittedResumeVersionId,
             hasBeenSubmitted: Boolean(version.submitted_at),
             submittedAt: version.submitted_at,
+            href: documentWorkspaceHref("resume_version", version.id, version.content_format),
           }))}
           submitAction={markResumeVersionSubmittedAction}
           duplicateAction={duplicateResumeVersionAction}
           idField="version_id"
           createHref={`/resumes/versions/new?application=${applicationId}`}
-          itemHref={(id) => `/resumes/versions/${id}`}
         />
 
         <DocumentGroup
@@ -108,12 +111,12 @@ export function ApplicationPackageSection({
             isSubmitted: letter.id === submittedCoverLetterId,
             hasBeenSubmitted: Boolean(letter.submitted_at),
             submittedAt: letter.submitted_at,
+            href: documentWorkspaceHref("cover_letter", letter.id, letter.content_format),
           }))}
           submitAction={markCoverLetterSubmittedAction}
           duplicateAction={duplicateCoverLetterAction}
           idField="cover_letter_id"
           createHref={`/cover-letters/new?application=${applicationId}`}
-          itemHref={(id) => `/cover-letters/${id}`}
         />
       </CardContent>
     </Card>
@@ -127,6 +130,7 @@ type DocumentItem = {
   isSubmitted: boolean;
   hasBeenSubmitted: boolean;
   submittedAt: string | null;
+  href: string;
 };
 
 type DocumentGroupProps = {
@@ -138,7 +142,6 @@ type DocumentGroupProps = {
   duplicateAction: (formData: FormData) => void | Promise<void>;
   idField: "version_id" | "cover_letter_id";
   createHref: string;
-  itemHref: (id: string) => string;
 };
 
 function DocumentGroup({
@@ -150,8 +153,8 @@ function DocumentGroup({
   duplicateAction,
   idField,
   createHref,
-  itemHref,
 }: DocumentGroupProps) {
+  const previewKind = idField === "version_id" ? "resume_version" : "cover_letter";
   return (
     <section className="overflow-hidden rounded-lg border border-border">
       <div className="flex items-center justify-between gap-3 border-b border-border bg-parchment/50 px-4 py-3"><h3 className="text-sm font-semibold">{heading}</h3><Link href={createHref} className={buttonVariants({ variant: "outline", size: "sm" })}>Create new</Link></div>
@@ -188,7 +191,13 @@ function DocumentGroup({
               </div>
 
               <div className="flex shrink-0 flex-wrap gap-2">
-                <Link href={itemHref(item.id)} className={buttonVariants({ variant: "ghost", size: "sm" })}>Open</Link>
+                <DocumentPreviewButton
+                  kind={previewKind}
+                  id={item.id}
+                  title={item.title ?? `${heading} v${item.versionNumber}`}
+                  variant="ghost"
+                />
+                <DocumentOpenLink href={item.href}>Open</DocumentOpenLink>
                 {item.isSubmitted ? (
                   <form action={duplicateAction}>
                     <input type="hidden" name="application_id" value={applicationId} />

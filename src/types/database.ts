@@ -31,6 +31,22 @@ export type DocumentContentFormat = "plain_text" | "markdown" | "latex";
 
 export type ResumeEditorMode = "legacy" | "structured";
 
+export type LatexEngine = "pdflatex" | "xelatex";
+
+type LatexDocumentRow = {
+  latex_engine: LatexEngine | null;
+  compiled_pdf_path: string | null;
+  compiled_row_version: number | null;
+  compiled_at: string | null;
+};
+
+type LatexDocumentWrite = {
+  latex_engine?: LatexEngine | null;
+  compiled_pdf_path?: string | null;
+  compiled_row_version?: number | null;
+  compiled_at?: string | null;
+};
+
 type ProvenanceRow = {
   source_kind: "manual" | "resume_import" | "migration";
   verification_status: "unverified" | "user_confirmed" | "source_verified";
@@ -1023,7 +1039,7 @@ export type Database = {
         Relationships: [];
       };
       resumes: {
-        Row: {
+        Row: LatexDocumentRow & {
           id: string;
           user_id: string;
           name: string;
@@ -1040,7 +1056,7 @@ export type Database = {
           created_at: string;
           updated_at: string;
         };
-        Insert: {
+        Insert: LatexDocumentWrite & {
           id?: string;
           user_id: string;
           name: string;
@@ -1057,7 +1073,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
-        Update: {
+        Update: LatexDocumentWrite & {
           id?: string;
           user_id?: string;
           name?: string;
@@ -1149,7 +1165,7 @@ export type Database = {
         Relationships: [];
       };
       resume_versions: {
-        Row: {
+        Row: LatexDocumentRow & {
           id: string;
           user_id: string;
           application_id: string;
@@ -1173,7 +1189,7 @@ export type Database = {
           updated_at: string;
         };
         // version_number is auto-assigned by a trigger when omitted.
-        Insert: {
+        Insert: LatexDocumentWrite & {
           id?: string;
           user_id: string;
           application_id: string;
@@ -1196,7 +1212,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
-        Update: {
+        Update: LatexDocumentWrite & {
           id?: string;
           user_id?: string;
           application_id?: string;
@@ -1222,7 +1238,7 @@ export type Database = {
         Relationships: [];
       };
       cover_letters: {
-        Row: {
+        Row: LatexDocumentRow & {
           id: string;
           user_id: string;
           application_id: string;
@@ -1236,11 +1252,12 @@ export type Database = {
           job_description_snapshot: string | null;
           is_submitted: boolean;
           submitted_at: string | null;
+          row_version: number;
           created_at: string;
           updated_at: string;
         };
         // version_number is auto-assigned by a trigger when omitted.
-        Insert: {
+        Insert: LatexDocumentWrite & {
           id?: string;
           user_id: string;
           application_id: string;
@@ -1254,10 +1271,11 @@ export type Database = {
           job_description_snapshot?: string | null;
           is_submitted?: boolean;
           submitted_at?: string | null;
+          row_version?: number;
           created_at?: string;
           updated_at?: string;
         };
-        Update: {
+        Update: LatexDocumentWrite & {
           id?: string;
           user_id?: string;
           application_id?: string;
@@ -1271,9 +1289,70 @@ export type Database = {
           job_description_snapshot?: string | null;
           is_submitted?: boolean;
           submitted_at?: string | null;
+          row_version?: number;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
+      };
+      latex_document_assets: {
+        Row: {
+          id: string;
+          user_id: string;
+          resume_id: string | null;
+          resume_version_id: string | null;
+          cover_letter_id: string | null;
+          file_name: string;
+          storage_path: string;
+          content_type: string;
+          size_bytes: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          resume_id?: string | null;
+          resume_version_id?: string | null;
+          cover_letter_id?: string | null;
+          file_name: string;
+          storage_path: string;
+          content_type: string;
+          size_bytes: number;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      document_source_history: {
+        Row: {
+          id: string;
+          user_id: string;
+          resume_id: string | null;
+          resume_version_id: string | null;
+          cover_letter_id: string | null;
+          row_version: number;
+          title: string;
+          content_format: DocumentContentFormat;
+          latex_engine: LatexEngine | null;
+          source: string;
+          reason: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          resume_id?: string | null;
+          resume_version_id?: string | null;
+          cover_letter_id?: string | null;
+          row_version: number;
+          title: string;
+          content_format?: DocumentContentFormat;
+          latex_engine?: LatexEngine | null;
+          source: string;
+          reason?: string;
+          created_at?: string;
+        };
+        Update: never;
         Relationships: [];
       };
     };
@@ -1340,6 +1419,30 @@ export type Database = {
       checkpoint_structured_resume_document: {
         Args: { p_kind: string; p_document_id: string; p_expected_version: number; p_resolved_snapshot: Json; p_reason?: string };
         Returns: string;
+      };
+      save_latex_document_source: {
+        Args: { p_kind: string; p_document_id: string; p_expected_version: number; p_title: string; p_source: string; p_engine: LatexEngine | null };
+        Returns: number;
+      };
+      checkpoint_latex_document_source: {
+        Args: { p_kind: string; p_document_id: string; p_expected_version: number; p_reason?: string };
+        Returns: string;
+      };
+      restore_latex_document_source: {
+        Args: { p_kind: string; p_document_id: string; p_expected_version: number; p_history_id: string };
+        Returns: number;
+      };
+      attach_latex_document_asset: {
+        Args: { p_kind: string; p_document_id: string; p_file_name: string; p_storage_path: string; p_content_type: string; p_size_bytes: number };
+        Returns: number;
+      };
+      remove_latex_document_asset: {
+        Args: { p_kind: string; p_document_id: string; p_asset_id: string };
+        Returns: number;
+      };
+      register_latex_compiled_pdf: {
+        Args: { p_kind: string; p_document_id: string; p_source_version: number; p_storage_path: string };
+        Returns: number;
       };
       save_career_profile: {
         Args: { p_payload: Json; p_expected_revision: number };

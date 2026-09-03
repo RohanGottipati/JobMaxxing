@@ -1,5 +1,5 @@
-import { ApplicationsSkeleton } from "@/components/applications/applications-skeleton";
+import { ApplicationsMailboxSkeleton } from "@/components/applications/applications-mailbox-skeleton";
 
 export default function ApplicationsLoading() {
-  return <ApplicationsSkeleton />;
+  return <ApplicationsMailboxSkeleton />;
 }

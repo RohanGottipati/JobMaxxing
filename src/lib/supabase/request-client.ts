@@ -4,6 +4,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from "@supa
 
 import { getSupabaseConfig } from "@/lib/supabase/config";
 import { createClient as createServerClient } from "@/lib/supabase/server";
+import { supabaseServerFetch } from "@/lib/supabase/server-fetch";
 import type { Database } from "@/types/database";
 
 export type AuthContext = {
@@ -22,7 +23,10 @@ export async function getAuthContextFromRequest(
   if (token) {
     const { url, anonKey } = getSupabaseConfig();
     const supabase = createSupabaseClient<Database>(url, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
+      global: {
+        headers: { Authorization: `Bearer ${token}` },
+        fetch: supabaseServerFetch,
+      },
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const {

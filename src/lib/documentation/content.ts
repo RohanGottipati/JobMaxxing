@@ -73,7 +73,7 @@ export const documentationArticles: DocumentationArticle[] = [
     sections: [
       { id: "purpose", title: "What a master resume is", paragraphs: ["A master resume is independent of any one application. It can be broad and detailed, giving you a reliable source when you create tailored versions."] },
       { id: "default", title: "Choose a default", paragraphs: ["One master resume can be the default. New tailored resumes preselect it, but you can choose another master or no master at all."] },
-      { id: "files", title: "Text and files", paragraphs: ["You can keep editable text, attach a PDF or DOCX, or use both. Attachments are optional, private, and limited to 10 MB."] },
+      { id: "files", title: "Text and files", paragraphs: ["You can keep editable text, attach a PDF or DOCX, or use both. Attachments are optional, private, and limited to 10 MB.", "LaTeX master resumes open in Studio instead of the text editor. They stay listed here."] },
     ],
   },
   {
@@ -101,15 +101,28 @@ export const documentationArticles: DocumentationArticle[] = [
     ],
   },
   {
+    slug: "latex-studio",
+    title: "LaTeX Studio",
+    description: "Write, compile, and preview LaTeX resumes and cover letters in the browser.",
+    category: "Documents",
+    readTime: "5 min",
+    sections: [
+      { id: "create", title: "Create a LaTeX document", steps: ["Open LaTeX Studio or choose Create with LaTeX from a resume or cover-letter flow.", "Pick a starter template, paste existing source, or upload a .tex file.", "Link tailored resumes and cover letters to the application they belong to."] },
+      { id: "compile", title: "Compile in the browser", paragraphs: ["Studio compiles with pdfLaTeX by default, or XeLaTeX when you need OpenType fonts. The first compile downloads a TeX Live runtime into this browser and caches it. Compilation never runs native shell commands."] },
+      { id: "submit", title: "Submitting a LaTeX package", paragraphs: ["Marking a tailored resume or cover letter submitted requires a compiled PDF that matches the current source. Compile after your last edit, then submit from the application package."], note: "Submitted LaTeX documents lock source, assets, engine, and compiled output. Duplicate the document to keep editing." },
+      { id: "previews", title: "Previews and downloads", paragraphs: ["Preview opens a full-screen viewer for PDFs, DOCX files, structured resumes, and LaTeX output from libraries, editors, application packages, resume imports, and Maxwell attachments.", "Download the current .tex, the compiled PDF, an original attachment, or a ZIP of main.tex plus supporting assets."] },
+    ],
+  },
+  {
     slug: "uploads-and-privacy",
     title: "Uploads and privacy",
     description: "Understand supported files, secure previews, and replacement behavior.",
     category: "Reference",
     readTime: "3 min",
     sections: [
-      { id: "supported", title: "Supported files", paragraphs: ["JobMaxxing accepts PDF and DOCX attachments up to 10 MB. PDFs can be previewed in the browser; DOCX files are downloaded and opened in your document editor."] },
-      { id: "private", title: "Private storage", paragraphs: ["Files are stored in a private bucket under a path scoped to your user ID. Database and Storage policies prevent other signed-in users from reading or deleting them."] },
-      { id: "replace", title: "Replace or remove", paragraphs: ["Replacing a file uploads a new unique object, updates the document record, then removes the superseded object. The app does not overwrite shared paths."], note: "A preview or download link expires after five minutes. Refresh the document page to generate another." },
+      { id: "supported", title: "Supported files", paragraphs: ["JobMaxxing accepts PDF and DOCX attachments up to 10 MB. Previews open in a full-screen viewer: PDFs with page controls, DOCX as readable HTML with a fidelity warning."] },
+      { id: "private", title: "Private storage", paragraphs: ["Files are stored in a private bucket under a path scoped to your user ID. Database and Storage policies prevent other signed-in users from reading or deleting them. Previews stream through the app instead of sharing a storage URL."] },
+      { id: "replace", title: "Replace or remove", paragraphs: ["Replacing a file uploads a new unique object, updates the document record, then removes the superseded object. The app does not overwrite shared paths."] },
     ],
   },
   {

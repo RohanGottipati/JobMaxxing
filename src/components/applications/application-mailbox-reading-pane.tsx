@@ -21,10 +21,13 @@ import {
 import { getApplicationDetails } from "@/app/(app)/applications/actions";
 import type { MailboxView } from "@/components/applications/application-mailbox-constants";
 import { StatusBadge } from "@/components/applications/status-badge";
+import { DocumentOpenLink } from "@/components/documents/document-open-link";
+import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { documentWorkspaceHref } from "@/lib/latex/types";
 import type { JobApplication } from "@/lib/applications/types";
 import {
   formatDate,
@@ -41,6 +44,7 @@ type DocumentItem = {
   submitted_at: string | null;
   file_path?: string | null;
   content?: string | null;
+  content_format?: string;
 };
 
 function safeFormatDate(value: string | null | undefined) {
@@ -199,7 +203,7 @@ function LoadedApplicationReadingPane({
           <DocumentVersions
             heading="Resume versions"
             submitted={submittedResume}
-            itemHref={(id) => `/resumes/versions/${id}`}
+            kind="resume_version"
             items={resumeVersions}
             emptyLabel="No resume versions yet."
             submittedEmptyLabel="No submitted resume selected."
@@ -209,7 +213,7 @@ function LoadedApplicationReadingPane({
           <DocumentVersions
             heading="Cover letters"
             submitted={submittedCoverLetter}
-            itemHref={(id) => `/cover-letters/${id}`}
+            kind="cover_letter"
             items={coverLetters}
             emptyLabel="No cover letters yet."
             submittedEmptyLabel="No submitted cover letter selected."
@@ -323,7 +327,21 @@ function PackageDocumentLink({
   return (
     <Link
       href={href}
-      className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-parchment/35 p-3 transition-colors hover:border-primary/35 hover:bg-primary/[0.035]"
+      onClick={(event) => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+        event.preventDefault();
+        window.history.pushState(null, "", event.currentTarget.href);
+      }}
+      className="flex min-w-0 items-center gap-3 rounded-md border border-border bg-parchment/35 p-3 transition-colors duration-150 hover:border-primary/35 hover:bg-primary/[0.035]"
     >
       <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-background text-primary">
         <FileText aria-hidden className="size-4" />
@@ -411,14 +429,14 @@ function ActivityEntry({
 function DocumentVersions({
   emptyLabel,
   heading,
-  itemHref,
+  kind,
   items,
   submitted,
   submittedEmptyLabel,
 }: {
   emptyLabel: string;
   heading: string;
-  itemHref: (id: string) => string;
+  kind: "resume_version" | "cover_letter";
   items: DocumentItem[];
   submitted: DocumentItem | null;
   submittedEmptyLabel: string;
@@ -437,7 +455,7 @@ function DocumentVersions({
         </div>
         {submitted ? (
           <div className="mt-3 grid gap-3">
-            <DocumentHeader href={itemHref(submitted.id)} item={submitted} />
+            <DocumentHeader kind={kind} item={submitted} />
             {submitted.content ? (
               <DocumentText value={submitted.content} emptyLabel="" />
             ) : submitted.file_path ? (
@@ -456,7 +474,7 @@ function DocumentVersions({
           <ul className="mt-3 grid gap-2">
             {items.map((item) => (
               <li key={item.id} className="rounded-md border border-border bg-parchment/45 p-3">
-                <DocumentHeader href={itemHref(item.id)} item={item} />
+                <DocumentHeader kind={kind} item={item} />
                 {item.content ? (
                   <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">{item.content}</p>
                 ) : item.file_path ? (
@@ -476,8 +494,9 @@ function DocumentVersions({
   );
 }
 
-function DocumentHeader({ href, item }: { href: string; item: DocumentItem }) {
+function DocumentHeader({ kind, item }: { kind: "resume_version" | "cover_letter"; item: DocumentItem }) {
   const submittedLabel = safeFormatDate(item.submitted_at);
+  const href = documentWorkspaceHref(kind, item.id, item.content_format ?? "plain_text");
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">
@@ -489,9 +508,10 @@ function DocumentHeader({ href, item }: { href: string; item: DocumentItem }) {
           <span className="text-xs text-muted-foreground">{submittedLabel}</span>
         ) : null}
       </div>
-      <Link href={href} className={buttonVariants({ variant: "outline", size: "sm" })}>
-        {item.file_path ? "Open file" : "Open"}
-      </Link>
+      <div className="flex shrink-0 gap-2">
+        <DocumentPreviewButton kind={kind} id={item.id} title={item.title ?? undefined} variant="ghost" />
+        <DocumentOpenLink href={href}>{item.file_path ? "Open file" : "Open"}</DocumentOpenLink>
+      </div>
     </div>
   );
 }
@@ -556,9 +576,11 @@ function EmptyState({ children }: { children: React.ReactNode }) {
 
 function ReadingPaneEmpty() {
   return (
-    <div className="grid h-full place-items-center p-8 text-center text-muted-foreground">
+    <div className="motion-rise grid h-full place-items-center p-8 text-center text-muted-foreground">
       <div>
-        <FileText aria-hidden className="mx-auto mb-3 size-10 opacity-40" />
+        <span className="mx-auto mb-3 grid size-12 place-items-center rounded-lg border border-border bg-parchment/60 text-primary">
+          <FileText aria-hidden className="size-5" />
+        </span>
         <p className="text-base font-semibold text-foreground">Select a role to read</p>
         <p className="mt-1 text-sm">Choose an application from the list to view details.</p>
       </div>

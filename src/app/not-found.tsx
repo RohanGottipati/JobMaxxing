@@ -3,7 +3,6 @@ import { ArrowLeft, SearchX } from "lucide-react";
 
 import { Brand } from "@/components/layout/brand";
 import { MarketingFooter } from "@/components/layout/marketing-footer";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { buttonVariants } from "@/components/ui/button";
 
 export default function NotFound() {
@@ -12,7 +11,6 @@ export default function NotFound() {
       <header className="border-b border-border">
         <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between px-5">
           <Brand />
-          <ThemeToggle className="text-muted-foreground" />
         </div>
       </header>
       <main className="surface-grid grid flex-1 place-items-center bg-parchment px-4 py-16 text-center">

@@ -77,14 +77,14 @@ export default async function DashboardPage() {
           <CardHeader className="border-b border-border">
             <CardTitle>Recent applications</CardTitle>
             <CardDescription>Your most recently updated opportunities.</CardDescription>
-            <CardAction><Link href="/applications" className={buttonVariants({ variant: "ghost", size: "sm" })}>View pipeline<ArrowRight aria-hidden /></Link></CardAction>
+            <CardAction><Link href="/applications" className={buttonVariants({ variant: "ghost", size: "sm" })}>View applications<ArrowRight aria-hidden /></Link></CardAction>
           </CardHeader>
           <CardContent className="p-0">
             {recent.length ? (
               <ul className="divide-y divide-border">
                 {recent.map((application) => (
                   <li key={application.id}>
-                    <Link href={`/applications?id=${application.id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50">
+                    <Link href={`/applications?id=${application.id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-accent/50">
                       <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-parchment text-xs font-semibold text-primary">
                         {application.companyName.slice(0, 1).toUpperCase()}
                       </span>
@@ -111,7 +111,7 @@ export default async function DashboardPage() {
                   const days = daysUntil(application.deadline, now);
                   return (
                     <li key={application.id}>
-                      <Link href={`/applications/${application.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-accent/50">
+                      <Link href={`/applications/${application.id}`} className="flex items-center gap-3 px-4 py-3 transition-colors duration-150 hover:bg-accent/50">
                         <span className={cn("grid size-8 shrink-0 place-items-center rounded-md border", days !== null && days <= 2 ? "border-destructive/25 bg-destructive/10 text-destructive" : "border-warning/25 bg-warning/10 text-warning")}><CalendarClock aria-hidden className="size-3.5" /></span>
                         <span className="min-w-0 flex-1"><span className="block truncate text-[0.82rem] font-medium">{application.companyName}</span><span className="block truncate text-xs text-muted-foreground">{application.nextAction || application.jobTitle}</span></span>
                         <span className={cn("shrink-0 text-xs font-medium tabular-nums", days !== null && days <= 2 ? "text-destructive" : "text-muted-foreground")}>{deadlineLabel(days)}</span>
@@ -140,7 +140,7 @@ export default async function DashboardPage() {
 }
 
 function Metric({ label, value, detail, icon: Icon }: { label: string; value: number | string; detail: string; icon: typeof BriefcaseBusiness }) {
-  return <div className="flex min-h-28 items-start gap-3 bg-card p-4 sm:[&:not(:nth-child(2n))]:border-r sm:[&:nth-child(n+3)]:border-t xl:border-t-0 xl:border-r xl:last:border-r-0"><span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden className="size-3.5" /></span><span><span className="block text-[1.6rem] font-semibold leading-none tracking-[-0.04em] tabular-nums">{value}</span><span className="mt-2 block text-[0.8rem] font-medium">{label}</span><span className="mt-0.5 block text-[0.7rem] text-muted-foreground">{detail}</span></span></div>;
+  return <div className="flex min-h-28 items-start gap-3 bg-card p-4 transition-colors duration-200 hover:bg-elevated sm:[&:not(:nth-child(2n))]:border-r sm:[&:nth-child(n+3)]:border-t xl:border-t-0 xl:border-r xl:last:border-r-0"><span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden className="size-3.5" /></span><span><span className="block text-[1.6rem] font-semibold leading-none tracking-[-0.04em] tabular-nums">{value}</span><span className="mt-2 block text-[0.8rem] font-medium">{label}</span><span className="mt-0.5 block text-[0.7rem] text-muted-foreground">{detail}</span></span></div>;
 }
 
 function GettingStarted() {
@@ -148,7 +148,7 @@ function GettingStarted() {
 }
 
 function LibraryLink({ href, icon: Icon, label, value }: { href: string; icon: typeof Files; label: string; value: number }) {
-  return <Link href={href} className="flex items-center gap-3 rounded-lg border border-border bg-parchment/55 p-3 transition-colors hover:bg-accent/60"><Icon aria-hidden className="size-4 text-primary" /><span className="flex-1 text-sm font-medium">{label}</span><Badge variant="secondary">{value}</Badge><ArrowRight aria-hidden className="size-3.5 text-muted-foreground" /></Link>;
+  return <Link href={href} className="flex items-center gap-3 rounded-lg border border-border bg-parchment/55 p-3 transition-colors duration-150 hover:bg-accent/60"><Icon aria-hidden className="size-4 text-primary" /><span className="flex-1 text-sm font-medium">{label}</span><Badge variant="secondary">{value}</Badge><ArrowRight aria-hidden className="size-3.5 text-muted-foreground" /></Link>;
 }
 
 function EmptyPanel({ icon: Icon, title, description }: { icon: typeof CircleDashed; title: string; description: string }) {

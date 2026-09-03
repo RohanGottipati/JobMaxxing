@@ -1,0 +1,9 @@
+{
+  "source": "https://cdn.siglum.org/tl2025",
+  "artifacts": {
+    "busytex.wasm": "3efcd116f16e058048f0870d5fbe75eafe6441063d9e7f83e617bf57102645bd",
+    "busytex.js": "53374fbb04e9b485c5854ae107cb68c3d3b79735e684c6049a7597013a23ff2b",
+    "siglum-bundles-v0.1.0.tar.gz": "90dcc717a4361c466e035492b10f9c7573b5b4062f6fad88892e41a63e443484"
+  },
+  "bundleRelease": "siglum-bundles-v0.1.0.tar.gz"
+}

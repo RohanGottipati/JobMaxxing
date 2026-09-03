@@ -33,8 +33,8 @@ export function ThemeToggle({ className }: { className?: string }) {
           className={cn("relative", className)}
           aria-label="Change color theme"
         >
-          <Sun aria-hidden className="size-4 scale-100 rotate-0 transition dark:scale-0 dark:-rotate-90" />
-          <Moon aria-hidden className="absolute size-4 scale-0 rotate-90 transition dark:scale-100 dark:rotate-0" />
+          <Sun aria-hidden className="size-4 scale-100 rotate-0 transition duration-200 dark:scale-0 dark:-rotate-90" />
+          <Moon aria-hidden className="absolute size-4 scale-0 rotate-90 transition duration-200 dark:scale-100 dark:rotate-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
