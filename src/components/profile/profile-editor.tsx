@@ -339,18 +339,19 @@ export function ProfileEditor({ profile }: { profile: ProfileWithEmail }) {
           <ul className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
             {SECTIONS.map(({ id, label, icon: Icon }) => (
               <li key={id} className="shrink-0">
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   onClick={() => setActive(id)}
                   aria-current={active === id ? "page" : undefined}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors focus-visible:outline-2",
+                    "h-auto w-full justify-start gap-2 rounded-md px-3 py-2 text-left text-sm font-medium",
                     active === id ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Icon aria-hidden className="size-4 shrink-0" />
                   {label}
-                </button>
+                </Button>
               </li>
             ))}
           </ul>

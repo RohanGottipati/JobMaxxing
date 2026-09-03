@@ -91,7 +91,7 @@ export const ApplicationColumn = memo(function ApplicationColumn({
 
       <footer className="mt-auto border-t border-border px-3 py-2">
         <Link
-          href={`/applications/new?status=${status}`}
+          href={`/applications?compose=new&status=${status}`}
           className="flex min-h-10 items-center justify-between rounded-lg px-3 text-sm font-medium text-muted-foreground transition duration-200 hover:-translate-y-0.5 hover:bg-muted hover:text-foreground"
         >
           <span className="inline-flex items-center gap-2">

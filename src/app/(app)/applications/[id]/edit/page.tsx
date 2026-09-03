@@ -34,7 +34,7 @@ export default async function EditApplicationPage({
         title={`${application.companyName} · ${application.jobTitle}`}
         description="Make any necessary changes to keep your application data current."
         submitLabel="Save changes"
-        cancelHref={`/applications/${application.id}`}
+        cancelHref={`/applications?id=${application.id}`}
       />
     </AppPage>
   );

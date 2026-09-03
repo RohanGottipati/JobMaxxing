@@ -291,12 +291,13 @@ function ConversationHistory({
       {threads.map((thread, index) => {
         const active = thread.id === activeThreadId;
         return (
-          <button
+          <Button
             key={thread.id}
             type="button"
+            variant="ghost"
             aria-current={active ? "page" : undefined}
             onClick={() => onSelect(thread.id)}
-            className="motion-list-item group relative min-w-0 rounded-lg px-3 py-2.5 text-left transition duration-200 hover:-translate-y-0.5 hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-sm"
+            className="motion-list-item relative h-auto min-w-0 flex-col items-stretch justify-start rounded-lg px-3 py-2.5 text-left whitespace-normal hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:shadow-sm"
             data-active={active}
             style={{ animationDelay: `${Math.min(index, 8) * 35}ms` }}
           >
@@ -304,7 +305,7 @@ function ConversationHistory({
             <span className="mt-1 block truncate text-[0.67rem] text-muted-foreground">
               {thread.summary || new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(new Date(thread.updatedAt))}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>
@@ -687,9 +688,9 @@ export function MaxwellPanel({
             <span className="inline-flex max-w-full items-center gap-2 rounded-full border border-info/25 bg-background/80 px-3 py-1 text-xs text-info shadow-sm">
               <Sparkles aria-hidden className="size-3 shrink-0" />
               <Link href={contextPath} className="truncate font-medium hover:underline">{contextLabel(contextPath)}</Link>
-              <button type="button" onClick={removeContext} aria-label="Remove page context" className="-mr-1 grid size-6 place-items-center rounded-full transition hover:bg-info/10">
+              <Button type="button" variant="ghost" size="icon-xs" onClick={removeContext} aria-label="Remove page context" className="-mr-1 rounded-full hover:bg-info/10">
                 <X aria-hidden className="size-3" />
-              </button>
+              </Button>
             </span>
           </div>
         ) : null}
@@ -721,15 +722,16 @@ export function MaxwellPanel({
                   </div>
                   <div className="grid gap-2 text-left sm:grid-cols-3">
                     {["Which applications are missing documents?", "Assess my tailored resume for this job", "Create a LaTeX resume for this role"].map((prompt, index) => (
-                      <button
+                      <Button
                         key={prompt}
                         type="button"
+                        variant="outline"
                         onClick={() => setText(prompt)}
-                        className="motion-list-item rounded-xl border border-border bg-card px-3 py-3 text-xs leading-5 shadow-paper transition duration-200 hover:-translate-y-1 hover:border-primary/40 hover:bg-primary/[0.035] hover:shadow-md"
+                        className="motion-list-item h-auto whitespace-normal rounded-xl bg-card px-3 py-3 text-left text-xs leading-5 shadow-paper hover:-translate-y-1 hover:border-primary/40 hover:bg-primary/[0.035] hover:shadow-md"
                         style={{ animationDelay: `${index * 80 + 100}ms` }}
                       >
                         {prompt}
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 </div>
@@ -754,13 +756,13 @@ export function MaxwellPanel({
 
         <footer className="shrink-0 border-t border-border bg-elevated/95 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur sm:px-5">
           <div className="mx-auto max-w-3xl">
-            {error ? <div className="motion-drop mb-2 flex items-start gap-2 rounded-lg bg-destructive/8 px-3 py-2 text-xs text-destructive"><TriangleAlert className="mt-0.5 size-3.5 shrink-0" /><span className="min-w-0 flex-1">{error}</span><button type="button" onClick={() => setError(null)} aria-label="Dismiss error"><X className="size-3.5" /></button></div> : null}
+            {error ? <div className="motion-drop mb-2 flex items-start gap-2 rounded-lg bg-destructive/8 px-3 py-2 text-xs text-destructive"><TriangleAlert className="mt-0.5 size-3.5 shrink-0" /><span className="min-w-0 flex-1">{error}</span><Button type="button" variant="ghost" size="icon-xs" onClick={() => setError(null)} aria-label="Dismiss error"><X className="size-3.5" /></Button></div> : null}
             {pendingAttachments.length ? (
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {pendingAttachments.map((attachment) => (
                   <span key={attachment.id} className="motion-pop inline-flex max-w-full items-center gap-1.5 rounded-md border border-border bg-muted px-2 py-1 text-[0.68rem]">
                     <FileText className="size-3 shrink-0" /><span className="max-w-48 truncate">{attachment.fileName}</span>
-                    <button type="button" onClick={() => setPendingAttachments((items) => items.filter((item) => item.id !== attachment.id))} aria-label={`Remove ${attachment.fileName}`} className="grid size-5 place-items-center rounded hover:bg-background"><X className="size-3" /></button>
+                    <Button type="button" variant="ghost" size="icon-xs" onClick={() => setPendingAttachments((items) => items.filter((item) => item.id !== attachment.id))} aria-label={`Remove ${attachment.fileName}`} className="size-5 hover:bg-background"><X className="size-3" /></Button>
                   </span>
                 ))}
               </div>

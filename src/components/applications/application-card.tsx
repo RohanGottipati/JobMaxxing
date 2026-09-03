@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -143,17 +144,19 @@ function CardActions({
     >
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
+          <Button
             type="button"
+            variant="outline"
+            size="icon-sm"
             aria-label="Open details"
-            className="grid size-7 place-items-center rounded-md border border-border bg-popover/95 text-muted-foreground shadow-paper transition hover:bg-accent hover:text-foreground"
+            className="bg-popover/95 text-muted-foreground shadow-paper"
             onClick={(event) => {
               event.stopPropagation();
               onOpen(application.id);
             }}
           >
             <PanelTopOpen aria-hidden className="size-3.5" />
-          </button>
+          </Button>
         </TooltipTrigger>
         <TooltipContent>Open details</TooltipContent>
       </Tooltip>

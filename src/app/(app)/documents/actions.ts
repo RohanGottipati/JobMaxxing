@@ -37,7 +37,9 @@ const optionalText = z.string().trim().max(100_000).transform((value) => value |
 const optionalId = z
   .string()
   .trim()
-  .transform((value) => value || null)
+  .transform((value) =>
+    value === "__jobmaxxing_empty_select_value__" || !value ? null : value,
+  )
   .refine((value) => value === null || z.string().uuid().safeParse(value).success);
 
 function text(formData: FormData, key: string) {

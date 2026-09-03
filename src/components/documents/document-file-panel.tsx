@@ -9,28 +9,19 @@ import { attachDocumentFileAction, removeDocumentFileAction } from "@/app/(app)/
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
+import {
+  DOCUMENT_FILE_ACCEPT,
+  documentContentType,
+  safeDocumentFileName,
+  validateDocumentFile,
+} from "@/lib/documents/upload-policy";
 import type { DocumentKind } from "@/lib/documents/types";
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
-const ALLOWED_TYPES = new Set([
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-]);
 
 const folders: Record<DocumentKind, string> = {
   master_resume: "master-resumes",
   resume_version: "resume-versions",
   cover_letter: "cover-letters",
 };
-
-function safeFileName(value: string) {
-  const normalized = value
-    .normalize("NFKD")
-    .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
-  return normalized.slice(-120) || "document";
-}
 
 export function DocumentFilePanel({
   kind,
@@ -56,21 +47,21 @@ export function DocumentFilePanel({
 
   async function handleFile(file: File | undefined) {
     if (!file) return;
-    if (!ALLOWED_TYPES.has(file.type)) {
-      toast.error("Choose a PDF or DOCX file.");
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("Files must be 10 MB or smaller.");
+    const validationError = validateDocumentFile(file);
+    if (validationError) {
+      toast.error(validationError);
       return;
     }
 
     setUploading(true);
     const supabase = createClient();
-    const path = `${userId}/${folders[kind]}/${id}/${crypto.randomUUID()}-${safeFileName(file.name)}`;
+    const path = `${userId}/${folders[kind]}/${id}/${crypto.randomUUID()}-${safeDocumentFileName(file.name)}`;
     const { error } = await supabase.storage
       .from(DOCUMENT_BUCKET)
-      .upload(path, file, { contentType: file.type, upsert: false });
+      .upload(path, file, {
+        contentType: documentContentType(file) ?? file.type,
+        upsert: false,
+      });
 
     if (error) {
       setUploading(false);
@@ -108,7 +99,7 @@ export function DocumentFilePanel({
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept={DOCUMENT_FILE_ACCEPT}
         className="sr-only"
         onChange={(event) => {
           void handleFile(event.target.files?.[0]);
@@ -127,9 +118,9 @@ export function DocumentFilePanel({
           </div>
         </div>
       ) : (
-        <button type="button" disabled={locked || uploading} onClick={() => inputRef.current?.click()} className="surface-grid-sm grid min-h-32 place-items-center rounded-lg border border-dashed border-border-strong bg-parchment/35 p-5 text-center transition-colors hover:border-primary/45 hover:bg-primary/[0.035] disabled:pointer-events-none disabled:opacity-60">
+        <Button type="button" variant="outline" disabled={locked || uploading} onClick={() => inputRef.current?.click()} className="surface-grid-sm grid h-auto min-h-32 w-full place-items-center whitespace-normal rounded-lg border-dashed border-border-strong bg-parchment/35 p-5 text-center hover:border-primary/45 hover:bg-primary/[0.035]">
           <span><span className="mx-auto grid size-9 place-items-center rounded-md border border-border bg-card text-muted-foreground">{uploading ? <Loader2 aria-hidden className="size-4 animate-spin" /> : <Paperclip aria-hidden className="size-4" />}</span><span className="mt-3 block text-sm font-medium">{uploading ? "Uploading securely…" : "Attach a PDF or DOCX"}</span><span className="mt-1 block text-xs text-muted-foreground">Private · 10 MB maximum</span></span>
-        </button>
+        </Button>
       )}
 
       {filePath && isPdf && signedUrl ? (

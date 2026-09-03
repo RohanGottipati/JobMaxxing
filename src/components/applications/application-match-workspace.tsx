@@ -693,7 +693,7 @@ function FailureAlert({
         <p>{failure.message}</p>
         <div className="mt-2 flex flex-wrap gap-3">
           {failure.code === "FORBIDDEN" ? <Link href="/profile">Review AI consent</Link> : null}
-          <button type="button" className="font-medium underline underline-offset-4" onClick={onDismiss}>Dismiss</button>
+          <Button type="button" variant="link" className="h-auto p-0" onClick={onDismiss}>Dismiss</Button>
         </div>
       </AlertDescription>
     </Alert>

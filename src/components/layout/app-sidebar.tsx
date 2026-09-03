@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useState, useSyncExternalStore } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   BookOpenText,
   BriefcaseBusiness,
+  ChevronRight,
   ChevronUp,
   FilePlus2,
   Files,
@@ -19,6 +21,16 @@ import {
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Brand, BrandMark } from "@/components/layout/brand";
+import {
+  MAILBOX_SCOPES,
+  MAILBOX_VIEWS,
+  parseMailboxScope,
+  parseMailboxView,
+} from "@/components/applications/application-mailbox-constants";
+import {
+  getApplicationSidebarCounts,
+  subscribeToApplicationSidebarCounts,
+} from "@/components/applications/application-sidebar-store";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import {
@@ -39,8 +51,12 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
@@ -71,29 +87,65 @@ export function AppSidebar({
   user: { email: string | null; name: string };
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { isMobile, state, setOpenMobile } = useSidebar();
   const collapsed = !isMobile && state === "collapsed";
+  const [applicationsMenuOpen, setApplicationsMenuOpen] = useState<boolean | null>(null);
+  const applicationsExpanded =
+    applicationsMenuOpen ?? pathname.startsWith("/applications");
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
   function renderItems(items: typeof navigation) {
-    return items.map(({ href, icon: Icon, label }) => (
-      <SidebarMenuItem key={href}>
+    return items.map(({ href, icon: Icon, label }) => {
+      const isApplications = href === "/applications";
+      return (
+        <SidebarMenuItem key={href}>
         <SidebarMenuButton
           asChild
           isActive={isActive(href)}
           tooltip={label}
           className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
         >
-          <Link href={href} onClick={() => setOpenMobile(false)}>
+          <Link
+            href={href}
+            onClick={() => {
+              if (isApplications) setApplicationsMenuOpen(true);
+              setOpenMobile(false);
+            }}
+          >
             <Icon aria-hidden className="size-4" />
             <span>{label}</span>
           </Link>
         </SidebarMenuButton>
+        {isApplications ? (
+          <SidebarMenuAction
+            type="button"
+            aria-label={applicationsExpanded ? "Collapse Applications menu" : "Expand Applications menu"}
+            aria-expanded={applicationsExpanded}
+            aria-controls="applications-sidebar-submenu"
+            title={applicationsExpanded ? "Collapse Applications menu" : "Expand Applications menu"}
+            onClick={() => setApplicationsMenuOpen(!applicationsExpanded)}
+            className="top-2 text-sidebar-foreground/55"
+          >
+            <ChevronRight
+              aria-hidden
+              className={cn("transition-transform", applicationsExpanded && "rotate-90")}
+            />
+          </SidebarMenuAction>
+        ) : null}
+        {isApplications && applicationsExpanded ? (
+          <ApplicationsSidebarNavigation
+            pathname={pathname}
+            searchParams={searchParams}
+            onNavigate={() => setOpenMobile(false)}
+          />
+        ) : null}
       </SidebarMenuItem>
-    ));
+      );
+    });
   }
 
   const maxwellHref = pathname.startsWith("/maxwell")
@@ -128,8 +180,8 @@ export function AppSidebar({
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                   <DropdownMenuItem asChild>
-                    <Link href="/applications/new" onClick={() => setOpenMobile(false)}>
-                      <BriefcaseBusiness aria-hidden /> Application
+                    <Link href="/applications?compose=new" onClick={() => setOpenMobile(false)}>
+                      <BriefcaseBusiness aria-hidden /> Role
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
@@ -228,5 +280,98 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function ApplicationsSidebarNavigation({
+  pathname,
+  searchParams,
+  onNavigate,
+}: {
+  pathname: string;
+  searchParams: URLSearchParams;
+  onNavigate: () => void;
+}) {
+  const counts = useSyncExternalStore(
+    subscribeToApplicationSidebarCounts,
+    getApplicationSidebarCounts,
+    () => null,
+  );
+  const onMailbox = pathname === "/applications";
+  const routeApplicationId = pathname.match(/^\/applications\/([^/]+)(?:\/|$)/)?.[1];
+  const selectedId = onMailbox
+    ? searchParams.get("id")
+    : routeApplicationId && routeApplicationId !== "new"
+      ? routeApplicationId
+      : null;
+  const scope = parseMailboxScope(onMailbox ? searchParams.get("scope") : null);
+  const view = parseMailboxView(onMailbox ? searchParams.get("view") : null);
+
+  function hrefFor(updates: Record<string, string | null>) {
+    const next = new URLSearchParams(onMailbox ? searchParams.toString() : "");
+    if (!onMailbox && selectedId) next.set("id", selectedId);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) next.set(key, value);
+      else next.delete(key);
+    }
+    const query = next.toString();
+    return query ? `/applications?${query}` : "/applications";
+  }
+
+  return (
+    <SidebarMenuSub id="applications-sidebar-submenu" className="mb-2 mt-1 gap-0.5">
+      <li className="px-2 pb-1 pt-1.5 text-[0.62rem] font-bold uppercase tracking-[0.09em] text-sidebar-foreground/45">
+        Mailboxes
+      </li>
+      {MAILBOX_SCOPES.map((item) => (
+        <SidebarMenuSubItem key={item.id}>
+          <SidebarMenuSubButton
+            asChild
+            isActive={scope === item.id}
+            className="h-7 text-[0.76rem]"
+          >
+            <Link
+              href={hrefFor({ scope: item.id === "all" ? null : item.id })}
+              onClick={onNavigate}
+            >
+              <span className="min-w-0 flex-1 truncate">{item.label}</span>
+              {counts ? (
+                <span className="ml-auto rounded-full bg-sidebar-accent px-1.5 py-0.5 text-[0.62rem] font-semibold tabular-nums text-sidebar-foreground/55">
+                  {item.id === "all"
+                    ? counts.total
+                    : item.id === "active"
+                      ? counts.active
+                      : counts.closed}
+                </span>
+              ) : null}
+            </Link>
+          </SidebarMenuSubButton>
+        </SidebarMenuSubItem>
+      ))}
+
+      {selectedId ? (
+        <>
+          <li className="px-2 pb-1 pt-3 text-[0.62rem] font-bold uppercase tracking-[0.09em] text-sidebar-foreground/45">
+            Role
+          </li>
+          {MAILBOX_VIEWS.map((item) => (
+            <SidebarMenuSubItem key={item.id}>
+              <SidebarMenuSubButton
+                asChild
+                isActive={view === item.id}
+                className="h-7 text-[0.76rem]"
+              >
+                <Link
+                  href={hrefFor({ view: item.id === "overview" ? null : item.id })}
+                  onClick={onNavigate}
+                >
+                  <span>{item.label}</span>
+                </Link>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </>
+      ) : null}
+    </SidebarMenuSub>
   );
 }

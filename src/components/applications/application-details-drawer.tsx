@@ -218,7 +218,7 @@ function ModalBody({ applicationId }: { applicationId: string }) {
               </Link>
             ) : null}
             <Link
-              href={`/applications/${application.id}`}
+              href={`/applications?id=${application.id}`}
               className={buttonVariants({ variant: "outline", size: "sm" })}
             >
               <FileText aria-hidden className="size-3.5" />

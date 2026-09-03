@@ -20,6 +20,13 @@ import {
 } from "@/lib/applications/packages";
 import { getApplicationById } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
+import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
+import {
+  isOwnedApplicationPackagePath,
+  safeDocumentFileName,
+} from "@/lib/documents/upload-policy";
+import { requireCurrentUser } from "@/lib/auth/current-user";
+import { createClient } from "@/lib/supabase/server";
 
 function readText(formData: FormData, key: string) {
   const value = formData.get(key);
@@ -31,14 +38,18 @@ function readOptionalText(formData: FormData, key: string) {
   return value.length ? value : null;
 }
 
-function readApplicationInput(formData: FormData) {
+function applicationErrorHref(formData: FormData, error: string) {
+  return readText(formData, "form_context") === "mailbox"
+    ? `/applications?compose=new&error=${error}`
+    : `/applications/new?error=${error}`;
+}
+
+function parseApplicationInput(formData: FormData) {
   const companyName = readText(formData, "company_name");
   const jobTitle = readText(formData, "job_title");
   const status = parseApplicationStatus(formData.get("status")) ?? "saved";
 
-  if (!companyName || !jobTitle) {
-    redirect("/applications/new?error=missing-required");
-  }
+  if (!companyName || !jobTitle) return null;
 
   return {
     company_name: companyName,
@@ -53,6 +64,12 @@ function readApplicationInput(formData: FormData) {
     job_description: readOptionalText(formData, "job_description"),
     notes: readOptionalText(formData, "notes"),
   };
+}
+
+function readApplicationInput(formData: FormData) {
+  const input = parseApplicationInput(formData);
+  if (!input) redirect(applicationErrorHref(formData, "missing-required"));
+  return input;
 }
 
 function readApplicationId(formData: FormData) {
@@ -70,13 +87,107 @@ export async function createApplication(formData: FormData) {
   try {
     const application = await createApplicationRecord(input);
     revalidatePath("/applications");
-    redirect(`/applications/${application.id}`);
+    redirect(`/applications?id=${application.id}`);
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (/DUPLICATE_DESCRIPTION:/i.test(message)) {
-      redirect("/applications/new?error=duplicate-description");
+      redirect(applicationErrorHref(formData, "duplicate-description"));
     }
     throw error;
+  }
+}
+
+type ComposerCreateResult =
+  | { ok: true; applicationId: string }
+  | { ok: false; error: "duplicate-description" | "invalid-package" | "missing-required" | "save-failed" };
+
+function uploadedPackagePath(formData: FormData, key: string, userId: string) {
+  const value = readOptionalText(formData, key);
+  if (!value) return null;
+  if (!isOwnedApplicationPackagePath(value, userId)) return false;
+  return value;
+}
+
+function uploadedPackageTitle(formData: FormData, key: string, fallback: string) {
+  const value = readOptionalText(formData, key);
+  return safeDocumentFileName(value ?? fallback).slice(0, 160);
+}
+
+export async function createApplicationFromComposer(
+  formData: FormData,
+): Promise<ComposerCreateResult> {
+  const input = parseApplicationInput(formData);
+  if (!input) return { ok: false, error: "missing-required" };
+
+  const user = await requireCurrentUser();
+  const resumePath = uploadedPackagePath(formData, "submitted_resume_path", user.id);
+  const coverLetterPath = uploadedPackagePath(
+    formData,
+    "submitted_cover_letter_path",
+    user.id,
+  );
+  if (resumePath === false || coverLetterPath === false) {
+    return { ok: false, error: "invalid-package" };
+  }
+
+  const uploadedPaths = [resumePath, coverLetterPath].filter(
+    (path): path is string => Boolean(path),
+  );
+  let applicationId: string | null = null;
+
+  try {
+    const application = await createApplicationRecord(input);
+    applicationId = application.id;
+
+    if (resumePath) {
+      const resume = await createResumeVersion({
+        application_id: application.id,
+        title: uploadedPackageTitle(formData, "submitted_resume_name", "Submitted resume"),
+        content: null,
+        file_path: resumePath,
+        job_description_snapshot: input.job_description,
+      });
+      await markResumeVersionSubmitted(resume.id);
+    }
+
+    if (coverLetterPath) {
+      const coverLetter = await createCoverLetter({
+        application_id: application.id,
+        title: uploadedPackageTitle(
+          formData,
+          "submitted_cover_letter_name",
+          "Submitted cover letter",
+        ),
+        content: null,
+        file_path: coverLetterPath,
+        job_description_snapshot: input.job_description,
+      });
+      await markCoverLetterSubmitted(coverLetter.id);
+    }
+
+    revalidatePath("/applications");
+    return { ok: true, applicationId: application.id };
+  } catch (error) {
+    if (applicationId) {
+      try {
+        await deleteApplicationRecord(applicationId);
+      } catch {
+        // The original failure is more useful; storage cleanup below remains best effort.
+      }
+    }
+
+    if (uploadedPaths.length) {
+      const supabase = await createClient();
+      await supabase.storage.from(DOCUMENT_BUCKET).remove(uploadedPaths);
+    }
+
+    const message = error instanceof Error ? error.message : "";
+    return {
+      ok: false,
+      error: /DUPLICATE_DESCRIPTION:/i.test(message)
+        ? "duplicate-description"
+        : "save-failed",
+    };
   }
 }
 
@@ -87,7 +198,7 @@ export async function updateApplication(formData: FormData) {
 
   revalidatePath("/applications");
   revalidatePath(`/applications/${id}`);
-  redirect(`/applications/${id}`);
+  redirect(`/applications?id=${id}`);
 }
 
 export async function deleteApplication(formData: FormData) {

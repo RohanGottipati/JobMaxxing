@@ -56,8 +56,8 @@ export default async function DashboardPage() {
         title={`Welcome back, ${displayName}`}
         description="Your search at a glance — what moved, what is ready, and what needs attention next."
         action={
-          <Link href="/applications/new" className={cn(buttonVariants({ size: "lg" }), "h-9 px-3.5")}>
-            <Plus aria-hidden />Add application
+          <Link href="/applications?compose=new" className={cn(buttonVariants({ size: "lg" }), "h-9 px-3.5")}>
+            <Plus aria-hidden />New role
           </Link>
         }
       />
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
               <ul className="divide-y divide-border">
                 {recent.map((application) => (
                   <li key={application.id}>
-                    <Link href={`/applications/${application.id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50">
+                    <Link href={`/applications?id=${application.id}`} className="group flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50">
                       <span className="grid size-8 shrink-0 place-items-center rounded-md border border-border bg-parchment text-xs font-semibold text-primary">
                         {application.companyName.slice(0, 1).toUpperCase()}
                       </span>
@@ -144,7 +144,7 @@ function Metric({ label, value, detail, icon: Icon }: { label: string; value: nu
 }
 
 function GettingStarted() {
-  return <Card className="border-primary/20 bg-primary/[0.055]"><CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/12 text-primary"><Sparkles aria-hidden className="size-4" /></span><div className="flex-1"><h2 className="font-semibold">Start with your first opportunity</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Add a role, fill in your profile, then create the exact package you want to send.</p></div><div className="flex gap-2"><Link href="/applications/new" className={buttonVariants({ size: "sm" })}>Add application</Link><Link href="/profile" className={buttonVariants({ variant: "outline", size: "sm" })}>Build profile</Link></div></CardContent></Card>;
+  return <Card className="border-primary/20 bg-primary/[0.055]"><CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/12 text-primary"><Sparkles aria-hidden className="size-4" /></span><div className="flex-1"><h2 className="font-semibold">Start with your first opportunity</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Add a role, fill in your profile, then create the exact package you want to send.</p></div><div className="flex gap-2"><Link href="/applications?compose=new" className={buttonVariants({ size: "sm" })}>New role</Link><Link href="/profile" className={buttonVariants({ variant: "outline", size: "sm" })}>Build profile</Link></div></CardContent></Card>;
 }
 
 function LibraryLink({ href, icon: Icon, label, value }: { href: string; icon: typeof Files; label: string; value: number }) {

@@ -14,6 +14,7 @@ import {
 import { ApplicationBoard } from "@/components/applications/application-board";
 import { StatusBadge } from "@/components/applications/status-badge";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -127,13 +128,14 @@ function ScopeTab({
   value: Scope;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
       role="tab"
       aria-selected={active}
       onClick={() => onSelect(value)}
       className={cn(
-        "folder-tab -mb-px flex shrink-0 items-center gap-2 border border-b-0 px-4 pt-2 pb-2.5 text-[13px] font-medium transition duration-200 hover:-translate-y-0.5",
+        "folder-tab -mb-px h-auto shrink-0 gap-2 rounded-none border border-b-0 px-4 pt-2 pb-2.5 text-[13px] font-medium transition duration-200 hover:-translate-y-0.5",
         active
           ? "border-border bg-card text-foreground"
           : "border-transparent bg-parchment/70 text-muted-foreground hover:bg-parchment hover:text-foreground",
@@ -143,7 +145,7 @@ function ScopeTab({
       <span className="rounded bg-background/70 px-1.5 py-0.5 text-[11px] tabular-nums text-muted-foreground">
         {count}
       </span>
-    </button>
+    </Button>
   );
 }
 
@@ -199,7 +201,7 @@ function ApplicationTable({ applications }: { applications: JobApplication[] }) 
                     ) : "—"}
                   </TableCell>
                   <TableCell className="sticky left-14 z-10 border-r border-border bg-card shadow-[5px_0_8px_-8px_rgb(41_40_36/0.5)]">
-                    <Link href={`/applications/${application.id}`} className="font-medium underline-offset-2 hover:underline">
+                    <Link href={`/applications?id=${application.id}`} className="font-medium underline-offset-2 hover:underline">
                       {application.jobTitle}
                     </Link>
                   </TableCell>
@@ -243,7 +245,7 @@ function ApplicationTable({ applications }: { applications: JobApplication[] }) 
                 <div className="col-span-2"><dt className="micro-label text-muted-foreground">Next action</dt><dd className="mt-1.5 leading-5 text-muted-foreground">{application.nextAction || "No next action saved."}</dd></div>
               </dl>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link href={`/applications/${application.id}`} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">View details<ArrowRight aria-hidden className="size-4" /></Link>
+                <Link href={`/applications?id=${application.id}`} className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">View details<ArrowRight aria-hidden className="size-4" /></Link>
                 {application.jobUrl ? <a href={application.jobUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium">Job post<ExternalLink aria-hidden className="size-4" /></a> : null}
               </div>
             </div>

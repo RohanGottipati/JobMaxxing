@@ -1,8 +1,10 @@
 import {
+  deleteAllExtensionApplications,
   extensionApplicationSchema,
   getExtensionAiConsent,
-  getRecentExtensionApplications,
+  getExtensionApplications,
   upsertExtensionApplication,
+  toExtensionApplication,
 } from "@/lib/extension/applications";
 import { routeError } from "@/lib/http/api";
 import {
@@ -35,15 +37,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         ok: true,
-        application: {
-          id: result.application!.id,
-          companyName: result.application!.company_name,
-          roleTitle: result.application!.role_title,
-          status: result.application!.status,
-          dateApplied: result.application!.date_applied,
-          sourceHost: result.application!.source_host,
-          recruitingSeason: result.application!.recruiting_season,
-        },
+        application: toExtensionApplication(result.application!),
         aiConsent: hasAiConsent,
       },
       { status: result.application && body.id ? 200 : 201 },
@@ -57,12 +51,26 @@ export async function GET(request: Request) {
   try {
     requireBearerAuth(request);
     const auth = await getAuthContextFromRequest(request);
-    const limit = Number(new URL(request.url).searchParams.get("limit") ?? "10");
-    const applications = await getRecentExtensionApplications(
-      auth,
-      Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 50) : 10,
-    );
+    const url = new URL(request.url);
+    const full = url.searchParams.get("full") === "true";
+    const limitParam = url.searchParams.get("limit");
+    const limit = limitParam ? Number(limitParam) : full ? undefined : 10;
+    const applications = await getExtensionApplications(auth, {
+      full,
+      limit: limit && Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 500) : undefined,
+    });
     return Response.json({ applications });
+  } catch (error) {
+    return routeError(error);
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    requireBearerAuth(request);
+    const auth = await getAuthContextFromRequest(request);
+    await deleteAllExtensionApplications(auth);
+    return Response.json({ ok: true });
   } catch (error) {
     return routeError(error);
   }

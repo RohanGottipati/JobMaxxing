@@ -1,17 +1,18 @@
-import Link from "next/link";
+import { Suspense } from "react";
 
-import { AppPage, AppPageHeader } from "@/components/layout/app-page";
-import { buttonVariants } from "@/components/ui/button";
+import { ApplicationMailbox } from "@/components/applications/application-mailbox";
+import { ApplicationsMailboxSkeleton } from "@/components/applications/applications-mailbox-skeleton";
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { getApplications } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
-
-import { ApplicationList } from "@/components/applications/application-list";
 
 type ApplicationsPageProps = {
   searchParams: Promise<{
     q?: string;
     status?: string;
+    id?: string;
+    view?: string;
+    scope?: string;
   }>;
 };
 
@@ -27,22 +28,12 @@ export default async function ApplicationsPage({
   });
 
   return (
-    <AppPage>
-      <AppPageHeader
-        title="Applications"
-        description="Every role you’re tracking, in one workspace. Use the board to move quickly or the table to review everything at once."
-        action={
-          <Link href="/applications/new" className={buttonVariants({ size: "sm" })}>
-            Add application
-          </Link>
-        }
-      />
-
-      <ApplicationList
+    <Suspense fallback={<ApplicationsMailboxSkeleton />}>
+      <ApplicationMailbox
         applications={applications}
         query={params.q}
         status={status}
       />
-    </AppPage>
+    </Suspense>
   );
 }
