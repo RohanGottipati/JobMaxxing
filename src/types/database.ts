@@ -1412,6 +1412,10 @@ export type Database = {
         Args: { p_package: Json };
         Returns: Json;
       };
+      save_extension_application_package: {
+        Args: { p_payload: Json };
+        Returns: Json;
+      };
       save_structured_resume_document: {
         Args: { p_kind: string; p_document_id: string; p_expected_version: number; p_title: string; p_template_id: string; p_document: Json };
         Returns: number;

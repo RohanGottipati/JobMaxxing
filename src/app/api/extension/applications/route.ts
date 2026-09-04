@@ -1,10 +1,9 @@
 import {
   deleteAllExtensionApplications,
-  extensionApplicationSchema,
+  extensionApplicationPackageSchema,
   getExtensionAiConsent,
   getExtensionApplications,
-  upsertExtensionApplication,
-  toExtensionApplication,
+  saveExtensionApplicationPackage,
 } from "@/lib/extension/applications";
 import { routeError } from "@/lib/http/api";
 import {
@@ -18,8 +17,9 @@ export async function POST(request: Request) {
   try {
     requireBearerAuth(request);
     const auth = await getAuthContextFromRequest(request);
-    const body = extensionApplicationSchema.parse(await request.json());
-    const result = await upsertExtensionApplication(auth, body);
+    const body = extensionApplicationPackageSchema.parse(await request.json());
+    const hasAiConsent = await getExtensionAiConsent(auth);
+    const result = await saveExtensionApplicationPackage(auth, body);
 
     if (result.duplicate) {
       return Response.json(
@@ -32,12 +32,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const hasAiConsent = await getExtensionAiConsent(auth);
-
     return Response.json(
       {
         ok: true,
-        application: toExtensionApplication(result.application!),
+        application: result.application,
+        package: result.package,
         aiConsent: hasAiConsent,
       },
       { status: result.application && body.id ? 200 : 201 },

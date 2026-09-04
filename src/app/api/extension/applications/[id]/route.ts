@@ -1,8 +1,8 @@
 import {
   deleteExtensionApplication,
-  extensionApplicationUpdateSchema,
+  extensionApplicationPackageUpdateSchema,
   getExtensionApplication,
-  updateExtensionApplication,
+  saveExtensionApplicationPackage,
 } from "@/lib/extension/applications";
 import { routeError } from "@/lib/http/api";
 import {
@@ -41,11 +41,11 @@ export async function PATCH(
     requireBearerAuth(request);
     const auth = await getAuthContextFromRequest(request);
     const { id } = await context.params;
-    const body = extensionApplicationUpdateSchema.parse({
+    const body = extensionApplicationPackageUpdateSchema.parse({
       ...(await request.json()),
       id,
     });
-    const result = await updateExtensionApplication(auth, body);
+    const result = await saveExtensionApplicationPackage(auth, body);
     if (result.duplicate) {
       return Response.json(
         {
@@ -56,7 +56,11 @@ export async function PATCH(
         { status: 409 },
       );
     }
-    return Response.json({ ok: true, application: result.application });
+    return Response.json({
+      ok: true,
+      application: result.application,
+      package: result.package,
+    });
   } catch (error) {
     return routeError(error);
   }

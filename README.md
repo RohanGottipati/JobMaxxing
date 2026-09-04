@@ -57,7 +57,7 @@ Job capture from the browser lives in a separate repo: **[JobMaxxing-extension](
 1. Apply the latest migrations in this repo (`npm run db:push`).
 2. Clone the extension repo, copy `config.example.js` → `config.local.js`, and use the same Supabase URL/anon key plus `APP_URL=http://localhost:3000` during local dev.
 3. Load unpacked in Chrome (`chrome://extensions` → Developer mode).
-4. Sign in with your JobMaxxing account, capture a job, and confirm it appears on `/applications`.
+4. Sign in with your JobMaxxing account, capture a job, optionally attach the PDF/DOCX resume and cover letter you used, and confirm the linked package appears on `/applications`.
 
 The extension calls authenticated API routes under `/api/extension/` — it never ships a Gemini key.
 
