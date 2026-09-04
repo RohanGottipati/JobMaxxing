@@ -21,7 +21,7 @@ const routeLabels: Array<[string, string]> = [
   ["/dashboard", "Home"],
   ["/applications/new", "New application"],
   ["/applications", "Applications"],
-  ["/latex", "LaTeX Studio"],
+  ["/latex", "Overleaf"],
   ["/resumes/versions/new", "New tailored resume"],
   ["/resumes/versions", "Tailored resume"],
   ["/resumes/new", "New master resume"],
@@ -36,9 +36,6 @@ const routeLabels: Array<[string, string]> = [
 
 export function AppShell({ children, user, onboardingIncomplete = false }: AppShellProps) {
   const pathname = usePathname();
-  const latexEditor = /^\/latex\/(master_resume|resume_version|cover_letter)\//.test(pathname);
-  if (latexEditor) return children;
-
   const applicationsWorkspace = pathname === "/applications";
   const title = pathname.match(/^\/applications\/[^/]+\/match(?:\/|$)/)
     ? "Career match"

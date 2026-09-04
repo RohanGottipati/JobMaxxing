@@ -2,7 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import JSZip from "jszip";
 
-import { buildLatexProjectArchive, latexProjectFileName } from "@/lib/latex/project-archive";
+import {
+  buildLatexProjectArchive,
+  latexProjectFileName,
+  overleafProjectDataUrl,
+} from "@/lib/latex/project-archive";
 
 test("project archives contain main.tex plus supporting assets", async () => {
   const archive = await buildLatexProjectArchive({
@@ -15,4 +19,5 @@ test("project archives contain main.tex plus supporting assets", async () => {
   assert.ok(zip.file("logo.png"));
   assert.equal(await zip.file("main.tex")?.async("string"), "\\documentclass{article}\\begin{document}Hi\\end{document}");
   assert.equal(latexProjectFileName("Platform resume"), "Platform-resume.zip");
+  assert.match(overleafProjectDataUrl(archive), /^data:application\/zip;base64,UEs/);
 });

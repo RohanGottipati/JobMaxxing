@@ -25,6 +25,7 @@ test("authenticated routes remain visible and vertically reachable", async ({ pa
     "/resumes/versions/new",
     "/cover-letters",
     "/cover-letters/new",
+    "/latex",
     "/profile",
     "/documentation",
     "/documentation/getting-started",

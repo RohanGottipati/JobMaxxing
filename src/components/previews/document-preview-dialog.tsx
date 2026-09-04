@@ -183,8 +183,8 @@ export function DocumentPreviewDialog({
           <p className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/[0.06] px-3 py-2 text-xs leading-5">
             <AlertTriangle aria-hidden className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
             <span>
-              The stored PDF was compiled from an older revision of the source. Recompile in
-              the LaTeX Studio to refresh it.
+              The stored PDF is from an older source revision. Open the project in Overleaf,
+              export a current PDF, and attach it to this document.
             </span>
           </p>
         ) : null}

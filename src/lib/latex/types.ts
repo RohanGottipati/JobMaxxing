@@ -9,14 +9,6 @@ export type LatexAssetDTO = {
   createdAt: string;
 };
 
-export type LatexHistoryEntryDTO = {
-  id: string;
-  rowVersion: number;
-  title: string;
-  reason: string;
-  createdAt: string;
-};
-
 export type LatexCompiledOutputDTO = {
   rowVersion: number;
   compiledAt: string;
@@ -24,7 +16,7 @@ export type LatexCompiledOutputDTO = {
   fresh: boolean;
 };
 
-export type LatexEditorDTO = {
+export type LatexDocumentDTO = {
   kind: LatexDocumentKind;
   id: string;
   title: string;
@@ -35,9 +27,9 @@ export type LatexEditorDTO = {
   locked: boolean;
   compiled: LatexCompiledOutputDTO | null;
   assets: LatexAssetDTO[];
-  history: LatexHistoryEntryDTO[];
-  hasAttachment: boolean;
-  /** Where the Studio's back link should return the user. */
+  filePath: string | null;
+  isDefault: boolean;
+  /** Where the Overleaf workspace's back link should return the user. */
   returnHref: string;
   updatedAt: string;
 };
@@ -54,7 +46,7 @@ export function latexLibraryHref(kind: LatexDocumentKind) {
   return "/resumes";
 }
 
-export function latexStudioHref(kind: LatexDocumentKind, id: string) {
+export function latexOverleafHref(kind: LatexDocumentKind, id: string) {
   return `/latex/${kind}/${id}`;
 }
 
@@ -63,10 +55,5 @@ export function documentWorkspaceHref(
   id: string,
   contentFormat: string,
 ) {
-  return contentFormat === "latex" ? latexStudioHref(kind, id) : latexDocumentHref(kind, id);
-}
-
-/** Studio requires a full document load so COOP/COEP isolation can take effect. */
-export function isLatexStudioHref(href: string) {
-  return href === "/latex" || href.startsWith("/latex/");
+  return contentFormat === "latex" ? latexOverleafHref(kind, id) : latexDocumentHref(kind, id);
 }

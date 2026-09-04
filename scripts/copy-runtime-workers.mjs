@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 /**
- * PDF.js and the Siglum LaTeX engine both spawn workers from a URL. Bundlers
- * rewrite the package-relative paths those libraries expect, so the worker
- * files are copied into `public/` at install time and referenced by absolute
- * path. Re-running on every install keeps them in step with the installed
- * package versions.
+ * PDF.js loads its worker by URL. Bundlers rewrite the package-relative path,
+ * so the worker is copied into `public/` at install time and referenced by an
+ * absolute path. Re-running on every install keeps it in step with the package.
  */
 import { copyFile, mkdir, readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
@@ -16,11 +14,6 @@ const copies = [
     from: "node_modules/pdfjs-dist/build/pdf.worker.min.mjs",
     to: "public/pdf.worker.min.mjs",
     optional: false,
-  },
-  {
-    from: "node_modules/@siglum/engine/src/worker.js",
-    to: "public/latex/siglum-worker.js",
-    optional: true,
   },
 ];
 

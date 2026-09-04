@@ -1,5 +1,3 @@
-import { resolve } from "node:path";
-
 import type { NextConfig } from "next";
 
 const requiredEnvironment = {
@@ -24,59 +22,9 @@ if (process.env.NODE_ENV === "production" && missingEnvironment.length > 0) {
   );
 }
 
-const isolationHeaders = [
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-];
-
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["pdf-parse", "@siglum/engine", "undici"],
-  // `blake3-wasm@2.1.5` (a `@siglum/engine` dependency) publishes a browser
-  // entry that re-exports a file missing from the package, so bundlers cannot
-  // resolve it. The engine guards the import with a DJB2 fallback, so point
-  // the specifier at a stub that rejects on evaluation.
-  turbopack: {
-    resolveAlias: {
-      "blake3-wasm/browser.js": {
-        browser: "./src/lib/latex/blake3-unavailable.ts",
-      },
-    },
-  },
-  webpack(config) {
-    config.resolve.alias["blake3-wasm/browser.js$"] = resolve(
-      __dirname,
-      "src/lib/latex/blake3-unavailable.ts",
-    );
-    return config;
-  },
-  async headers() {
-    return [
-      {
-        source: "/latex",
-        headers: isolationHeaders,
-      },
-      {
-        source: "/latex/:path*",
-        headers: isolationHeaders,
-      },
-      {
-        source: "/latex/:file(busytex.wasm|busytex.js|siglum-worker.js)",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-        ],
-      },
-      {
-        source: "/latex/bundles/:path*",
-        headers: [
-          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
-          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-        ],
-      },
-    ];
-  },
+  serverExternalPackages: ["pdf-parse", "undici"],
 };
 
 export default nextConfig;

@@ -46,7 +46,7 @@ export default defineConfig({
     },
     {
       name: "chromium-desktop",
-      testMatch: /(app-responsive|phase-one|phase-two|latex-studio)\.spec\.ts/,
+      testMatch: /(app-responsive|phase-one|phase-two|latex-overleaf)\.spec\.ts/,
       dependencies: ["setup"],
       use: { ...devices["Desktop Chrome"], storageState: authFile, viewport: { width: 1280, height: 720 } },
     },

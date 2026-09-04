@@ -19,8 +19,7 @@ import {
 } from "@/lib/latex/constants";
 import type {
   LatexAssetDTO,
-  LatexEditorDTO,
-  LatexHistoryEntryDTO,
+  LatexDocumentDTO,
 } from "@/lib/latex/types";
 import { isCompiledOutputFresh } from "@/lib/latex/compile-freshness";
 import { latexLibraryHref } from "@/lib/latex/types";
@@ -56,6 +55,7 @@ type DocumentSummary = {
   compiledRowVersion: number | null;
   compiledAt: string | null;
   filePath: string | null;
+  isDefault: boolean;
   applicationId: string | null;
   updatedAt: string;
 };
@@ -88,6 +88,7 @@ async function readDocument(
       compiledRowVersion: data.compiled_row_version,
       compiledAt: data.compiled_at,
       filePath: data.file_path,
+      isDefault: data.is_default,
       applicationId: null,
       updatedAt: data.updated_at,
     };
@@ -129,6 +130,7 @@ async function readDocument(
     compiledRowVersion: data.compiled_row_version,
     compiledAt: data.compiled_at,
     filePath: data.file_path,
+    isDefault: false,
     applicationId: data.application_id,
     updatedAt: data.updated_at,
   };
@@ -155,36 +157,14 @@ async function readAssets(
   }));
 }
 
-async function readHistory(
-  kind: LatexDocumentKind,
-  id: string,
-): Promise<LatexHistoryEntryDTO[]> {
-  const { supabase, userId } = await context();
-  const { data, error } = await supabase
-    .from("document_source_history")
-    .select("id, row_version, title, reason, created_at")
-    .eq("user_id", userId)
-    .eq(PARENT_COLUMN[kind], id)
-    .order("created_at", { ascending: false })
-    .limit(50);
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    rowVersion: row.row_version,
-    title: row.title,
-    reason: row.reason,
-    createdAt: row.created_at,
-  }));
-}
-
 export async function getLatexDocument(
   kind: LatexDocumentKind,
   id: string,
-): Promise<LatexEditorDTO | null> {
+): Promise<LatexDocumentDTO | null> {
   const document = await readDocument(kind, id);
   if (!document || document.contentFormat !== "latex") return null;
 
-  const [assets, history] = await Promise.all([readAssets(kind, id), readHistory(kind, id)]);
+  const assets = await readAssets(kind, id);
 
   return {
     kind,
@@ -207,8 +187,8 @@ export async function getLatexDocument(
           }
         : null,
     assets,
-    history,
-    hasAttachment: Boolean(document.filePath),
+    filePath: document.filePath,
+    isDefault: document.isDefault,
     returnHref: document.applicationId
       ? `/applications/${document.applicationId}`
       : latexLibraryHref(kind),
@@ -434,7 +414,7 @@ export async function downloadLatexAsset(input: {
 /** Every stored asset, used to build the downloadable project ZIP. */
 export async function readLatexProject(kind: LatexDocumentKind, id: string) {
   const document = await readDocument(kind, id);
-  if (!document) return null;
+  if (!document || document.contentFormat !== "latex") return null;
 
   const { supabase, userId } = await context();
   const { data, error } = await supabase

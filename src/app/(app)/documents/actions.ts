@@ -33,7 +33,7 @@ import { createStructuredMasterResume } from "@/lib/resumes/repository";
 import { createLatexDocument } from "@/lib/latex/repository";
 import { resolveLatexCreateSource } from "@/lib/latex/create";
 import { LATEX_DOCUMENT_KINDS, MAX_LATEX_SOURCE_LENGTH } from "@/lib/latex/constants";
-import { documentWorkspaceHref, latexStudioHref } from "@/lib/latex/types";
+import { documentWorkspaceHref, latexOverleafHref } from "@/lib/latex/types";
 import { updateOnboardingStatus } from "@/lib/onboarding/repository";
 
 const requiredTitle = z.string().trim().min(1).max(160);
@@ -322,7 +322,7 @@ export async function createLatexDocumentAction(formData: FormData) {
     baseResumeId: baseResumeId.data,
   });
   revalidateDocumentSurfaces();
-  redirect(latexStudioHref(created.kind, created.id));
+  redirect(latexOverleafHref(created.kind, created.id));
 }
 
 export async function removeDocumentFileAction(kind: DocumentKind, id: string) {

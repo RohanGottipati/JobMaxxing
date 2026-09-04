@@ -25,3 +25,8 @@ export async function buildLatexProjectArchive(project: LatexProjectInput) {
   }
   return zip.generateAsync({ type: "uint8array", compression: "DEFLATE" });
 }
+
+/** Overleaf accepts private multi-file projects as a base64 ZIP data URL. */
+export function overleafProjectDataUrl(archive: Uint8Array) {
+  return `data:application/zip;base64,${Buffer.from(archive).toString("base64")}`;
+}

@@ -19,9 +19,6 @@ export const MAX_LATEX_ASSET_TOTAL_SIZE = 20 * 1024 * 1024;
 
 export const MAX_COMPILED_PDF_SIZE = 20 * 1024 * 1024;
 
-/** Autosave cadence, matched to the structured resume editor. */
-export const LATEX_AUTOSAVE_DEBOUNCE_MS = 1_200;
-
 export const LATEX_DOCUMENT_KINDS = [
   "master_resume",
   "resume_version",

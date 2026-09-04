@@ -1,13 +1,20 @@
 import type { DocumentPreviewDescriptor, PreviewView } from "@/lib/previews/types";
 
 const VIEW_PRIORITY: Record<PreviewView["type"], number> = {
-  pdf: 0,
-  structured_resume: 1,
-  docx: 2,
-  markdown: 3,
-  plain_text: 4,
-  latex: 5,
+  pdf: 1,
+  structured_resume: 2,
+  docx: 3,
+  markdown: 4,
+  plain_text: 5,
+  latex: 6,
 };
+
+function viewPriority(view: PreviewView) {
+  // An attached PDF is the explicit final export, while a compiled PDF may be
+  // a legacy artifact from the retired in-browser compiler.
+  if (view.type === "pdf" && view.target === "attachment") return 0;
+  return VIEW_PRIORITY[view.type];
+}
 
 /**
  * When a document has several representations, show the most faithful rendered
@@ -16,7 +23,7 @@ const VIEW_PRIORITY: Record<PreviewView["type"], number> = {
  */
 export function selectPreviewViews(descriptor: Pick<DocumentPreviewDescriptor, "views">) {
   return [...descriptor.views].sort(
-    (left, right) => VIEW_PRIORITY[left.type] - VIEW_PRIORITY[right.type],
+    (left, right) => viewPriority(left) - viewPriority(right),
   );
 }
 

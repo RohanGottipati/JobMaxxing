@@ -226,6 +226,7 @@ async function documentDescriptor(
   const isLatex = row.contentFormat === "latex";
   const compiledIsStale =
     isLatex &&
+    !row.filePath &&
     Boolean(row.compiledPdfPath) &&
     !isCompiledOutputFresh({
       compiledRowVersion: row.compiledRowVersion,

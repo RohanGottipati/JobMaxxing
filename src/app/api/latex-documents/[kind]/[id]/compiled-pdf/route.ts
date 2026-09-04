@@ -7,9 +7,8 @@ import { registerCompiledPdf } from "@/lib/latex/repository";
 const kindSchema = z.enum(LATEX_DOCUMENT_KINDS);
 
 /**
- * The browser uploads the PDF it just produced along with the source revision
- * it compiled. If the source has moved on, the RPC rejects the write and the
- * Studio keeps the PDF locally while reporting a conflict.
+ * Legacy compiler clients upload a PDF together with the source revision they
+ * compiled. If the source has moved on, the RPC rejects the write.
  */
 export async function PUT(
   request: Request,

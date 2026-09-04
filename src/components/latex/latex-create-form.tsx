@@ -49,14 +49,14 @@ export function LatexCreateForm({
         : "/cover-letters/new?mode=latex");
 
   return (
-    <Card>
-      <CardHeader className="border-b border-border bg-parchment/35">
+    <Card className="overflow-hidden border-primary/15 shadow-paper">
+      <CardHeader className="border-b border-border bg-[linear-gradient(120deg,color-mix(in_oklch,var(--primary),transparent_94%),transparent_70%)]">
         <span className="mb-3 grid size-9 place-items-center rounded-md border border-border bg-card text-primary">
           <FileCode2 aria-hidden className="size-4" />
         </span>
-        <CardTitle className="text-lg">Create a LaTeX {label}</CardTitle>
+        <CardTitle className="text-lg">New LaTeX {label}</CardTitle>
         <CardDescription>
-          Compiles in the browser. Start from a template, paste source, or upload a .tex file.
+          Choose how to start, then import the project into Overleaf to edit and compile it.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -127,7 +127,7 @@ export function LatexCreateForm({
             />
           </div>
           <fieldset>
-            <legend className="mb-3 text-sm font-medium">Starting template</legend>
+            <legend className="mb-3 text-sm font-medium">Start from a template</legend>
             <RadioGroup name="template_id" defaultValue={defaultLatexTemplateId(kind)} className="grid gap-3">
               {templates.map((template) => (
                 <label
@@ -169,7 +169,7 @@ export function LatexCreateForm({
               pendingLabel="Creating…"
               disabled={!master && applications.length === 0}
             >
-              Open in Studio
+              Continue to Overleaf
             </SubmitButton>
             <Link href={cancelHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
               Cancel

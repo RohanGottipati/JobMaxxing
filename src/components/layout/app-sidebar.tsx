@@ -66,7 +66,7 @@ const navigation = [
   { href: "/applications", icon: BriefcaseBusiness, label: "Applications" },
   { href: "/resumes", icon: Files, label: "My Resumes" },
   { href: "/cover-letters", icon: FileText, label: "My Cover Letters" },
-  { href: "/latex", icon: FileCode2, label: "LaTeX Studio", fullNavigation: true },
+  { href: "/latex", icon: FileCode2, label: "Overleaf" },
   { href: "/documentation", icon: BookOpenText, label: "Documentation" },
   { href: "/profile", icon: UserRound, label: "User Profile" },
 ] as const;
@@ -111,7 +111,6 @@ export function AppSidebar({
   function renderItems(items: typeof navigation) {
     return items.map((item) => {
       const { href, icon: Icon, label } = item;
-      const fullNavigation = "fullNavigation" in item && item.fullNavigation;
       const isApplications = href === "/applications";
       return (
         <SidebarMenuItem key={href}>
@@ -142,17 +141,10 @@ export function AppSidebar({
               tooltip={label}
               className="relative h-9 gap-2.5 rounded-md px-2.5 text-[0.84rem] font-medium text-sidebar-foreground/65 before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r before:bg-primary before:opacity-0 data-active:bg-sidebar-accent data-active:text-sidebar-accent-foreground data-active:before:opacity-100"
             >
-              {fullNavigation ? (
-                <a href={href} onClick={() => setOpenMobile(false)}>
-                  <Icon aria-hidden className="size-4" />
-                  <span>{label}</span>
-                </a>
-              ) : (
-                <Link href={href} onClick={() => setOpenMobile(false)}>
-                  <Icon aria-hidden className="size-4" />
-                  <span>{label}</span>
-                </Link>
-              )}
+              <Link href={href} onClick={() => setOpenMobile(false)}>
+                <Icon aria-hidden className="size-4" />
+                <span>{label}</span>
+              </Link>
             </SidebarMenuButton>
           )}
           {isApplications && applicationsExpanded ? (
