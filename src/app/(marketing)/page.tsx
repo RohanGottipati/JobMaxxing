@@ -25,7 +25,7 @@ import type { ApplicationStatus } from "@/lib/applications/types";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Your job search, finally in one place",
+  title: "Track applications and the files you sent",
 };
 
 const faqs = [
@@ -63,13 +63,13 @@ export default async function HomePage() {
           <div className="motion-rise">
             <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground shadow-paper">
               <span aria-hidden className="size-1.5 rounded-full bg-success" />
-              A private workspace for one job search
+              Your applications, documents and follow-ups
             </span>
             <h1 className="mt-5 text-balance text-[2.4rem] font-semibold leading-[1.08] tracking-[-0.04em] sm:text-[3rem]">
-              Your entire job search, finally in one place.
+              Stop losing track of what you applied with.
             </h1>
             <p className="mt-4 max-w-lg text-[0.97rem] leading-7 text-muted-foreground">
-              Track every opportunity, preserve every tailored document, and always know what to do next.
+              Keep each role, job description, deadline, resume and cover letter together.
             </p>
             <div className="mt-7 flex flex-wrap gap-2.5">
               <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "h-10 px-4")}>
@@ -92,9 +92,7 @@ export default async function HomePage() {
       <section id="features" className="scroll-mt-16 border-b border-border">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-16">
           <p className="micro-label text-muted-foreground">What’s inside</p>
-          <h2 className="mt-2 max-w-2xl text-[1.9rem] font-semibold leading-tight tracking-[-0.035em]">
-            Five surfaces that carry a whole search
-          </h2>
+          <h2 className="mt-2 max-w-2xl text-[1.9rem] font-semibold leading-tight tracking-[-0.035em]">The parts you actually need</h2>
 
           <div className="mt-8 grid gap-4 lg:grid-cols-6">
             <FeatureCard className="lg:col-span-4" icon={Inbox} title="Application mailbox">
@@ -146,7 +144,7 @@ export default async function HomePage() {
       <section id="how-it-works" className="scroll-mt-16 border-b border-border bg-parchment">
         <div className="mx-auto w-full max-w-[1200px] px-5 py-16">
           <p className="micro-label text-muted-foreground">How it works</p>
-          <h2 className="mt-2 text-[1.9rem] font-semibold tracking-[-0.035em]">Three steps to a search that runs itself</h2>
+          <h2 className="mt-2 text-[1.9rem] font-semibold tracking-[-0.035em]">A simple flow from saved role to submitted application</h2>
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               ["01", "Capture the role", "Add the company, title, and link. Everything else can grow as the process moves."],
@@ -180,9 +178,9 @@ export default async function HomePage() {
 
       <section className="border-b border-border bg-parchment surface-grid">
         <div className="mx-auto max-w-[820px] px-5 py-16 text-center">
-          <h2 className="text-[2rem] font-semibold tracking-[-0.035em]">Run your search like a system.</h2>
+          <h2 className="text-[2rem] font-semibold tracking-[-0.035em]">Know what you sent and what happens next.</h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
-            Ten minutes of setup buys you a workspace that remembers what a spreadsheet, folder, and your head otherwise have to share.
+            JobMaxxing keeps the record. It does not submit applications or contact employers for you.
           </p>
           <Link href={primaryHref} className={cn(buttonVariants({ size: "lg" }), "mt-7 h-10 px-4")}>
             {primaryLabel}<ArrowRight aria-hidden />

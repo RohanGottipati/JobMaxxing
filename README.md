@@ -1,6 +1,8 @@
 # JobMaxxing
 
-Job search tracker built with Next.js and Supabase. Track applications from saved → applied → interview → offer in one place.
+Private job-search workspace built with Next.js and Supabase. Track each application with its job post, next action, resume and cover letter. Optional AI tools handle job analysis, matching and reviewable document tailoring.
+
+JobMaxxing does **not** submit applications, contact employers or send email.
 
 ## Stack
 
@@ -55,15 +57,23 @@ Open [http://localhost:3000](http://localhost:3000).
 Job capture from the browser lives in a separate repo: **[JobMaxxing-extension](https://github.com/RohanGottipati/JobMaxxing-extension)**.
 
 1. Apply the latest migrations in this repo (`npm run db:push`).
-2. Clone the extension repo, copy `config.example.js` → `config.local.js`, and use the same Supabase URL/anon key plus `APP_URL=http://localhost:3000` during local dev.
+2. Clone the extension repo, copy `config.example.js` → `config.js`, and use the same Supabase URL/anon key plus `APP_URL=http://localhost:3000` during local dev.
 3. Load unpacked in Chrome (`chrome://extensions` → Developer mode).
 4. Sign in with your JobMaxxing account, capture a job, optionally attach the PDF/DOCX resume and cover letter you used, and confirm the linked package appears on `/applications`.
 
-The extension calls authenticated API routes under `/api/extension/` — it never ships a Gemini key.
+The extension calls authenticated API routes under `/api/extension/`. It never ships a Gemini key and does not autofill or submit employer forms.
+
+## Product flow
+
+1. Complete the three-step onboarding flow: basics and targets, optional resume, then AI consent.
+2. Add an application from the web app or capture a supported job page with the extension.
+3. Work from `/applications`: filter the list, select a role, then use its Overview, Job post, Resume, Cover letter and Notes tabs.
+4. Open **Match** only when you want to review parsed requirements, compare a resume, tailor a separate version or generate a grounded cover letter.
+5. Use **Documents** for resumes, cover letters and LaTeX projects. Submitted versions remain locked as a record of what was sent.
 
 ## Maxwell workspace assistant
 
-Open **Maxwell** from the app sidebar. It has a dedicated full-page chat workspace with saved conversation history. Opening it from an application or document carries that page in as removable, validated context.
+Open **Maxwell** from the app sidebar. It has saved conversation history, and opening it from an application or document can carry that page in as removable context.
 
 Maxwell can:
 
@@ -99,6 +109,8 @@ src/
 supabase/
   migrations/           # SQL migrations
 ```
+
+Product boundaries, navigation and end-to-end user flows are documented in [`docs/PRODUCT_AND_UX.md`](docs/PRODUCT_AND_UX.md). The current release backlog is in [`docs/REMAINING_IMPLEMENTATION_PLAN.md`](docs/REMAINING_IMPLEMENTATION_PLAN.md).
 
 ## Scripts
 

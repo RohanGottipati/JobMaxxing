@@ -10,14 +10,12 @@ import {
   completeOnboardingAction,
   deferOnboardingAction,
   markResumeStepAction,
-  saveBasicsAction,
-  savePreferencesAction,
-  saveTargetsAction,
+  saveSetupAction,
 } from "@/app/(onboarding)/onboarding/actions";
 import { Brand } from "@/components/layout/brand";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +31,8 @@ function splitList(value: string) {
 
 export function OnboardingWizard({ initial }: { initial: InitialState }) {
   const router = useRouter();
-  const [step, setStep] = useState(Math.min(Math.max(initial.profile.onboarding_step, 1), 5));
+  const initialStep = initial.profile.onboarding_step >= 3 ? 3 : initial.profile.onboarding_step >= 2 ? 2 : 1;
+  const [step, setStep] = useState(initialStep);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [fullName, setFullName] = useState(initial.profile.full_name ?? "");
@@ -77,34 +76,89 @@ export function OnboardingWizard({ initial }: { initial: InitialState }) {
 
   return (
     <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-3xl flex-col sm:min-h-[calc(100dvh-5rem)]">
-      <div className="flex items-center justify-between gap-4"><Brand href="/" /><Button variant="ghost" size="sm" onClick={finishLater} disabled={pending}>Finish later</Button></div>
-      <div className="mt-7 grid gap-2"><div className="flex justify-between text-xs text-muted-foreground"><span>Step {step} of 5</span><span>{step * 20}%</span></div><Progress value={step * 20} /></div>
-      <Card className="my-6 min-h-0 flex-1 overflow-hidden">
-        <CardHeader className="border-b border-border bg-parchment/35">
-          <CardTitle>{["Build your foundation", "Bring your resume", "Choose your direction", "Set your preferences", "Review and finish"][step - 1]}</CardTitle>
-          <CardDescription>{["Tell us where you are in your career.", "Import a resume now or return to it later.", "These roles shape future matching and recommendations.", "Choose the arrangements that work for you.", "You can change everything later from your profile."][step - 1]}</CardDescription>
-        </CardHeader>
+      <div className="flex items-center justify-between gap-4">
+        <Brand href="/" />
+        <Button variant="ghost" size="sm" onClick={finishLater} disabled={pending}>Finish later</Button>
+      </div>
+      <div className="mt-6 grid gap-2">
+        <div className="flex justify-between text-xs text-muted-foreground"><span>Step {step} of 3</span><span>{Math.round((step / 3) * 100)}%</span></div>
+        <Progress value={(step / 3) * 100} />
+      </div>
+
+      <Card className="my-5 min-h-0 flex-1 overflow-hidden">
         <CardContent className="grid gap-5 p-5 sm:p-7">
+          <div>
+            <h1 className="text-xl font-semibold tracking-[-0.03em]">
+              {step === 1 ? "Tell us what you’re looking for" : step === 2 ? "Add a resume" : "One last choice"}
+            </h1>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {step === 1 ? "This sets up your profile and makes matching more useful." : step === 2 ? "Import one now, build one here, or skip it." : "Choose whether JobMaxxing can use AI features. You can change this later."}
+            </p>
+          </div>
+
           {error ? <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert> : null}
-          {step === 1 ? <>
-            <Field label="Full name" id="onboarding-name"><Input id="onboarding-name" value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" /></Field>
-            <Field label="Professional headline" id="onboarding-headline"><Input id="onboarding-headline" value={headline} onChange={(event) => setHeadline(event.target.value)} placeholder="e.g. Backend engineer building reliable APIs" /></Field>
-            <Field label="Career stage" id="onboarding-stage"><Select id="onboarding-stage" value={careerStage} onChange={(event) => setCareerStage(event.target.value)}><option value="student">Student</option><option value="new_grad">New graduate</option><option value="early_career">Early career</option><option value="mid_career">Mid career</option><option value="senior">Senior individual contributor</option><option value="manager">Manager</option><option value="executive">Executive</option><option value="career_change">Career change</option></Select></Field>
-          </> : null}
-          {step === 2 ? <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="border-primary/35"><CardHeader><FileUp aria-hidden className="size-5 text-primary" /><CardTitle className="text-base">Import PDF or DOCX</CardTitle><CardDescription>Review every parsed field before anything is saved.</CardDescription></CardHeader><CardContent><Button asChild className="w-full"><Link href="/resumes/import?return=onboarding">Import resume</Link></Button></CardContent></Card>
-            <Card><CardHeader><CardTitle className="text-base">Create manually</CardTitle><CardDescription>Start from your career profile and an ATS-friendly template.</CardDescription></CardHeader><CardContent><Button asChild variant="outline" className="w-full"><Link href="/resumes/new?mode=structured&return=onboarding">Create resume</Link></Button></CardContent></Card>
-          </div> : null}
-          {step === 3 ? <><Field label="Target roles" id="onboarding-roles"><Input id="onboarding-roles" value={roles} onChange={(event) => setRoles(event.target.value)} placeholder="Backend engineer, platform engineer" /><p className="text-xs text-muted-foreground">Separate roles with commas.</p></Field><Field label="Preferred locations" id="onboarding-locations"><Input id="onboarding-locations" value={locations} onChange={(event) => setLocations(event.target.value)} placeholder="Toronto, New York, Remote" /></Field></> : null}
-          {step === 4 ? <fieldset className="grid gap-3"><legend className="text-sm font-medium">Work arrangements</legend>{[["remote", "Remote"], ["hybrid", "Hybrid"], ["onsite", "Onsite"]].map(([value, label]) => <label key={value} className="flex min-h-11 items-center gap-3 rounded-lg border border-border p-3"><Checkbox checked={arrangements.includes(value)} onCheckedChange={(checked) => setArrangements((current) => checked ? [...new Set([...current, value])] : current.filter((item) => item !== value))} /><span>{label}</span></label>)}</fieldset> : null}
-          {step === 5 ? <div className="grid gap-4"><Summary label="Profile" value={`${fullName}${headline ? ` · ${headline}` : ""}`} /><Summary label="Target roles" value={splitList(roles).join(", ") || "Not set"} /><Summary label="Locations" value={splitList(locations).join(", ") || "Flexible"} /><Summary label="Work arrangement" value={arrangements.join(", ") || "Flexible"} /><label className="flex items-start gap-3 rounded-lg border border-border bg-parchment/30 p-4"><Checkbox checked={aiConsent} onCheckedChange={(checked) => setAiConsent(checked === true)} /><span><span className="block text-sm font-medium">Allow AI-assisted resume parsing</span><span className="mt-1 block text-xs leading-5 text-muted-foreground">Only extracted resume text is sent to Gemini. You can use deterministic parsing without consent.</span></span></label></div> : null}
+
+          {step === 1 ? (
+            <div className="grid gap-5">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Full name" id="onboarding-name"><Input id="onboarding-name" value={fullName} onChange={(event) => setFullName(event.target.value)} autoComplete="name" /></Field>
+                <Field label="Career stage" id="onboarding-stage"><Select id="onboarding-stage" value={careerStage} onChange={(event) => setCareerStage(event.target.value)}><option value="student">Student</option><option value="new_grad">New graduate</option><option value="early_career">Early career</option><option value="mid_career">Mid career</option><option value="senior">Senior individual contributor</option><option value="manager">Manager</option><option value="executive">Executive</option><option value="career_change">Career change</option></Select></Field>
+              </div>
+              <Field label="Headline (optional)" id="onboarding-headline"><Input id="onboarding-headline" value={headline} onChange={(event) => setHeadline(event.target.value)} placeholder="Computer Science student focused on full-stack development" /></Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Target roles" id="onboarding-roles"><Input id="onboarding-roles" value={roles} onChange={(event) => setRoles(event.target.value)} placeholder="Software engineer, platform engineer" /><p className="text-xs text-muted-foreground">Separate roles with commas.</p></Field>
+                <Field label="Preferred locations (optional)" id="onboarding-locations"><Input id="onboarding-locations" value={locations} onChange={(event) => setLocations(event.target.value)} placeholder="Toronto, Waterloo, Remote" /></Field>
+              </div>
+              <fieldset>
+                <legend className="mb-2 text-sm font-medium">Work setup (optional)</legend>
+                <div className="flex flex-wrap gap-2">
+                  {[["remote", "Remote"], ["hybrid", "Hybrid"], ["onsite", "On-site"]].map(([value, label]) => (
+                    <label key={value} className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+                      <Checkbox checked={arrangements.includes(value)} onCheckedChange={(checked) => setArrangements((current) => checked ? [...new Set([...current, value])] : current.filter((item) => item !== value))} />
+                      {label}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link href="/resumes/import?return=onboarding" className="rounded-xl border border-primary/35 bg-primary/[0.04] p-5 transition-colors hover:bg-primary/[0.07]">
+                <FileUp aria-hidden className="size-5 text-primary" />
+                <h2 className="mt-4 font-semibold">Import a resume</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">Upload a PDF or DOCX and review what was extracted before saving.</p>
+              </Link>
+              <Link href="/resumes/new?return=onboarding" className="rounded-xl border border-border p-5 transition-colors hover:bg-muted/40">
+                <FileUp aria-hidden className="size-5 text-muted-foreground" />
+                <h2 className="mt-4 font-semibold">Build one here</h2>
+                <p className="mt-1 text-sm leading-6 text-muted-foreground">Start with the structured editor and export when you’re ready.</p>
+              </Link>
+            </div>
+          ) : null}
+
+          {step === 3 ? (
+            <div className="grid gap-4">
+              <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-parchment/30 p-4">
+                <Checkbox checked={aiConsent} onCheckedChange={(checked) => setAiConsent(checked === true)} />
+                <span>
+                  <span className="block text-sm font-medium">Enable AI-assisted features</span>
+                  <span className="mt-1 block text-xs leading-5 text-muted-foreground">Allows resume parsing, job analysis, matching, tailoring and Maxwell to send relevant text to Gemini. Core tracking works without it.</span>
+                </span>
+              </label>
+              <div className="rounded-lg border border-border px-4 py-3 text-sm">
+                <p className="font-medium">Your setup</p>
+                <p className="mt-1 text-muted-foreground">{splitList(roles).join(", ") || "No target roles"}{splitList(locations).length ? ` · ${splitList(locations).join(", ")}` : ""}</p>
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-auto flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-between">
             <Button variant="ghost" disabled={pending || step === 1} onClick={() => setStep((value) => Math.max(1, value - 1))}><ArrowLeft aria-hidden />Back</Button>
-            {step === 1 ? <Button disabled={pending} onClick={() => run(() => saveBasicsAction({ fullName, headline, careerStage }))}>{pending ? <Loader2 aria-hidden className="animate-spin" /> : null}Continue<ArrowRight aria-hidden /></Button> : null}
-            {step === 2 ? <Button disabled={pending} onClick={() => run(markResumeStepAction)}>Continue for now<ArrowRight aria-hidden /></Button> : null}
-            {step === 3 ? <Button disabled={pending} onClick={() => run(() => saveTargetsAction({ targetRoles: splitList(roles), preferredLocations: splitList(locations) }))}>Continue<ArrowRight aria-hidden /></Button> : null}
-            {step === 4 ? <Button disabled={pending} onClick={() => run(() => savePreferencesAction({ targetRoles: splitList(roles), preferredLocations: splitList(locations), workArrangements: arrangements }))}>Review<ArrowRight aria-hidden /></Button> : null}
-            {step === 5 ? <Button disabled={pending} onClick={complete}>{pending ? <Loader2 aria-hidden className="animate-spin" /> : <Check aria-hidden />}Finish setup</Button> : null}
+            {step === 1 ? <Button disabled={pending} onClick={() => run(() => saveSetupAction({ fullName, headline, careerStage, targetRoles: splitList(roles), preferredLocations: splitList(locations), workArrangements: arrangements }))}>{pending ? <Loader2 aria-hidden className="animate-spin" /> : null}Continue<ArrowRight aria-hidden /></Button> : null}
+            {step === 2 ? <Button disabled={pending} onClick={() => run(markResumeStepAction)}>Skip for now<ArrowRight aria-hidden /></Button> : null}
+            {step === 3 ? <Button disabled={pending} onClick={complete}>{pending ? <Loader2 aria-hidden className="animate-spin" /> : <Check aria-hidden />}Open JobMaxxing</Button> : null}
           </div>
         </CardContent>
       </Card>
@@ -112,6 +166,6 @@ export function OnboardingWizard({ initial }: { initial: InitialState }) {
   );
 }
 
-function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) { return <div className="grid gap-1.5"><Label htmlFor={id}>{label}</Label>{children}</div>; }
-function Summary({ label, value }: { label: string; value: string }) { return <div className="rounded-lg border border-border p-4"><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</p><p className="mt-1 text-sm">{value}</p></div>; }
-
+function Field({ label, id, children }: { label: string; id: string; children: React.ReactNode }) {
+  return <div className="grid gap-1.5"><Label htmlFor={id}>{label}</Label>{children}</div>;
+}

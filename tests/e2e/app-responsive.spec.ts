@@ -43,26 +43,17 @@ test("authenticated routes remain visible and vertically reachable", async ({ pa
   }
 });
 
-test("application table reaches its final column and mobile cards retain details", async ({ page }, testInfo) => {
-  await page.goto("/applications");
-  await page.getByLabel("Table view").click();
+test("application list, filters, and local detail tabs remain reachable", async ({ page }) => {
+  const applicationId = await fixtureId();
+  await page.goto(`/applications?id=${applicationId}`);
 
-  if (testInfo.project.name.includes("mobile") || testInfo.project.name.includes("compact")) {
-    const card = page.locator("details").filter({ hasText: "Responsive UI audit" });
-    await card.locator("summary").click();
-    await expect(card.getByText("Next action")).toBeVisible();
-    await expect(card.getByText("Package")).toBeVisible();
-    return;
-  }
-
-  const table = page.getByRole("region", { name: /Applications table/ });
-  await expect(table).toBeVisible();
-  const metrics = await table.evaluate((node) => {
-    node.scrollLeft = node.scrollWidth;
-    return { left: node.scrollLeft, client: node.clientWidth, width: node.scrollWidth };
-  });
-  expect(metrics.left + metrics.client).toBeGreaterThanOrEqual(metrics.width - 2);
-  await expect(page.getByRole("columnheader", { name: "Package" })).toBeVisible();
+  await expect(page.getByRole("tablist", { name: "Application scope" })).toBeVisible();
+  await expect(page.getByLabel("Search applications")).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Application details" })).toBeVisible();
+  await page.getByRole("button", { name: "Job post" }).click();
+  await expect(page).toHaveURL(/view=job-description/);
+  await page.getByRole("button", { name: "Overview" }).click();
+  await expect(page.getByText("Submitted files")).toBeVisible();
 });
 
 test("Maxwell is a full route with history, context, and streaming chat", async ({ page }) => {

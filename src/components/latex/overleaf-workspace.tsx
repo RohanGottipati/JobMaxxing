@@ -4,8 +4,6 @@ import {
   Copy,
   Download,
   ExternalLink,
-  FileArchive,
-  FileCode2,
   FileLock2,
   Star,
   Trash2,
@@ -87,7 +85,7 @@ export function OverleafWorkspace({
         title={document.title}
         description={
           document.subtitle ??
-          "Open a private copy of this LaTeX project in Overleaf to edit, compile, and collaborate."
+          "Open a copy in Overleaf, then attach the PDF you actually submit."
         }
         action={
           <Link href={document.returnHref} className={buttonVariants({ variant: "outline" })}>
@@ -129,14 +127,10 @@ export function OverleafWorkspace({
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.62fr)]">
         <div className="grid content-start gap-5">
           <Card className="overflow-hidden border-primary/20 shadow-paper">
-            <CardHeader className="border-b border-border bg-[linear-gradient(120deg,color-mix(in_oklch,var(--primary),transparent_92%),transparent_68%)]">
-              <span className="mb-3 grid size-10 place-items-center rounded-lg border border-primary/20 bg-background text-primary shadow-sm">
-                <ExternalLink aria-hidden className="size-5" />
-              </span>
+            <CardHeader className="border-b border-border bg-primary/[0.035]">
               <CardTitle>Open in Overleaf</CardTitle>
               <CardDescription>
-                JobMaxxing will send a compressed copy containing main.tex and every supporting
-                asset. Your project stays private until you choose to send it.
+                Sends a copy of main.tex and its supporting files. Changes in Overleaf do not sync back.
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-5">
@@ -161,7 +155,7 @@ export function OverleafWorkspace({
                 </p>
               </form>
 
-              <div className="grid gap-3 rounded-xl border border-border bg-parchment/35 p-4 sm:grid-cols-3">
+              <div className="grid gap-3 rounded-lg border border-border bg-parchment/35 p-3 sm:grid-cols-3">
                 <div>
                   <p className="micro-label text-muted-foreground">1 · Import</p>
                   <p className="mt-1 text-sm">Open this saved source and its assets in Overleaf.</p>
@@ -175,25 +169,8 @@ export function OverleafWorkspace({
                   <p className="mt-1 text-sm">Export the final PDF and attach it here.</p>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileArchive aria-hidden className="size-4 text-primary" />
-                Project contents
-              </CardTitle>
-              <CardDescription>
-                Overleaf receives main.tex plus {document.assets.length} supporting {document.assets.length === 1 ? "file" : "files"}.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button asChild variant="outline">
-                <a href={projectHref}>
-                  <Download aria-hidden />
-                  Download project ZIP
-                </a>
+              <Button asChild variant="outline" className="w-fit">
+                <a href={projectHref}><Download aria-hidden />Download project ZIP</a>
               </Button>
             </CardContent>
           </Card>
@@ -203,10 +180,7 @@ export function OverleafWorkspace({
           <Card>
             <CardHeader>
               <CardTitle>Final document</CardTitle>
-              <CardDescription>
-                After compiling in Overleaf, download the finished PDF and attach it here before
-                marking this document as submitted.
-              </CardDescription>
+              <CardDescription>Attach the final file you send to the employer.</CardDescription>
             </CardHeader>
             <CardContent>
               <DocumentFilePanel
@@ -293,19 +267,6 @@ export function OverleafWorkspace({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileCode2 aria-hidden className="size-4 text-primary" />
-                About the handoff
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm leading-6 text-muted-foreground">
-              Overleaf&apos;s import endpoint creates a copy rather than a live connection. Keep the
-              Overleaf project as your working version, and attach its final export here so your
-              application package contains the exact file you used.
-            </CardContent>
-          </Card>
         </div>
       </div>
     </AppPage>

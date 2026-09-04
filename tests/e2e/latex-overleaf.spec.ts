@@ -7,14 +7,12 @@ async function fixture() {
   };
 }
 
-test("Overleaf workspace explains the cloud handoff", async ({ page }) => {
+test("LaTeX projects keep creation behind an explicit action", async ({ page }) => {
   const response = await page.goto("/latex");
   expect(response?.ok()).toBeTruthy();
-  await expect(page.getByRole("heading", { name: "LaTeX with Overleaf" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue to Overleaf" }).first()).toBeVisible();
-  await expect(page.getByLabel("Overleaf capabilities")).toContainText("Project import");
-  await expect(page.getByLabel("Overleaf capabilities")).toContainText("Cloud compile");
-  await expect(page.getByLabel("Overleaf capabilities")).toContainText("Final PDF handoff");
+  await expect(page.getByRole("heading", { name: "LaTeX projects" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "New project" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create project" })).toHaveCount(0);
 
   const headers = response?.headers() ?? {};
   expect(headers["cross-origin-opener-policy"]).toBeUndefined();
@@ -24,12 +22,11 @@ test("Overleaf workspace explains the cloud handoff", async ({ page }) => {
 test("LaTeX documents are packaged for Overleaf", async ({ page }) => {
   const { fixtureCompany } = await fixture();
 
-  await page.goto("/latex");
-  await page.getByRole("tab", { name: "Cover letter" }).click();
+  await page.goto("/latex?create=cover_letter");
   await page.getByLabel("Application").click();
   await page.getByRole("option", { name: new RegExp(fixtureCompany) }).click();
   await page.getByLabel("Title").fill(`Overleaf handoff ${Date.now()}`);
-  await page.getByRole("button", { name: "Continue to Overleaf" }).click();
+  await page.getByRole("button", { name: "Create project" }).click();
 
   await expect(page).toHaveURL(/\/latex\/cover_letter\/[0-9a-f-]{36}$/i);
   await expect(page.getByRole("heading", { name: "Open in Overleaf" })).toBeVisible();

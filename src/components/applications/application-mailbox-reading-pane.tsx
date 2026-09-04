@@ -3,15 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
+  ArrowLeft,
   Building2,
   CalendarDays,
   CheckCircle2,
   Clock,
   ExternalLink,
   FileText,
-  Link2,
   MapPin,
-  MessageSquareText,
   NotebookPen,
   Paperclip,
   Pencil,
@@ -19,21 +18,19 @@ import {
 } from "lucide-react";
 
 import { getApplicationDetails } from "@/app/(app)/applications/actions";
-import type { MailboxView } from "@/components/applications/application-mailbox-constants";
+import {
+  MAILBOX_VIEWS,
+  type MailboxView,
+} from "@/components/applications/application-mailbox-constants";
 import { StatusBadge } from "@/components/applications/status-badge";
 import { DocumentOpenLink } from "@/components/documents/document-open-link";
 import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
-import { buttonVariants } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { documentWorkspaceHref } from "@/lib/latex/types";
 import type { JobApplication } from "@/lib/applications/types";
-import {
-  formatDate,
-  formatDateTime,
-  statusLabels,
-} from "@/lib/applications/status";
+import { formatDate, formatDateTime } from "@/lib/applications/status";
 
 type Details = Awaited<ReturnType<typeof getApplicationDetails>>;
 
@@ -59,9 +56,13 @@ function safeFormatDateTime(value: string | null | undefined) {
 
 export function ApplicationMailboxReadingPane({
   applicationId,
+  onBack,
+  onViewChange,
   view,
 }: {
   applicationId: string | null;
+  onBack?: () => void;
+  onViewChange?: (view: MailboxView) => void;
   view: MailboxView;
 }) {
   if (!applicationId) {
@@ -72,6 +73,8 @@ export function ApplicationMailboxReadingPane({
     <LoadedApplicationReadingPane
       key={applicationId}
       applicationId={applicationId}
+      onBack={onBack}
+      onViewChange={onViewChange}
       view={view}
     />
   );
@@ -79,9 +82,13 @@ export function ApplicationMailboxReadingPane({
 
 function LoadedApplicationReadingPane({
   applicationId,
+  onBack,
+  onViewChange,
   view,
 }: {
   applicationId: string;
+  onBack?: () => void;
+  onViewChange?: (view: MailboxView) => void;
   view: MailboxView;
 }) {
   const [details, setDetails] = useState<Details | null>(null);
@@ -132,49 +139,43 @@ function LoadedApplicationReadingPane({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="shrink-0 border-b border-border bg-parchment/35 px-5 py-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={application.status} />
-          {application.recruitingSeason ? (
-            <Badge variant="secondary">{application.recruitingSeason}</Badge>
-          ) : null}
-          {application.sourceHost ? (
-            <Badge variant="outline">Captured · {application.sourceHost}</Badge>
-          ) : null}
+      <header className="shrink-0 border-b border-border bg-parchment/35">
+        <div className="px-4 py-3 sm:px-5 sm:py-4">
+          <div className="flex items-start gap-3">
+            {onBack ? (
+              <Button type="button" variant="ghost" size="icon-sm" onClick={onBack} aria-label="Back to applications" className="-ml-1 lg:hidden">
+                <ArrowLeft aria-hidden />
+              </Button>
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status={application.status} />
+                {application.recruitingSeason ? <Badge variant="secondary">{application.recruitingSeason}</Badge> : null}
+                {application.sourceHost ? <Badge variant="outline">From {application.sourceHost}</Badge> : null}
+              </div>
+              <h2 className="mt-2 truncate text-lg font-semibold tracking-[-0.03em] sm:text-xl">{application.jobTitle}</h2>
+              <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground"><Building2 aria-hidden className="size-3.5" />{application.companyName}</p>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              {application.jobUrl ? (
+                <Link href={application.jobUrl} target="_blank" rel="noreferrer" aria-label="Open job post" className={buttonVariants({ variant: "outline", size: "icon-sm" })}>
+                  <ExternalLink aria-hidden />
+                </Link>
+              ) : null}
+              <Link href={`/applications/${application.id}/match`} className={buttonVariants({ variant: "outline", size: "sm" })}>Match</Link>
+              <Link href={`/applications/${application.id}/edit`} className={buttonVariants({ size: "sm" })}><Pencil aria-hidden className="size-3.5" /><span className="hidden sm:inline">Edit</span></Link>
+            </div>
+          </div>
         </div>
-        <h2 className="mt-2 text-xl font-semibold tracking-[-0.03em]">
-          {application.jobTitle}
-        </h2>
-        <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-          <Building2 aria-hidden className="size-4" />
-          {application.companyName}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {application.jobUrl ? (
-            <Link
-              href={application.jobUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={buttonVariants({ variant: "outline", size: "sm" })}
-            >
-              <ExternalLink aria-hidden className="size-3.5" />
-              Job post
-            </Link>
-          ) : null}
-          <Link
-            href={`/applications/${application.id}/match`}
-            className={buttonVariants({ variant: "outline", size: "sm" })}
-          >
-            Career match
-          </Link>
-          <Link
-            href={`/applications/${application.id}/edit`}
-            className={buttonVariants({ size: "sm" })}
-          >
-            <Pencil aria-hidden className="size-3.5" />
-            Edit
-          </Link>
-        </div>
+        {onViewChange ? (
+          <nav aria-label="Application details" className="flex gap-1 overflow-x-auto border-t border-border px-3 py-2 sm:px-5">
+            {MAILBOX_VIEWS.map((item) => (
+              <Button key={item.id} type="button" size="sm" variant={view === item.id ? "secondary" : "ghost"} aria-current={view === item.id ? "page" : undefined} onClick={() => onViewChange(item.id)} className="h-7 shrink-0 px-2.5 text-xs">
+                {item.label}
+              </Button>
+            ))}
+          </nav>
+        ) : null}
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
@@ -222,13 +223,6 @@ function LoadedApplicationReadingPane({
         {view === "notes" ? (
           <DocumentText value={application.notes} emptyLabel="No notes yet." />
         ) : null}
-        {view === "activity" ? (
-          <ActivitySection
-            application={application}
-            submittedCoverLetter={submittedCoverLetter}
-            submittedResume={submittedResume}
-          />
-        ) : null}
       </div>
     </div>
   );
@@ -247,22 +241,22 @@ function OverviewSection({
   const deadlineLabel = safeFormatDate(application.deadline);
 
   return (
-    <div className="grid gap-4">
-      <div className="grid gap-3 sm:grid-cols-2">
-        <InfoTile icon={<MapPin className="size-4" />} label="Location" value={application.location} />
-        <InfoTile icon={<CalendarDays className="size-4" />} label="Applied" value={appliedLabel} />
-        <InfoTile icon={<Clock className="size-4" />} label="Deadline" value={deadlineLabel} />
-        <InfoTile icon={<Clock className="size-4" />} label="Next action" value={application.nextAction} />
-        <InfoTile icon={<UserRound className="size-4" />} label="Referral" value={application.referralContact} />
-      </div>
-      <div className="rounded-lg border border-border bg-elevated p-4">
-        <p className="flex items-center gap-2 text-sm font-semibold">
-          <Paperclip aria-hidden className="size-4" />
-          Application package
-        </p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          The exact documents recorded for this role.
-        </p>
+    <div className="grid gap-5">
+      <dl className="grid overflow-hidden rounded-lg border border-border bg-elevated sm:grid-cols-2">
+        <InfoItem icon={<MapPin />} label="Location" value={application.location} />
+        <InfoItem icon={<CalendarDays />} label="Applied" value={appliedLabel} />
+        <InfoItem icon={<Clock />} label="Deadline" value={deadlineLabel} />
+        <InfoItem icon={<Clock />} label="Next action" value={application.nextAction} />
+        <InfoItem icon={<UserRound />} label="Referral" value={application.referralContact} />
+      </dl>
+      <section>
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <h3 className="flex items-center gap-2 text-sm font-semibold"><Paperclip aria-hidden className="size-4" />Submitted files</h3>
+            <p className="mt-1 text-xs text-muted-foreground">What you sent for this application.</p>
+          </div>
+          <Link href={`/applications/${application.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>Manage</Link>
+        </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <PackageDocumentLink
             href={`/applications?id=${application.id}&view=resume`}
@@ -275,42 +269,10 @@ function OverviewSection({
             document={submittedCoverLetter}
           />
         </div>
-      </div>
-      {application.jobUrl ? (
-        <div className="rounded-lg border border-border bg-elevated p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold">
-            <Link2 aria-hidden className="size-4" />
-            Source
-          </p>
-          <Link
-            href={application.jobUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 block truncate text-sm text-primary underline-offset-4 hover:underline"
-          >
-            {application.jobUrl}
-          </Link>
-        </div>
-      ) : null}
-      <div className="rounded-lg border border-border bg-elevated p-4">
-        <p className="text-sm font-semibold">Timeline</p>
-        <Separator className="my-3" />
-        <p className="text-sm text-muted-foreground">
-          Created {safeFormatDateTime(application.createdAt) ?? "Unknown"}
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Updated {safeFormatDateTime(application.updatedAt) ?? "Unknown"}
-        </p>
-      </div>
-      {application.jobDescription ? (
-        <div>
-          <p className="mb-2 text-sm font-semibold">Job description preview</p>
-          <DocumentText
-            value={application.jobDescription.slice(0, 1200)}
-            emptyLabel=""
-          />
-        </div>
-      ) : null}
+      </section>
+      <p className="text-xs text-muted-foreground">
+        Added {safeFormatDateTime(application.createdAt) ?? "on an unknown date"} · Updated {safeFormatDateTime(application.updatedAt) ?? "on an unknown date"}
+      </p>
     </div>
   );
 }
@@ -361,71 +323,6 @@ function PackageDocumentLink({
   );
 }
 
-function ActivitySection({
-  application,
-  submittedCoverLetter,
-  submittedResume,
-}: {
-  application: JobApplication;
-  submittedCoverLetter: DocumentItem | null;
-  submittedResume: DocumentItem | null;
-}) {
-  return (
-    <div className="grid gap-4">
-      <div className="flex items-center gap-3">
-        <MessageSquareText aria-hidden className="size-5 text-muted-foreground" />
-        <h3 className="text-base font-semibold">Activity</h3>
-      </div>
-      <ActivityEntry
-        initials={initialsFor(application.companyName)}
-        title={`Added ${application.companyName} to ${statusLabels[application.status]}`}
-        time={safeFormatDateTime(application.createdAt) ?? "Unknown"}
-      />
-      <ActivityEntry
-        initials="JM"
-        title="Updated application details"
-        time={safeFormatDateTime(application.updatedAt) ?? "Unknown"}
-      />
-      {submittedResume ? (
-        <ActivityEntry
-          initials="RS"
-          title={`Submitted resume v${submittedResume.version_number}`}
-          time={safeFormatDateTime(submittedResume.submitted_at) ?? "Marked as submitted"}
-        />
-      ) : null}
-      {submittedCoverLetter ? (
-        <ActivityEntry
-          initials="CL"
-          title={`Submitted cover letter v${submittedCoverLetter.version_number}`}
-          time={safeFormatDateTime(submittedCoverLetter.submitted_at) ?? "Marked as submitted"}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function ActivityEntry({
-  initials,
-  time,
-  title,
-}: {
-  initials: string;
-  time: string;
-  title: string;
-}) {
-  return (
-    <div className="flex gap-3 rounded-lg border border-border bg-elevated p-3">
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-bold text-primary">
-        {initials}
-      </span>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold leading-5">{title}</p>
-        <p className="mt-0.5 text-xs text-muted-foreground">{time}</p>
-      </div>
-    </div>
-  );
-}
-
 function DocumentVersions({
   emptyLabel,
   heading,
@@ -442,10 +339,10 @@ function DocumentVersions({
   submittedEmptyLabel: string;
 }) {
   return (
-    <div className="grid gap-4">
-      <section className="rounded-lg border border-border bg-elevated p-4">
+    <div className="grid gap-5">
+      <section>
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold">Submitted</p>
+          <h3 className="text-sm font-semibold">Submitted version</h3>
           {submitted ? (
             <Badge variant="outline" className="gap-1 border-success/40 bg-success/10 text-success">
               <CheckCircle2 aria-hidden className="size-3" />
@@ -454,35 +351,21 @@ function DocumentVersions({
           ) : null}
         </div>
         {submitted ? (
-          <div className="mt-3 grid gap-3">
+          <div className="mt-3 rounded-lg border border-border bg-elevated p-3">
             <DocumentHeader kind={kind} item={submitted} />
-            {submitted.content ? (
-              <DocumentText value={submitted.content} emptyLabel="" />
-            ) : submitted.file_path ? (
-              <AttachedFileState />
-            ) : (
-              <DocumentText value={null} emptyLabel="This version has no text or file saved." />
-            )}
+            {submitted.file_path ? <AttachedFileState /> : null}
           </div>
         ) : (
           <EmptyState>{submittedEmptyLabel}</EmptyState>
         )}
       </section>
-      <section className="rounded-lg border border-border bg-elevated p-4">
-        <p className="text-sm font-semibold">{heading}</p>
+      <section>
+        <h3 className="text-sm font-semibold">{heading}</h3>
         {items.length ? (
-          <ul className="mt-3 grid gap-2">
+          <ul className="mt-3 divide-y divide-border overflow-hidden rounded-lg border border-border bg-elevated">
             {items.map((item) => (
-              <li key={item.id} className="rounded-md border border-border bg-parchment/45 p-3">
+              <li key={item.id} className="p-3">
                 <DocumentHeader kind={kind} item={item} />
-                {item.content ? (
-                  <p className="mt-2 line-clamp-4 text-sm text-muted-foreground">{item.content}</p>
-                ) : item.file_path ? (
-                  <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
-                    <Paperclip aria-hidden className="size-3.5" />
-                    Private file attached
-                  </p>
-                ) : null}
               </li>
             ))}
           </ul>
@@ -518,14 +401,9 @@ function DocumentHeader({ kind, item }: { kind: "resume_version" | "cover_letter
 
 function AttachedFileState() {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-dashed border-border-strong bg-parchment/35 p-4 text-sm text-muted-foreground">
-      <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-background text-primary">
-        <Paperclip aria-hidden className="size-4" />
-      </span>
-      <span>
-        <span className="block font-medium text-foreground">Private file attached</span>
-        Open the document to preview or download the submitted copy.
-      </span>
+    <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+      <Paperclip aria-hidden className="size-3.5" />
+      Private file attached
     </div>
   );
 }
@@ -545,7 +423,7 @@ function DocumentText({
   );
 }
 
-function InfoTile({
+function InfoItem({
   icon,
   label,
   value,
@@ -555,20 +433,17 @@ function InfoTile({
   value: string | null;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-elevated p-4">
-      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {icon}
-        {label}
-      </p>
-      <p className="mt-2 text-sm font-medium">{value || "Not set"}</p>
+    <div className="border-b border-border p-3 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-last-child(-n+2)]:border-b-0">
+      <dt className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground [&_svg]:size-3.5">{icon}{label}</dt>
+      <dd className="mt-1 text-sm font-medium">{value || "Not set"}</dd>
     </div>
   );
 }
 
 function EmptyState({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-3 grid place-items-center rounded-lg border border-dashed border-border-strong bg-parchment/35 px-4 py-8 text-center text-sm text-muted-foreground">
-      <NotebookPen aria-hidden className="mb-2 size-5 opacity-60" />
+    <div className="mt-3 grid place-items-center rounded-lg border border-dashed border-border-strong bg-parchment/35 px-4 py-6 text-center text-sm text-muted-foreground">
+      <NotebookPen aria-hidden className="mb-2 size-4 opacity-60" />
       {children}
     </div>
   );
@@ -596,16 +471,5 @@ function ReadingPaneSkeleton() {
       <Skeleton className="h-5 w-48" />
       <Skeleton className="h-48 w-full" />
     </div>
-  );
-}
-
-function initialsFor(value: string) {
-  return (
-    value
-      .split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase())
-      .join("") || "JM"
   );
 }

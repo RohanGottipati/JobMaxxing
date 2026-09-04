@@ -6,7 +6,7 @@ import {
   CalendarClock,
   CheckCircle2,
   CircleDashed,
-  FileCheck2,
+  FileText,
   Files,
   Plus,
   Sparkles,
@@ -39,8 +39,6 @@ export default async function DashboardPage() {
   const active = applications.filter((application) => activeStatuses.has(application.status)).length;
   const interviews = applications.filter((application) => application.status === "interview" || application.status === "final_round").length;
   const offers = applications.filter((application) => application.status === "offer").length;
-  const completePackages = applications.filter((application) => application.submittedResumeVersionId && application.submittedCoverLetterId).length;
-  const packageRate = applications.length ? Math.round((completePackages / applications.length) * 100) : 0;
   const profileCompletion = completionFor(profile);
   const now = new Date();
   now.setHours(0, 0, 0, 0);
@@ -53,21 +51,20 @@ export default async function DashboardPage() {
   return (
     <AppPage>
       <AppPageHeader
-        title={`Welcome back, ${displayName}`}
-        description="Your search at a glance — what moved, what is ready, and what needs attention next."
+        title={`${displayName}’s job search`}
+        description="Deadlines and recent applications, without the spreadsheet cleanup."
         action={
           <Link href="/applications?compose=new" className={cn(buttonVariants({ size: "lg" }), "h-9 px-3.5")}>
-            <Plus aria-hidden />New role
+            <Plus aria-hidden />Add application
           </Link>
         }
       />
 
-      <section className="grid overflow-hidden rounded-xl border border-border bg-border shadow-paper sm:grid-cols-2 xl:grid-cols-5" aria-label="Job search summary">
+      <section className="grid overflow-hidden rounded-xl border border-border bg-border shadow-paper sm:grid-cols-2 xl:grid-cols-4" aria-label="Job search summary">
         <Metric label="Applications" value={applications.length} detail="Total tracked" icon={BriefcaseBusiness} />
-        <Metric label="Active pipeline" value={active} detail="Still in motion" icon={Target} />
-        <Metric label="Interviews" value={interviews} detail="Interview and final" icon={CalendarClock} />
+        <Metric label="Active" value={active} detail="Still in progress" icon={Target} />
+        <Metric label="Interviews" value={interviews} detail="Interview or final round" icon={CalendarClock} />
         <Metric label="Offers" value={offers} detail="Offers received" icon={Trophy} />
-        <Metric label="Package readiness" value={`${packageRate}%`} detail={`${completePackages} complete`} icon={FileCheck2} />
       </section>
 
       {applications.length === 0 ? <GettingStarted /> : null}
@@ -76,7 +73,7 @@ export default async function DashboardPage() {
         <Card className="min-w-0">
           <CardHeader className="border-b border-border">
             <CardTitle>Recent applications</CardTitle>
-            <CardDescription>Your most recently updated opportunities.</CardDescription>
+            <CardDescription>The roles you touched most recently.</CardDescription>
             <CardAction><Link href="/applications" className={buttonVariants({ variant: "ghost", size: "sm" })}>View applications<ArrowRight aria-hidden /></Link></CardAction>
           </CardHeader>
           <CardContent className="p-0">
@@ -102,7 +99,7 @@ export default async function DashboardPage() {
         <Card className="content-start">
           <CardHeader className="border-b border-border">
             <CardTitle>Upcoming deadlines</CardTitle>
-            <CardDescription>Nearest dates come first.</CardDescription>
+            <CardDescription>What needs a date on your calendar.</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             {upcoming.length ? (
@@ -127,12 +124,12 @@ export default async function DashboardPage() {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>Career profile</CardTitle><CardDescription>{profileCompletion}% complete</CardDescription></CardHeader>
-          <CardContent><Progress value={profileCompletion} /><p className="mt-3 text-xs leading-5 text-muted-foreground">Keep your experience complete so it is ready for the next tailored document.</p><Link href="/profile" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4")}>{profileCompletion < 100 ? "Continue profile" : "Review profile"}<ArrowRight aria-hidden /></Link></CardContent>
+          <CardHeader><CardTitle>Profile</CardTitle><CardDescription>{profileCompletion}% complete</CardDescription></CardHeader>
+          <CardContent><Progress value={profileCompletion} /><Link href="/profile" className={cn(buttonVariants({ variant: "outline", size: "sm" }), "mt-4")}>{profileCompletion < 100 ? "Finish profile" : "Review profile"}<ArrowRight aria-hidden /></Link></CardContent>
         </Card>
         <Card>
-          <CardHeader><CardTitle>Document library</CardTitle><CardDescription>Your reusable and tailored materials.</CardDescription></CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-2"><LibraryLink href="/resumes" icon={Files} label="Resumes" value={documents.masterResumes.length + documents.resumeVersions.length} /><LibraryLink href="/cover-letters" icon={FileCheck2} label="Cover letters" value={documents.coverLetters.length} /></CardContent>
+          <CardHeader><CardTitle>Documents</CardTitle><CardDescription>Your saved application files.</CardDescription></CardHeader>
+          <CardContent className="grid gap-2 sm:grid-cols-2"><LibraryLink href="/resumes" icon={Files} label="Resumes" value={documents.masterResumes.length + documents.resumeVersions.length} /><LibraryLink href="/cover-letters" icon={FileText} label="Cover letters" value={documents.coverLetters.length} /></CardContent>
         </Card>
       </div>
     </AppPage>
@@ -140,11 +137,11 @@ export default async function DashboardPage() {
 }
 
 function Metric({ label, value, detail, icon: Icon }: { label: string; value: number | string; detail: string; icon: typeof BriefcaseBusiness }) {
-  return <div className="flex min-h-28 items-start gap-3 bg-card p-4 transition-colors duration-200 hover:bg-elevated sm:[&:not(:nth-child(2n))]:border-r sm:[&:nth-child(n+3)]:border-t xl:border-t-0 xl:border-r xl:last:border-r-0"><span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden className="size-3.5" /></span><span><span className="block text-[1.6rem] font-semibold leading-none tracking-[-0.04em] tabular-nums">{value}</span><span className="mt-2 block text-[0.8rem] font-medium">{label}</span><span className="mt-0.5 block text-[0.7rem] text-muted-foreground">{detail}</span></span></div>;
+  return <div className="flex items-center gap-3 bg-card p-3.5 transition-colors duration-200 hover:bg-elevated sm:[&:not(:nth-child(2n))]:border-r sm:[&:nth-child(n+3)]:border-t xl:border-t-0 xl:border-r xl:last:border-r-0"><span className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Icon aria-hidden className="size-3.5" /></span><span className="min-w-0"><span className="text-xl font-semibold leading-none tracking-[-0.04em] tabular-nums">{value}</span><span className="ml-2 text-[0.8rem] font-medium">{label}</span><span className="mt-0.5 block truncate text-[0.7rem] text-muted-foreground">{detail}</span></span></div>;
 }
 
 function GettingStarted() {
-  return <Card className="border-primary/20 bg-primary/[0.055]"><CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/12 text-primary"><Sparkles aria-hidden className="size-4" /></span><div className="flex-1"><h2 className="font-semibold">Start with your first opportunity</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Add a role, fill in your profile, then create the exact package you want to send.</p></div><div className="flex gap-2"><Link href="/applications?compose=new" className={buttonVariants({ size: "sm" })}>New role</Link><Link href="/profile" className={buttonVariants({ variant: "outline", size: "sm" })}>Build profile</Link></div></CardContent></Card>;
+  return <Card className="border-primary/20 bg-primary/[0.055]"><CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center"><span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary/12 text-primary"><Sparkles aria-hidden className="size-4" /></span><div className="flex-1"><h2 className="font-semibold">Add the role you’re applying to</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Company and title are enough to start. Add the job post and submitted files when you have them.</p></div><div className="flex gap-2"><Link href="/applications?compose=new" className={buttonVariants({ size: "sm" })}>Add application</Link><Link href="/profile" className={buttonVariants({ variant: "outline", size: "sm" })}>Set up profile</Link></div></CardContent></Card>;
 }
 
 function LibraryLink({ href, icon: Icon, label, value }: { href: string; icon: typeof Files; label: string; value: number }) {

@@ -31,33 +31,28 @@ export async function getOnboardingState() {
   };
 }
 
-export async function saveOnboardingProfile(input: {
+export async function saveOnboardingSetup(input: {
   fullName: string;
   headline: string;
   careerStage: Profile["career_stage"];
+  targetRoles: Preferences["target_roles"];
+  preferredLocations: Preferences["preferred_locations"];
+  workArrangements: Preferences["work_arrangements"];
   nextStep: number;
 }) {
   const { supabase, userId } = await context();
+  const { error: preferenceError } = await supabase.from("career_preferences").upsert({
+    user_id: userId,
+    target_roles: input.targetRoles,
+    preferred_locations: input.preferredLocations,
+    work_arrangements: input.workArrangements,
+  }, { onConflict: "user_id" });
+  if (preferenceError) throw preferenceError;
+
   const { error } = await supabase.from("profiles").update({
     full_name: input.fullName,
     headline: input.headline || null,
     career_stage: input.careerStage,
-    onboarding_status: "in_progress",
-    onboarding_step: input.nextStep,
-  }).eq("id", userId);
-  if (error) throw error;
-}
-
-export async function saveOnboardingPreferences(input: Pick<Preferences, "target_roles" | "preferred_locations" | "work_arrangements"> & { nextStep: number }) {
-  const { supabase, userId } = await context();
-  const { error: preferenceError } = await supabase.from("career_preferences").upsert({
-    user_id: userId,
-    target_roles: input.target_roles,
-    preferred_locations: input.preferred_locations,
-    work_arrangements: input.work_arrangements,
-  }, { onConflict: "user_id" });
-  if (preferenceError) throw preferenceError;
-  const { error } = await supabase.from("profiles").update({
     onboarding_status: "in_progress",
     onboarding_step: input.nextStep,
   }).eq("id", userId);

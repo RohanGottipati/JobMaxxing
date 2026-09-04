@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { FileCode2 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { createLatexDocumentAction } from "@/app/(app)/documents/actions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -49,17 +49,12 @@ export function LatexCreateForm({
         : "/cover-letters/new?mode=latex");
 
   return (
-    <Card className="overflow-hidden border-primary/15 shadow-paper">
-      <CardHeader className="border-b border-border bg-[linear-gradient(120deg,color-mix(in_oklch,var(--primary),transparent_94%),transparent_70%)]">
-        <span className="mb-3 grid size-9 place-items-center rounded-md border border-border bg-card text-primary">
-          <FileCode2 aria-hidden className="size-4" />
-        </span>
-        <CardTitle className="text-lg">New LaTeX {label}</CardTitle>
-        <CardDescription>
-          Choose how to start, then import the project into Overleaf to edit and compile it.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <Card className="shadow-paper">
+      <CardContent className="pt-5">
+        <div className="mb-5">
+          <h2 className="text-lg font-semibold">New LaTeX {label}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">Create the source here, then open a copy in Overleaf.</p>
+        </div>
         {error ? (
           <Alert variant="destructive" className="mb-5">
             <AlertDescription>
@@ -74,7 +69,7 @@ export function LatexCreateForm({
             <AlertDescription>Create an application before adding an application-specific document.</AlertDescription>
           </Alert>
         ) : null}
-        <form action={createLatexDocumentAction} className="grid gap-5">
+        <form action={createLatexDocumentAction} className="grid gap-4">
           <input type="hidden" name="kind" value={kind} />
           <input type="hidden" name="error_href" value={failureHref} />
           {!master ? (
@@ -127,13 +122,13 @@ export function LatexCreateForm({
             />
           </div>
           <fieldset>
-            <legend className="mb-3 text-sm font-medium">Start from a template</legend>
-            <RadioGroup name="template_id" defaultValue={defaultLatexTemplateId(kind)} className="grid gap-3">
+            <legend className="mb-2 text-sm font-medium">Start with</legend>
+            <RadioGroup name="template_id" defaultValue={defaultLatexTemplateId(kind)} className="grid gap-2 sm:grid-cols-2">
               {templates.map((template) => (
                 <label
                   key={template.id}
                   htmlFor={`latex-template-${template.id}`}
-                  className="grid cursor-pointer grid-cols-[auto_1fr] gap-3 rounded-xl border border-border bg-card p-3 has-data-[state=checked]:border-primary has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-primary/20"
+                  className="grid cursor-pointer grid-cols-[auto_1fr] gap-3 rounded-lg border border-border bg-card p-3 has-data-[state=checked]:border-primary has-data-[state=checked]:ring-2 has-data-[state=checked]:ring-primary/20"
                 >
                   <RadioGroupItem id={`latex-template-${template.id}`} value={template.id} className="mt-1" />
                   <span>
@@ -146,22 +141,22 @@ export function LatexCreateForm({
               ))}
             </RadioGroup>
           </fieldset>
-          <div className="grid gap-1.5">
-            <Label htmlFor="tex_file">Or upload a .tex file</Label>
-            <Input id="tex_file" name="tex_file" type="file" accept=".tex,text/x-tex,application/x-tex,text/plain" />
-          </div>
-          <div className="grid gap-1.5">
-            <div className="flex items-end justify-between gap-3">
-              <Label htmlFor="source">Or paste source</Label>
-              <span className="text-xs text-muted-foreground">Replaces the template when provided</span>
+          <details className="group rounded-lg border border-border">
+            <summary className="flex cursor-pointer list-none items-center justify-between px-3 py-2.5 text-sm font-medium [&::-webkit-details-marker]:hidden">
+              Use existing LaTeX source
+              <ChevronDown aria-hidden className="size-4 text-muted-foreground transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-4 border-t border-border p-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="tex_file">Upload a .tex file</Label>
+                <Input id="tex_file" name="tex_file" type="file" accept=".tex,text/x-tex,application/x-tex,text/plain" />
+              </div>
+              <div className="grid gap-1.5">
+                <div className="flex items-end justify-between gap-3"><Label htmlFor="source">Or paste source</Label><span className="text-xs text-muted-foreground">Overrides the template</span></div>
+                <Textarea id="source" name="source" placeholder="Paste LaTeX source" className="min-h-40 font-mono text-[0.82rem] leading-6" />
+              </div>
             </div>
-            <Textarea
-              id="source"
-              name="source"
-              placeholder="Paste existing LaTeX here to skip the starter template."
-              className="paper-rule min-h-40 font-mono text-[0.82rem] leading-6"
-            />
-          </div>
+          </details>
           <div className="flex flex-wrap gap-2">
             <SubmitButton
               type="submit"
@@ -169,7 +164,7 @@ export function LatexCreateForm({
               pendingLabel="Creating…"
               disabled={!master && applications.length === 0}
             >
-              Continue to Overleaf
+              Create project
             </SubmitButton>
             <Link href={cancelHref} className={buttonVariants({ variant: "outline", size: "lg" })}>
               Cancel

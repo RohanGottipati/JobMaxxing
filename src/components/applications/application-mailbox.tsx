@@ -1,18 +1,15 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 
 import { ApplicationComposePane } from "@/components/applications/application-compose-pane";
 import { ApplicationMailboxReadingPane } from "@/components/applications/application-mailbox-reading-pane";
-import { setApplicationSidebarCounts } from "@/components/applications/application-sidebar-store";
 import {
   MAILBOX_SCOPES,
-  MAILBOX_VIEWS,
   parseMailboxScope,
   parseMailboxView,
-  type MailboxView,
 } from "@/components/applications/application-mailbox-constants";
 import { StatusBadge } from "@/components/applications/status-badge";
 import { Button } from "@/components/ui/button";
@@ -88,33 +85,26 @@ export function ApplicationMailbox({
   const view = parseMailboxView(searchParams.get("view"));
   const scope = parseMailboxScope(searchParams.get("scope"));
 
-  const scopedApplications = useMemo(() => {
-    if (scope === "active") {
-      return applications.filter((app) => activeStatuses.has(app.status));
+  const { scopeCounts, scopedApplications } = useMemo(() => {
+    const counts = { all: applications.length, active: 0, closed: 0 };
+    const scoped: JobApplication[] = [];
+
+    for (const application of applications) {
+      const isActive = activeStatuses.has(application.status);
+      const isClosed = closedStatuses.has(application.status);
+      if (isActive) counts.active += 1;
+      if (isClosed) counts.closed += 1;
+      if (
+        scope === "all" ||
+        (scope === "active" && isActive) ||
+        (scope === "closed" && isClosed)
+      ) {
+        scoped.push(application);
+      }
     }
-    if (scope === "closed") {
-      return applications.filter((app) => closedStatuses.has(app.status));
-    }
-    return applications;
+
+    return { scopeCounts: counts, scopedApplications: scoped };
   }, [applications, scope]);
-
-  const stats = useMemo(
-    () => ({
-      total: applications.length,
-      active: applications.filter((app) => activeStatuses.has(app.status)).length,
-      offers: applications.filter((app) => app.status === "offer").length,
-    }),
-    [applications],
-  );
-
-  useEffect(() => {
-    setApplicationSidebarCounts({
-      active: stats.active,
-      closed: applications.filter((app) => closedStatuses.has(app.status)).length,
-      total: stats.total,
-    });
-    return () => setApplicationSidebarCounts(null);
-  }, [applications, stats.active, stats.total]);
 
   function navigate(
     updates: Record<string, string | null | undefined>,
@@ -149,65 +139,15 @@ export function ApplicationMailbox({
     navigate({ compose: null, error: null });
   }
 
-  function setView(nextView: MailboxView) {
-    navigate({ view: nextView === "overview" ? null : nextView });
-  }
-
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
-      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border bg-sidebar px-4 text-sidebar-foreground">
+      <header className="flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border bg-sidebar px-3 text-sidebar-foreground sm:px-4">
         <SidebarTrigger className="-ml-1 text-muted-foreground hover:bg-sidebar-accent hover:text-foreground md:hidden" />
         <div className="flex min-w-0 items-baseline gap-2">
           <h1 className="text-base font-bold tracking-[-0.02em]">Applications</h1>
-          <span className="hidden text-xs text-muted-foreground sm:inline">JobMaxxing</span>
-        </div>
-        <div className="hidden items-center gap-1.5 sm:flex">
-          <StatPill label="Total" value={stats.total} />
-          <StatPill label="Active" value={stats.active} />
-          <StatPill label="Offers" value={stats.offers} />
+          <span className="text-xs tabular-nums text-muted-foreground">{applications.length}</span>
         </div>
         <div className="flex-1" />
-        <form
-          className="hidden items-center gap-2 md:flex"
-          onSubmit={(event) => {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const q = String(formData.get("q") ?? "").trim();
-            navigate({ q: q || null }, { loadServerData: true });
-          }}
-        >
-          <div className="relative">
-            <Search
-              aria-hidden
-              className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
-            />
-            <Input
-              name="q"
-              defaultValue={query}
-              placeholder="Search title or company…"
-              className="h-8 w-52 border-border bg-background pl-8 text-[13px] text-foreground"
-            />
-          </div>
-          <Select
-            name="status"
-            defaultValue={status}
-            className="h-8 w-36 border-border bg-background text-[13px] text-foreground"
-            onChange={(event) => {
-              const nextStatus = event.target.value;
-              navigate(
-                { status: nextStatus === "all" ? null : nextStatus },
-                { loadServerData: true },
-              );
-            }}
-          >
-            <option value="all">All statuses</option>
-            {applicationStatuses.map((item) => (
-              <option key={item} value={item}>
-                {statusLabels[item]}
-              </option>
-            ))}
-          </Select>
-        </form>
         <Button
           type="button"
           size="sm"
@@ -215,7 +155,7 @@ export function ApplicationMailbox({
           className="h-8 gap-1"
         >
           <Plus aria-hidden className="size-3.5" />
-          New role
+          Add application
         </Button>
       </header>
 
@@ -226,11 +166,66 @@ export function ApplicationMailbox({
             selectedId || isComposing ? "hidden lg:block" : "block",
           )}
         >
-          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background px-4 py-2.5">
-            <p className="text-sm font-semibold">
-              {MAILBOX_SCOPES.find((item) => item.id === scope)?.label ?? "Applications"}
-            </p>
-            <p className="text-xs text-muted-foreground">{scopedApplications.length} roles</p>
+          <div className="sticky top-0 z-10 grid gap-2 border-b border-border bg-background p-3">
+            <div className="flex gap-1 overflow-x-auto" role="group" aria-label="Application scope">
+              {MAILBOX_SCOPES.map((item) => {
+                return (
+                  <Button
+                    key={item.id}
+                    type="button"
+                    aria-pressed={scope === item.id}
+                    size="sm"
+                    variant={scope === item.id ? "secondary" : "ghost"}
+                    onClick={() => navigate({ scope: item.id === "all" ? null : item.id, id: null })}
+                    className="h-7 shrink-0 px-2.5 text-xs"
+                  >
+                    {item.id === "all" ? "All" : item.label}
+                    <span className="text-[10px] tabular-nums text-muted-foreground">{scopeCounts[item.id]}</span>
+                  </Button>
+                );
+              })}
+            </div>
+            <form
+              className="grid grid-cols-[minmax(0,1fr)_8.75rem] gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const formData = new FormData(event.currentTarget);
+                const q = String(formData.get("q") ?? "").trim();
+                navigate({ q: q || null, id: null }, { loadServerData: true });
+              }}
+            >
+              <div className="relative">
+                <Search
+                  aria-hidden
+                  className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  name="q"
+                  defaultValue={query}
+                  placeholder="Search applications"
+                  aria-label="Search applications"
+                  className="h-8 border-border bg-background pl-8 text-[13px]"
+                />
+              </div>
+              <Select
+                name="status"
+                aria-label="Filter by status"
+                defaultValue={status}
+                className="h-8 border-border bg-background text-[13px]"
+                onChange={(event) => {
+                  const nextStatus = event.target.value;
+                  navigate(
+                    { status: nextStatus === "all" ? null : nextStatus, id: null },
+                    { loadServerData: true },
+                  );
+                }}
+              >
+                <option value="all">Any status</option>
+                {applicationStatuses.map((item) => (
+                  <option key={item} value={item}>{statusLabels[item]}</option>
+                ))}
+              </Select>
+            </form>
           </div>
 
           {scopedApplications.length === 0 ? (
@@ -303,49 +298,17 @@ export function ApplicationMailbox({
               onClose={closeComposer}
             />
           ) : selectedId ? (
-            <div className="flex h-full min-h-0 flex-col">
-              <div className="flex items-center gap-2 border-b border-border px-3 py-2 lg:hidden">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate({ id: null, view: null })}
-                >
-                  ← Back
-                </Button>
-                <div className="flex flex-1 gap-1 overflow-x-auto">
-                  {MAILBOX_VIEWS.map((item) => (
-                    <Button
-                      key={item.id}
-                      type="button"
-                      size="sm"
-                      variant={view === item.id ? "default" : "secondary"}
-                      onClick={() => setView(item.id)}
-                      className="h-7 shrink-0 px-2.5 text-xs"
-                    >
-                      {item.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              <div className="min-h-0 flex-1">
-                <ApplicationMailboxReadingPane applicationId={selectedId} view={view} />
-              </div>
-            </div>
+            <ApplicationMailboxReadingPane
+              applicationId={selectedId}
+              view={view}
+              onBack={() => navigate({ id: null, view: null })}
+              onViewChange={(nextView) => navigate({ view: nextView === "overview" ? null : nextView })}
+            />
           ) : (
             <ApplicationMailboxReadingPane applicationId={null} view={view} />
           )}
         </section>
       </div>
     </div>
-  );
-}
-
-function StatPill({ label, value }: { label: string; value: number }) {
-  return (
-    <span className="inline-flex items-baseline gap-1 rounded-full border border-border bg-background/70 px-2.5 py-0.5">
-      <span className="text-xs font-bold tabular-nums">{value}</span>
-      <span className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</span>
-    </span>
   );
 }

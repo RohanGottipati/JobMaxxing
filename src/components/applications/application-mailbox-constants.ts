@@ -5,8 +5,7 @@ export type MailboxView =
   | "job-description"
   | "resume"
   | "cover-letter"
-  | "notes"
-  | "activity";
+  | "notes";
 
 export const MAILBOX_SCOPES: Array<{ id: MailboxScope; label: string }> = [
   { id: "all", label: "All applications" },
@@ -16,11 +15,10 @@ export const MAILBOX_SCOPES: Array<{ id: MailboxScope; label: string }> = [
 
 export const MAILBOX_VIEWS: Array<{ id: MailboxView; label: string }> = [
   { id: "overview", label: "Overview" },
-  { id: "job-description", label: "Job description" },
+  { id: "job-description", label: "Job post" },
   { id: "resume", label: "Resume" },
   { id: "cover-letter", label: "Cover letter" },
   { id: "notes", label: "Notes" },
-  { id: "activity", label: "Activity" },
 ];
 
 export function parseMailboxView(value: string | null | undefined): MailboxView {

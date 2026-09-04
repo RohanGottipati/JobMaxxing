@@ -1,126 +1,107 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileCode2 } from "lucide-react";
+import { FileCode2, Plus } from "lucide-react";
 
-import { LatexCreateForm } from "@/components/latex/latex-create-form";
 import { DocumentOpenLink } from "@/components/documents/document-open-link";
-import { AppPage } from "@/components/layout/app-page";
+import { LatexCreateForm } from "@/components/latex/latex-create-form";
+import { AppPage, AppPageHeader } from "@/components/layout/app-page";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getDocumentLibraryData } from "@/lib/documents/repository";
+import {
+  isLatexDocumentKind,
+  type LatexDocumentKind,
+} from "@/lib/latex/constants";
 import { listLatexDocuments } from "@/lib/latex/repository";
 import { latexOverleafHref } from "@/lib/latex/types";
+import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "LaTeX with Overleaf" };
+export const metadata: Metadata = { title: "LaTeX projects" };
 
-export default async function LatexOverleafHomePage({
+function parseKind(value: string | undefined): LatexDocumentKind {
+  return value && isLatexDocumentKind(value) ? value : "master_resume";
+}
+
+export default async function LatexHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; kind?: string; application?: string }>;
+  searchParams: Promise<{ error?: string; kind?: string; create?: string; application?: string }>;
 }) {
-  const [params, documents, items] = await Promise.all([
-    searchParams,
-    getDocumentLibraryData(),
-    listLatexDocuments(),
-  ]);
-  const kind = params.kind === "resume_version" || params.kind === "cover_letter" ? params.kind : "master_resume";
+  const params = await searchParams;
+  const creating = Boolean(params.create || params.error || params.application);
+  const kind = parseKind(params.create ?? params.kind);
+  const data = creating
+    ? { mode: "create" as const, documents: await getDocumentLibraryData() }
+    : { mode: "list" as const, items: await listLatexDocuments() };
 
   return (
     <AppPage size="wide">
-      <section className="overflow-hidden rounded-2xl border border-primary/20 bg-card shadow-paper">
-        <div className="grid gap-5 bg-[linear-gradient(120deg,color-mix(in_oklch,var(--primary),transparent_91%),transparent_65%)] px-5 py-6 sm:px-7 sm:py-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-          <div className="max-w-3xl">
-            <span className="mb-4 grid size-10 place-items-center rounded-lg border border-primary/20 bg-background text-primary shadow-sm">
-              <FileCode2 aria-hidden className="size-5" />
-            </span>
-            <p className="micro-label text-primary">Cloud LaTeX workflow</p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.035em] sm:text-3xl">LaTeX with Overleaf</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-              Start from your saved source, then edit, compile, and collaborate in Overleaf.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2" aria-label="Overleaf capabilities">
-            <Badge variant="outline" className="bg-background/80">Project import</Badge>
-            <Badge variant="outline" className="bg-background/80">Cloud compile</Badge>
-            <Badge variant="outline" className="bg-background/80">Final PDF handoff</Badge>
-          </div>
-        </div>
-      </section>
-      <Tabs defaultValue={kind}>
-        <TabsList>
-          <TabsTrigger value="master_resume">Master resume</TabsTrigger>
-          <TabsTrigger value="resume_version">Tailored resume</TabsTrigger>
-          <TabsTrigger value="cover_letter">Cover letter</TabsTrigger>
-        </TabsList>
-        <TabsContent value="master_resume">
-          <LatexCreateForm
-            kind="master_resume"
-            error={params.error}
-            cancelHref="/resumes"
-            errorHref="/latex?kind=master_resume"
-          />
-        </TabsContent>
-        <TabsContent value="resume_version">
-          <LatexCreateForm
-            kind="resume_version"
-            applications={documents.applications}
-            masterResumes={documents.masterResumes}
-            defaultApplicationId={params.application}
-            error={params.error}
-            cancelHref="/resumes?tab=tailored"
-            errorHref={`/latex?kind=resume_version${params.application ? `&application=${params.application}` : ""}`}
-          />
-        </TabsContent>
-        <TabsContent value="cover_letter">
-          <LatexCreateForm
-            kind="cover_letter"
-            applications={documents.applications}
-            defaultApplicationId={params.application}
-            error={params.error}
-            cancelHref="/cover-letters"
-            errorHref={`/latex?kind=cover_letter${params.application ? `&application=${params.application}` : ""}`}
-          />
-        </TabsContent>
-      </Tabs>
-
-      <section className="grid gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="micro-label text-muted-foreground">Saved projects</p>
-            <h2 className="mt-1 text-lg font-semibold">Your LaTeX documents</h2>
-          </div>
-          <Link href="/resumes" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            Open libraries
+      <AppPageHeader
+        title="LaTeX projects"
+        description="Keep LaTeX source here and send a copy to Overleaf when you want to edit or compile."
+        action={
+          <Link href={creating ? "/latex" : "/latex?create=master_resume"} className={buttonVariants({ variant: creating ? "outline" : "default" })}>
+            {creating ? "Back to projects" : <><Plus aria-hidden />New project</>}
           </Link>
-        </div>
-        {items.length ? (
-          <div className="grid gap-3 md:grid-cols-2">
-            {items.map((item) => (
-              <Card key={`${item.kind}-${item.id}`}>
-                <CardContent className="flex items-start gap-3 pt-5">
-                  <span className="grid size-9 place-items-center rounded-md border border-border bg-parchment text-primary">
-                    <FileCode2 aria-hidden className="size-4" />
-                  </span>
+        }
+      />
+
+      {data.mode === "create" ? (
+        <section className="grid gap-3">
+          <nav aria-label="LaTeX document type" className="flex flex-wrap gap-2">
+            <KindLink kind="master_resume" active={kind === "master_resume"}>Master resume</KindLink>
+            <KindLink kind="resume_version" active={kind === "resume_version"}>Tailored resume</KindLink>
+            <KindLink kind="cover_letter" active={kind === "cover_letter"}>Cover letter</KindLink>
+          </nav>
+          <LatexCreateForm
+            kind={kind}
+            applications={kind === "master_resume" ? [] : data.documents.applications}
+            masterResumes={kind === "resume_version" ? data.documents.masterResumes : []}
+            defaultApplicationId={params.application}
+            error={params.error}
+            cancelHref="/latex"
+            errorHref={`/latex?create=${kind}${params.application ? `&application=${params.application}` : ""}`}
+          />
+        </section>
+      ) : (
+        <section>
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold">Your projects</h2>
+            <span className="text-xs tabular-nums text-muted-foreground">{data.items.length}</span>
+          </div>
+          {data.items.length ? (
+            <div className="mt-3 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-paper">
+              {data.items.map((item) => (
+                <article key={`${item.kind}-${item.id}`} className="flex items-center gap-3 p-4 transition-colors hover:bg-muted/25">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-parchment text-primary"><FileCode2 aria-hidden className="size-4" /></span>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="truncate font-medium">{item.title}</h3>
-                      {item.locked ? <Badge variant="secondary">Submitted</Badge> : null}
-                    </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{item.subtitle}</p>
+                    <div className="flex flex-wrap items-center gap-2"><h3 className="truncate text-sm font-semibold">{item.title}</h3>{item.locked ? <Badge variant="secondary">Submitted</Badge> : null}</div>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">{item.subtitle}</p>
                   </div>
                   <DocumentOpenLink href={latexOverleafHref(item.kind, item.id)}>Open</DocumentOpenLink>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <p className="rounded-xl border border-dashed border-border-strong bg-parchment/35 p-6 text-sm text-muted-foreground">
-            No LaTeX documents yet. Create one above, or choose LaTeX when adding a resume or cover letter.
-          </p>
-        )}
-      </section>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 grid min-h-52 place-items-center rounded-xl border border-dashed border-border-strong bg-parchment/35 p-7 text-center">
+              <div>
+                <FileCode2 aria-hidden className="mx-auto size-5 text-muted-foreground" />
+                <h2 className="mt-3 font-semibold">No LaTeX projects yet</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Start a resume or cover letter from a template, a .tex file, or pasted source.</p>
+                <Link href="/latex?create=master_resume" className={cn(buttonVariants({ size: "sm" }), "mt-4")}>Create a project</Link>
+              </div>
+            </div>
+          )}
+        </section>
+      )}
     </AppPage>
+  );
+}
+
+function KindLink({ kind, active, children }: { kind: LatexDocumentKind; active: boolean; children: React.ReactNode }) {
+  return (
+    <Link href={`/latex?create=${kind}`} aria-current={active ? "page" : undefined} className={buttonVariants({ variant: active ? "secondary" : "ghost", size: "sm" })}>
+      {children}
+    </Link>
   );
 }
