@@ -1,6 +1,11 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
+import {
+  ByteLimitExceededError,
+  readBoundedBytes,
+} from "@/lib/http/read-bounded-bytes";
+
 const MAX_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_DESCRIPTION_CHARS = 200_000;
 const MAX_REDIRECTS = 3;
@@ -10,6 +15,8 @@ const supportedHosts = [
   { suffix: "lever.co", adapter: "lever" },
   { suffix: "ashbyhq.com", adapter: "ashby" },
   { suffix: "myworkdayjobs.com", adapter: "workday" },
+  { suffix: "dayforcehcm.com", adapter: "dayforce" },
+  { suffix: "dayforce.com", adapter: "dayforce" },
   { suffix: "icims.com", adapter: "icims" },
   { suffix: "workable.com", adapter: "workable" },
   { suffix: "smartrecruiters.com", adapter: "smartrecruiters" },
@@ -105,13 +112,37 @@ export function extractJobPage(source: string, contentType = "text/html") {
   }
 
   const jobPosting = findJobPostingJsonLd(source);
-  const description = htmlToText(stringValue(jobPosting?.description) || source)
-    .slice(0, MAX_DESCRIPTION_CHARS);
+  if (jobPosting) {
+    const description = htmlToText(stringValue(jobPosting?.description) || source)
+      .slice(0, MAX_DESCRIPTION_CHARS);
+    if (description.length < 80) throw new Error("JOB_IMPORT_EMPTY");
+    return {
+      roleTitle: stringValue(jobPosting?.title),
+      company: stringValue(objectValue(jobPosting?.hiringOrganization)?.name),
+      location: extractLocation(jobPosting?.jobLocation),
+      description,
+    };
+  }
+
+  const nextJobPosting = findJobPostingFromNextData(source);
+  if (nextJobPosting) {
+    const description = htmlToText(nextJobPosting.description || source)
+      .slice(0, MAX_DESCRIPTION_CHARS);
+    if (description.length < 80) throw new Error("JOB_IMPORT_EMPTY");
+    return {
+      roleTitle: nextJobPosting.roleTitle,
+      company: nextJobPosting.company,
+      location: nextJobPosting.location,
+      description,
+    };
+  }
+
+  const description = htmlToText(source).slice(0, MAX_DESCRIPTION_CHARS);
   if (description.length < 80) throw new Error("JOB_IMPORT_EMPTY");
   return {
-    roleTitle: stringValue(jobPosting?.title),
-    company: stringValue(objectValue(jobPosting?.hiringOrganization)?.name),
-    location: extractLocation(jobPosting?.jobLocation),
+    roleTitle: "",
+    company: "",
+    location: "",
     description,
   };
 }
@@ -164,21 +195,16 @@ export function isPublicIp(address: string) {
 
 async function readLimitedBody(response: Response) {
   if (!response.body) throw new Error("JOB_IMPORT_EMPTY");
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let size = 0;
-  let output = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    size += value.byteLength;
-    if (size > MAX_RESPONSE_BYTES) {
-      await reader.cancel();
+  try {
+    return new TextDecoder().decode(
+      await readBoundedBytes(response.body, MAX_RESPONSE_BYTES),
+    );
+  } catch (error) {
+    if (error instanceof ByteLimitExceededError) {
       throw new Error("JOB_IMPORT_TOO_LARGE");
     }
-    output += decoder.decode(value, { stream: true });
+    throw error;
   }
-  return output + decoder.decode();
 }
 
 function findJobPostingJsonLd(source: string): Record<string, unknown> | null {
@@ -209,6 +235,56 @@ function findJobPosting(value: unknown): Record<string, unknown> | null {
   const types = Array.isArray(object["@type"]) ? object["@type"] : [object["@type"]];
   if (types.includes("JobPosting")) return object;
   return findJobPosting(object["@graph"]);
+}
+
+function findJobPostingFromNextData(source: string) {
+  const match = source.match(
+    /<script\b[^>]*id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i,
+  );
+  if (!match) return null;
+  try {
+    const data = JSON.parse(match[1]);
+    const jobData = data?.props?.pageProps?.jobData;
+    if (!jobData) return null;
+    const queries = (data?.props?.pageProps?.dehydratedState?.queries ?? []) as Array<{
+      queryKey?: unknown[];
+      state?: { data?: Record<string, unknown> };
+    }>;
+    const siteInfo = queries.find(
+      (q) => Array.isArray(q?.queryKey) && q.queryKey[0] === "site-info",
+    )?.state?.data;
+    const locations = (
+      (jobData.postingLocations ?? []) as Array<Record<string, string>>
+    )
+      .map(
+        (loc) =>
+          loc.formattedAddress ||
+          [loc.cityName, loc.stateCode, loc.isoCountryCode]
+            .filter(Boolean)
+            .join(", "),
+      )
+      .filter(Boolean)
+      .join("; ");
+    const content = jobData.jobPostingContent;
+    const desc =
+      typeof content === "string"
+        ? content
+        : [
+            content?.jobDescriptionHeader,
+            content?.jobDescription,
+            content?.jobDescriptionFooter,
+          ]
+            .filter(Boolean)
+            .join("\n\n");
+    return {
+      roleTitle: stringValue(jobData.jobTitle),
+      company: stringValue(siteInfo?.candidateCorrespondenceClientName),
+      location: locations,
+      description: desc,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function htmlToText(value: string) {
