@@ -5,11 +5,11 @@ import { Brand } from "@/components/layout/brand";
 const columns = [
   {
     title: "Product",
-    links: [["Features", "/#features"], ["How it works", "/#how-it-works"], ["Dashboard", "/dashboard"]],
+    links: [["Features", "/#features"], ["How it works", "/#how-it-works"], ["Chrome extension", "/extension"]],
   },
   {
-    title: "Guides",
-    links: [["Getting started", "/documentation/getting-started"], ["Applications", "/documentation/applications"], ["Uploads & privacy", "/documentation/uploads-and-privacy"]],
+    title: "Resources",
+    links: [["Privacy", "/privacy"], ["In-app help", "/documentation"], ["Source code", "https://github.com/RohanGottipati/JobMaxxing"]],
   },
   {
     title: "Account",
@@ -33,7 +33,15 @@ export function MarketingFooter() {
               <p className="micro-label text-muted-foreground">{column.title}</p>
               <ul className="mt-3 grid gap-2">
                 {column.links.map(([label, href]) => (
-                  <li key={label}><Link href={href} className="text-[0.82rem] text-muted-foreground transition-colors hover:text-foreground">{label}</Link></li>
+                  <li key={label}>
+                    <Link
+                      href={href}
+                      className="text-[0.82rem] text-muted-foreground transition-colors hover:text-foreground"
+                      {...(href.startsWith("https://") ? { target: "_blank", rel: "noreferrer" } : {})}
+                    >
+                      {label}
+                    </Link>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -41,7 +49,7 @@ export function MarketingFooter() {
         </div>
         <div className="mt-10 flex flex-col gap-2 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} JobMaxxing. All rights reserved.</p>
-          <p>Private by design · Your data stays yours</p>
+          <p>Private workspace · No public profile or recruiter portal</p>
         </div>
       </div>
     </footer>

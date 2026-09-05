@@ -13,10 +13,12 @@ Job application tracker — help users organize their job search pipeline.
 
 | Route | Purpose |
 |-------|---------|
-| `/` | Redirects to `/applications` (signed in) or `/login` |
+| `/` | Public product page; signed-in users can open the workspace |
+| `/extension` | Public Chrome extension overview |
+| `/privacy` | Public web-app and extension data-handling summary |
 | `/login` | Email + password sign in |
 | `/signup` | Email + password registration |
-| `/applications` | Application board (auth required) |
+| `/applications` | Searchable list-and-detail application mailbox (auth required) |
 | `/applications/new` | Create application (auth required) |
 | `/applications/[id]` | Application detail + package manager (auth required) |
 | `/profile` | User profile (auth required) |
@@ -47,17 +49,19 @@ RLS is enabled on all tables. Users can only access their own rows.
 Required in `.env.local`:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL` (optional; used for extension deep links, defaults to production)
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`NEXT_PUBLIC_SUPABASE_ANON_KEY` remains a legacy fallback)
+- `NEXT_PUBLIC_APP_URL` (the canonical deployment origin used by public metadata and the sitemap)
 
 ## Chrome extension
 
 The [JobMaxxing-extension](https://github.com/RohanGottipati/JobMaxxing-extension) repo is a capture-focused Chrome extension that shares this Supabase backend:
 
 - Sign in with the same account as the web app
-- Scrape job postings from LinkedIn, Workday, Greenhouse, Lever, Ashby, and other pages
+- Open in a persistent Chrome side panel and detect postings on LinkedIn, Workday, Greenhouse, Lever and Ashby
+- Capture other pages when user initiation grants tab access and the page exposes recognizable job-posting signals; manual entry is always available
 - Save applications via `/api/extension/applications` with duplicate detection
-- Optionally trigger server-side job parsing when AI consent is enabled
+- Mirror the configured website's Supabase session and upload application-package files to private Storage paths
+- Trigger deterministic server-side job parsing after description capture; use Gemini enrichment only when configured and consented
 
 After pulling extension-related migrations, run `npm run db:push` so `applications` gains `source_host`, `description_hash`, and `recruiting_season`, and the `application_packages` view is recreated.
 

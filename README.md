@@ -1,6 +1,6 @@
 # JobMaxxing
 
-Private job-search workspace built with Next.js and Supabase. Track each application with its job post, next action, resume and cover letter. Optional AI tools handle job analysis, matching and reviewable document tailoring.
+Private job-search workspace built with Next.js and Supabase. Track each application with its job post, next action, resume and cover letter; use the companion Chrome extension to capture supported postings from a side panel. Optional Gemini-assisted tools enhance deterministic analysis and reviewable document tailoring.
 
 JobMaxxing does **not** submit applications, contact employers or send email.
 
@@ -26,7 +26,9 @@ Copy the example env file and add your Supabase credentials:
 cp .env.example .env.local
 ```
 
-Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your [hosted Supabase project API settings](https://supabase.com/dashboard/project/_/settings/api).
+Get `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from the hosted project's **Connect** dialog or **Settings → API Keys**. Publishable keys are intended for browser clients and remain constrained by database grants, Supabase Auth and RLS. `NEXT_PUBLIC_SUPABASE_ANON_KEY` is accepted temporarily as a legacy fallback for existing deployments, but new configuration should use a publishable key.
+
+Set `NEXT_PUBLIC_APP_URL` to the app origin. It controls canonical and social metadata plus the sitemap, so production must use the actual HTTPS deployment origin. Browser authentication callbacks use the origin serving the page; configure that same origin in Supabase Auth.
 
 Resume import and deterministic parsing work without an AI key. To enable AI-assisted parsing and Maxwell, add a [Gemini API key](https://aistudio.google.com/app/apikey) as `GEMINI_API_KEY`; it is read only by server routes and must never use a `NEXT_PUBLIC_` prefix. `GEMINI_MODEL` is optional and defaults to `gemini-2.5-flash`.
 
@@ -57,11 +59,11 @@ Open [http://localhost:3000](http://localhost:3000).
 Job capture from the browser lives in a separate repo: **[JobMaxxing-extension](https://github.com/RohanGottipati/JobMaxxing-extension)**.
 
 1. Apply the latest migrations in this repo (`npm run db:push`).
-2. Clone the extension repo, copy `config.example.js` → `config.js`, and use the same Supabase URL/anon key plus `APP_URL=http://localhost:3000` during local dev.
+2. Clone the extension repo, copy `config.example.js` → `config.js`, and use the same Supabase URL/publishable key plus `APP_URL=http://localhost:3000` during local development.
 3. Load unpacked in Chrome (`chrome://extensions` → Developer mode).
-4. Sign in with your JobMaxxing account, capture a job, optionally attach the PDF/DOCX resume and cover letter you used, and confirm the linked package appears on `/applications`.
+4. Select the toolbar icon to open the Chrome side panel. Sign in with your JobMaxxing account, capture a job, optionally attach the PDF/DOCX resume and cover letter you used, and confirm the linked package appears on `/applications`.
 
-The extension calls authenticated API routes under `/api/extension/`. It never ships a Gemini key and does not autofill or submit employer forms.
+The extension and website mirror the same Supabase session when possible. Application records go through authenticated routes under `/api/extension/`, while submitted files upload to user-scoped private Storage paths. Saving a job description starts server-side parsing; Gemini is used only when it is configured and the account has granted AI consent. The extension never ships a Gemini key and does not autofill or submit employer forms.
 
 ## Product flow
 
@@ -69,7 +71,7 @@ The extension calls authenticated API routes under `/api/extension/`. It never s
 2. Add an application from the web app or capture a supported job page with the extension.
 3. Work from `/applications`: filter the list, select a role, then use its Overview, Job post, Resume, Cover letter and Notes tabs.
 4. Open **Match** only when you want to review parsed requirements, compare a resume, tailor a separate version or generate a grounded cover letter.
-5. Use **Documents** for resumes, cover letters and LaTeX projects. Submitted versions remain locked as a record of what was sent.
+5. Use **Documents** for resumes and cover letters. Submitted versions remain locked as a record of what was sent.
 
 ## Maxwell workspace assistant
 
@@ -79,7 +81,7 @@ Maxwell can:
 
 - import a job description with a PDF/DOCX resume and cover letter into one linked application package;
 - search and assess your applications, career profile, resumes, and cover letters;
-- create or update application cards and editable plain-text, Markdown, or LaTeX document source;
+- create or update application cards and editable plain-text or Markdown document source;
 - flag unsupported claims in generated documents for review;
 - move cards, mark documents submitted, and manage saved conversation threads.
 
@@ -110,7 +112,7 @@ supabase/
   migrations/           # SQL migrations
 ```
 
-Product boundaries, navigation and end-to-end user flows are documented in [`docs/PRODUCT_AND_UX.md`](docs/PRODUCT_AND_UX.md). The current release backlog is in [`docs/REMAINING_IMPLEMENTATION_PLAN.md`](docs/REMAINING_IMPLEMENTATION_PLAN.md).
+Product boundaries, navigation and end-to-end user flows are documented in [`docs/PRODUCT_AND_UX.md`](docs/PRODUCT_AND_UX.md). The current release backlog is in [`docs/REMAINING_IMPLEMENTATION_PLAN.md`](docs/REMAINING_IMPLEMENTATION_PLAN.md). The public `/extension` and `/privacy` routes explain the browser companion and current data handling without requiring an account.
 
 ## Scripts
 
@@ -142,12 +144,13 @@ The repository includes `railway.json` and builds a minimal Next.js standalone s
 
 ```text
 NEXT_PUBLIC_SUPABASE_URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+NEXT_PUBLIC_APP_URL
 ```
 
 `GEMINI_API_KEY`, `GEMINI_MODEL`, `AUTH_GOOGLE_ENABLED`, and `AUTH_GITHUB_ENABLED` are optional. Railway promotes a deployment only after `/api/health` can reach hosted Supabase Auth and the Data API; the health endpoint reports Gemini availability without failing when optional AI is disabled.
 
-For email confirmation and password recovery in production, set the Supabase Auth Site URL to the Railway public origin and add this redirect URL:
+For email confirmation and password recovery in production, set `NEXT_PUBLIC_APP_URL` and the Supabase Auth Site URL to the same Railway public origin, then allow this callback URL in Supabase Auth:
 
 ```text
 https://<your-railway-domain>/auth/callback
@@ -155,6 +158,8 @@ https://<your-railway-domain>/auth/callback
 
 Railway injects `PORT`; the standalone Next.js server reads it automatically.
 
+Before publishing, verify that the chosen production origin resolves, `/api/health` succeeds, `/robots.txt` and `/sitemap.xml` contain that origin, and the extension's `APP_URL` plus manifest host permission match it. Do not submit a sitemap or extension package that points to an unconfigured domain.
+
 ## License
 
-Private
+No open-source license is currently declared. All rights reserved.

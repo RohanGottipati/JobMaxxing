@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { PrintToolbar } from "@/components/resumes/print-toolbar";
@@ -5,6 +6,11 @@ import { ResumePrintDocument } from "@/components/resumes/resume-print-document"
 import { requireCurrentUser } from "@/lib/auth/current-user";
 import { createResumeRenderModel } from "@/lib/resumes/render-model";
 import { getStructuredResumeForExport } from "@/lib/resumes/repository";
+
+export const metadata: Metadata = {
+  title: "Print resume",
+  robots: { index: false, follow: false },
+};
 
 export default async function MasterResumePrintPage({ params }: { params: Promise<{ id: string }> }) {
   await requireCurrentUser();

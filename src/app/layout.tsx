@@ -4,16 +4,31 @@ import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme/theme-provider";
+import { getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: getSiteUrl(),
+  applicationName: SITE_NAME,
   title: {
-    default: "JobMaxxing — Run your job search like a system",
+    default: "JobMaxxing — Private job application tracker",
     template: "%s · JobMaxxing",
   },
-  description:
-    "Track every opportunity, manage tailored resumes and cover letters, and move your job search forward with clarity.",
+  description: SITE_DESCRIPTION,
+  category: "productivity",
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: "JobMaxxing — Private job application tracker",
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JobMaxxing — Private job application tracker",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {

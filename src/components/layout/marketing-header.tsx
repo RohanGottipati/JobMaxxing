@@ -16,6 +16,7 @@ export async function MarketingHeader() {
         <nav className="hidden items-center gap-1 text-[0.84rem] text-muted-foreground md:flex" aria-label="Main navigation">
           <Link href="/#features" className="rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-accent hover:text-foreground">Features</Link>
           <Link href="/#how-it-works" className="rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-accent hover:text-foreground">How it works</Link>
+          <Link href="/extension" className="rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-accent hover:text-foreground">Chrome extension</Link>
           <Link href="/#faq" className="rounded-md px-3 py-1.5 font-medium transition-colors hover:bg-accent hover:text-foreground">FAQ</Link>
         </nav>
         <div className="flex items-center gap-1.5">
@@ -43,6 +44,7 @@ export async function MarketingHeader() {
             <nav className="absolute right-0 top-10 grid w-44 gap-1 rounded-lg border border-border bg-popover p-2 shadow-[0_12px_30px_-16px_rgb(0_0_0/0.4)]" aria-label="Mobile navigation">
               <Link href="/#features" className="rounded-md px-3 py-2 text-sm hover:bg-accent">Features</Link>
               <Link href="/#how-it-works" className="rounded-md px-3 py-2 text-sm hover:bg-accent">How it works</Link>
+              <Link href="/extension" className="rounded-md px-3 py-2 text-sm hover:bg-accent">Chrome extension</Link>
               <Link href="/#faq" className="rounded-md px-3 py-2 text-sm hover:bg-accent">FAQ</Link>
             </nav>
           </details>

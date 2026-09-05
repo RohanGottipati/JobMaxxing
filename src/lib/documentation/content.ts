@@ -48,9 +48,9 @@ export const documentationArticles: DocumentationArticle[] = [
     category: "Workspace",
     readTime: "3 min",
     sections: [
-      { id: "supported", title: "Supported job boards", paragraphs: ["Automatic page detection is included for LinkedIn, Workday, Greenhouse, Lever and Ashby. Manual entry works on other sites after optional host permission is granted."] },
-      { id: "capture", title: "Capture a posting", steps: ["Sign in to the extension with the same account as the web app.", "Open a job posting and select Grab this posting.", "Review the extracted company, role, description and dates.", "Optionally attach the exact PDF or DOCX files you submitted, then save."] },
-      { id: "sync", title: "Web handoff", paragraphs: ["The extension saves through authenticated web API routes. Open the saved role in the web app to edit details, run a match or manage documents. Duplicate job URLs and descriptions are checked before another record is created."], note: "The extension never contains a Gemini API key. Optional analysis runs on the web server and requires AI consent." },
+      { id: "supported", title: "Supported job boards", paragraphs: ["Automatic posting detection is included for LinkedIn, Workday, Greenhouse, Lever and Ashby. User-initiated capture can also recognize other pages with JobPosting structured data, and manual entry remains available when a page cannot be confirmed automatically."] },
+      { id: "capture", title: "Capture a posting", steps: ["Use Chrome 114 or newer and select the JobMaxxing toolbar icon to open the side panel.", "Sign in with the same account as the web app; website and extension sessions are mirrored when possible.", "Open an individual job posting and select Grab this posting.", "Review the extracted company, role, description and dates.", "Optionally attach the exact PDF or DOCX files you submitted, then save."] },
+      { id: "sync", title: "Web handoff", paragraphs: ["The extension saves application records through authenticated web API routes and sends submitted files to a user-scoped private Storage path. Open the saved role in the web app to edit details, run a match or manage documents. Duplicate job URLs and descriptions are checked before another record is created."], note: "The extension never contains a Gemini API key. Saving a description requests server-side parsing; the deterministic parser works without AI consent, while Gemini enrichment requires both server configuration and consent." },
     ],
   },
   {
@@ -60,22 +60,10 @@ export const documentationArticles: DocumentationArticle[] = [
     category: "Documents",
     readTime: "4 min",
     sections: [
-      { id: "navigation", title: "The Documents area", paragraphs: ["Documents is one sidebar destination. Use the Resumes, Cover letters and LaTeX tabs in the top bar to move between libraries."] },
+      { id: "navigation", title: "The Documents area", paragraphs: ["Documents is one sidebar destination. Use the Resumes and Cover letters tabs in the top bar to move between libraries."] },
       { id: "resumes", title: "Master and tailored resumes", paragraphs: ["A master resume is reusable and is not tied to one application. A tailored resume belongs to an application and can optionally start from a master. You can keep multiple masters and choose one default."] },
       { id: "submitted", title: "Submitted versions", paragraphs: ["Marking a tailored resume or cover letter submitted connects it to that application. Submitted records are locked so JobMaxxing keeps the exact text and file that were sent. Duplicate a locked document to keep editing."] },
-      { id: "formats", title: "Editors and files", paragraphs: ["Structured resume, plain text, Markdown and LaTeX source are supported in their matching editors. PDF and DOCX attachments are private and limited to 10 MB."] },
-    ],
-  },
-  {
-    slug: "latex-studio",
-    title: "LaTeX and Overleaf",
-    description: "Create source in JobMaxxing and compile a copy in Overleaf.",
-    category: "Documents",
-    readTime: "3 min",
-    sections: [
-      { id: "create", title: "Create a project", steps: ["Open Documents, then LaTeX.", "Select New project and choose master resume, tailored resume or cover letter.", "Start from the provided template, or open Use existing LaTeX source to upload a .tex file or paste source."] },
-      { id: "overleaf", title: "Open in Overleaf", paragraphs: ["JobMaxxing packages main.tex and supporting assets and posts a copy to Overleaf. Each click creates a separate Overleaf project. Edits made there do not sync back to JobMaxxing."] },
-      { id: "final-file", title: "Attach the final file", paragraphs: ["Compile in Overleaf, download the final PDF, then attach it to the JobMaxxing document. Tailored resumes and cover letters can be marked submitted after a final file is attached."], note: "The Overleaf project remains separate when a JobMaxxing document is locked or deleted." },
+      { id: "formats", title: "Editors and files", paragraphs: ["Structured resume, plain text and Markdown source are supported in their matching editors. PDF and DOCX attachments are private and limited to 10 MB."] },
     ],
   },
   {
@@ -122,9 +110,9 @@ export const documentationArticles: DocumentationArticle[] = [
     category: "Reference",
     readTime: "3 min",
     sections: [
-      { id: "files", title: "Private files", paragraphs: ["PDF and DOCX files are stored in a private bucket under your user ID. Previews stream through authenticated app routes or short-lived signed links rather than permanent public URLs."] },
-      { id: "ai", title: "AI processing", paragraphs: ["Gemini is called only from server routes. AI-assisted parsing, analysis, matching, tailoring and Maxwell require consent; deterministic parsing and core tracking remain available without it."] },
-      { id: "overleaf", title: "Overleaf handoff", paragraphs: ["LaTeX source and assets are sent to Overleaf only when you select Open in Overleaf. That creates a copy and is not a live sync."] },
+      { id: "files", title: "Private files", paragraphs: ["PDF and DOCX files are stored in a private bucket under your user ID. Previews stream through authenticated app routes rather than permanent public URLs."] },
+      { id: "ai", title: "AI processing", paragraphs: ["Gemini is called only from server routes and only after consent. Deterministic parsing, scoring and fallback transformations remain available without sending career text to Gemini; Maxwell requires Gemini to be configured."] },
+      { id: "extension-data", title: "Extension storage", paragraphs: ["The Chrome extension stores its Supabase session, display details, recent-application index and local preferences in Chrome local storage. It reads job-page content for capture only after you select Grab this posting."] },
     ],
   },
 ];

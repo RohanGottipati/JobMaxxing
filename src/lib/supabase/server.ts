@@ -7,11 +7,11 @@ import type { Database } from "@/types/database";
 
 export async function createClient() {
   const cookieStore = await cookies();
-  const { url, anonKey } = getSupabaseConfig();
+  const { url, publishableKey } = getSupabaseConfig();
 
   return createServerClient<Database>(
     url,
-    anonKey,
+    publishableKey,
     {
       global: { fetch: supabaseServerFetch },
       cookies: {

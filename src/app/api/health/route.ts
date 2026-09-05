@@ -7,10 +7,10 @@ const HEALTH_TIMEOUT_MS = 5_000;
 
 export async function GET() {
   try {
-    const { url, anonKey } = getSupabaseConfig();
+    const { url, publishableKey } = getSupabaseConfig();
     const headers = {
-      apikey: anonKey,
-      Authorization: `Bearer ${anonKey}`,
+      apikey: publishableKey,
+      Authorization: `Bearer ${publishableKey}`,
     };
     const signal = AbortSignal.timeout(HEALTH_TIMEOUT_MS);
 

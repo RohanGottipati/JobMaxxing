@@ -16,9 +16,9 @@ Implemented in the repository:
 - Search, status filters, active/closed scopes and list-detail application navigation
 - Submitted resume and cover-letter packages attached to applications
 - Confirmed job analysis, explainable matching, evidence-based tailoring and grounded cover-letter generation
-- LaTeX project creation, private assets, Overleaf copy handoff and final-file attachment
 - Maxwell threads, page context, confirmation policy and supported workspace actions
 - RLS, storage policies, validation, AI usage limits, migration tests, unit tests and responsive Playwright coverage
+- Public product, extension and privacy pages with canonical/social metadata, generated share images, robots rules, a sitemap and a web manifest
 
 ## Required closeout work
 
@@ -28,7 +28,6 @@ Implemented in the repository:
 - Add end-to-end coverage for application search, scope tabs, the simplified add form and local application-detail tabs.
 - Add browser coverage for Gemini success, provider failure, unsupported-output blocking and consent-disabled states.
 - Cover cover-letter history, paragraph regeneration, shorten/expand and submission locking.
-- Cover the LaTeX create selector, Overleaf handoff, final-file upload and submitted-document duplication.
 
 ### Accessibility and responsive verification
 
@@ -38,11 +37,11 @@ Implemented in the repository:
 
 ### Database and production checks
 
-- Apply every migration through `20260904143824_overleaf_submission_workflow.sql` to the linked Supabase project.
 - Run `supabase/tests/phase_one_foundation.sql` and `supabase/tests/phase_two_ai_workflows.sql` in a rollback transaction.
 - Run Supabase security and performance advisors.
 - Enable leaked-password protection in Supabase Auth.
 - Verify `/api/health`, sign-up, password recovery, extension capture and one complete application/document flow on the production deployment.
+- Configure and verify the production DNS origin before submitting the sitemap or packaging the extension; confirm canonical, Open Graph, robots and sitemap URLs use that origin.
 
 ## Near-term product work
 
@@ -52,7 +51,7 @@ Implemented in the repository:
 - Add direct export controls to the career-match cover-letter workspace.
 - Add score-history comparison with accessible change summaries.
 - Expand job-import fixtures for supported ATS providers and their failure modes.
-- Add extension packaging/release automation and a documented Chrome Web Store checklist.
+- Add extension packaging/release automation; keep the documented Chrome Web Store checklist current for every release.
 
 ## Explicit non-goals
 
@@ -73,3 +72,4 @@ Before calling a release complete:
 4. Migration tests and Supabase advisors pass.
 5. Production health, authentication, capture, document and AI-consent smoke tests pass.
 6. README files, in-app Help and [PRODUCT_AND_UX.md](./PRODUCT_AND_UX.md) match shipped behavior.
+7. Public metadata validates, the sitemap contains only public canonical routes, private routes emit `noindex`, and extension store copy/privacy disclosures match the packaged manifest.

@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 
+const configuredPublishableKey =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ===
+  "sb_publishable_your-key"
+    ? undefined
+    : process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
 const requiredEnvironment = {
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+    configuredPublishableKey ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
 };
 
 const placeholderValues = new Set([
   "https://your-project.supabase.co",
+  "sb_publishable_your-key",
   "your-anon-key",
 ]);
 

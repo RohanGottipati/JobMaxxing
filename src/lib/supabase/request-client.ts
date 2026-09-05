@@ -21,8 +21,8 @@ export async function getAuthContextFromRequest(
 ): Promise<AuthContext> {
   const token = bearerToken(request);
   if (token) {
-    const { url, anonKey } = getSupabaseConfig();
-    const supabase = createSupabaseClient<Database>(url, anonKey, {
+    const { url, publishableKey } = getSupabaseConfig();
+    const supabase = createSupabaseClient<Database>(url, publishableKey, {
       global: {
         headers: { Authorization: `Bearer ${token}` },
         fetch: supabaseServerFetch,

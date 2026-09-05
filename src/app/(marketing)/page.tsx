@@ -7,6 +7,7 @@ import {
   Inbox,
   FileText,
   Lock,
+  PanelRightOpen,
   Shield,
   UserRound,
 } from "lucide-react";
@@ -22,16 +23,29 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import type { ApplicationStatus } from "@/lib/applications/types";
+import { getSiteUrl, SITE_DESCRIPTION } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Track applications and the files you sent",
+  title: "Private Job Application Tracker & Resume Organizer",
+  description: `${SITE_DESCRIPTION} Capture supported job postings with the JobMaxxing Chrome extension.`,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: "JobMaxxing — Private job application tracker",
+    description: SITE_DESCRIPTION,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "JobMaxxing — Private job application tracker",
+    description: SITE_DESCRIPTION,
+  },
 };
 
 const faqs = [
   [
     "Is JobMaxxing free?",
-    "Yes, while you are searching. There is no employer-facing product and nothing is sold on top of your data.",
+    "The current product has no billing flow. It is a single-person workspace, not an employer-facing product or recruiter marketplace.",
   ],
   [
     "Can I edit a document I already submitted?",
@@ -39,7 +53,7 @@ const faqs = [
   ],
   [
     "What file types can I upload?",
-    "PDF and DOCX, up to 10 MB each. Files are stored privately and opened through signed links that expire after five minutes.",
+    "PDF and DOCX, up to 10 MB each. Files are stored in a private bucket and streamed through authenticated app routes instead of permanent public URLs.",
   ],
   [
     "How are applications organized?",
@@ -47,7 +61,7 @@ const faqs = [
   ],
   [
     "Does anyone else see my applications?",
-    "No. JobMaxxing is a single-person workspace with no sharing, recruiter access, or public profile.",
+    "JobMaxxing has no sharing, recruiter-access, or public-profile feature. Database and file policies scope signed-in users to their own records.",
   ],
 ] as const;
 
@@ -55,18 +69,39 @@ export default async function HomePage() {
   const user = await getCurrentUser();
   const primaryHref = user ? "/dashboard" : "/signup";
   const primaryLabel = user ? "Open your workspace" : "Start organizing";
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "JobMaxxing",
+    url: getSiteUrl().href,
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any modern web browser",
+    description: SITE_DESCRIPTION,
+    featureList: [
+      "Job application tracking",
+      "Deadline and next-action tracking",
+      "Resume and cover-letter organization",
+      "User-initiated Chrome job-post capture",
+    ],
+  };
 
   return (
     <main className="flex flex-1 flex-col overflow-x-clip">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="border-b border-border bg-parchment surface-grid">
         <div className="mx-auto grid w-full max-w-[1200px] gap-10 px-5 py-14 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:items-center lg:py-20">
           <div className="motion-rise">
             <span className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1 text-xs text-muted-foreground shadow-paper">
               <span aria-hidden className="size-1.5 rounded-full bg-success" />
-              Your applications, documents and follow-ups
+              Private job application tracker
             </span>
             <h1 className="mt-5 text-balance text-[2.4rem] font-semibold leading-[1.08] tracking-[-0.04em] sm:text-[3rem]">
-              Stop losing track of what you applied with.
+              Know where you applied and exactly what you sent.
             </h1>
             <p className="mt-4 max-w-lg text-[0.97rem] leading-7 text-muted-foreground">
               Keep each role, job description, deadline, resume and cover letter together.
@@ -107,6 +142,12 @@ export default async function HomePage() {
               Reusable master resumes, application-specific versions, and a dedicated home for cover letters.
               <MiniDocuments />
             </FeatureCard>
+            <FeatureCard className="lg:col-span-4" icon={PanelRightOpen} title="Chrome capture side panel">
+              Capture supported job pages without leaving the posting. Review every field before it is saved to the same private workspace.
+              <Link href="/extension" className="mt-4 inline-flex items-center gap-1 font-medium text-primary hover:underline">
+                How the extension works <ArrowRight aria-hidden className="size-3.5" />
+              </Link>
+            </FeatureCard>
             <FeatureCard className="lg:col-span-2" icon={UserRound} title="Career profile">
               One structured record of experience, education, projects, and skills. Tailoring becomes subtraction instead of memory.
               <div className="mt-5 rounded-lg border border-border bg-parchment/70 p-3">
@@ -126,9 +167,9 @@ export default async function HomePage() {
               </ul>
             </FeatureCard>
             <FeatureCard className="lg:col-span-2" icon={Shield} title="Private document storage">
-              PDF and DOCX up to 10 MB, stored privately. Previews open through a link that expires after five minutes.
+              PDF and DOCX up to 10 MB, stored privately. Previews stream through authenticated app routes.
               <div className="mt-5 flex items-center gap-2 rounded-lg border border-success/30 bg-success/10 px-3 py-2.5 text-xs">
-                <Lock aria-hidden className="size-3.5 text-success" />Submitted documents lock permanently
+                <Lock aria-hidden className="size-3.5 text-success" />Submitted documents are locked from editing
               </div>
             </FeatureCard>
             <FeatureCard className="lg:col-span-2" icon={FileSignature} title="Letters that stay findable">
@@ -223,13 +264,13 @@ function ProductPreview() {
     <div className="motion-rise interactive-card overflow-hidden rounded-xl border border-border-strong bg-background shadow-[0_12px_32px_-18px_rgb(41_40_36/0.45)] hover:shadow-xl">
       <div className="flex items-center gap-2 border-b border-border bg-parchment px-3 py-2">
         <span aria-hidden className="flex gap-1.5"><span className="size-2 rounded-full bg-border-strong" /><span className="size-2 rounded-full bg-border-strong" /><span className="size-2 rounded-full bg-border-strong" /></span>
-        <span className="mx-auto rounded border border-border bg-card px-3 py-0.5 font-mono text-[0.6rem] text-muted-foreground">jobmaxxing.app/applications</span>
+        <span className="mx-auto rounded border border-border bg-card px-3 py-0.5 font-mono text-[0.6rem] text-muted-foreground">JobMaxxing / Applications</span>
       </div>
       <div className="flex">
         <div className="hidden w-[132px] shrink-0 border-r border-border bg-sidebar p-2.5 sm:block">
           <div className="flex items-center gap-1.5 pb-3"><BrandMark className="size-4" /><span className="text-[0.62rem] font-semibold">JobMaxxing</span></div>
           <div className="mb-2 h-5 rounded bg-primary" />
-          {["Home", "Applications", "My Resumes", "My Cover Letters", "Documentation", "User Profile"].map((item, index) => (
+          {["Home", "Applications", "Documents", "Maxwell"].map((item, index) => (
             <div key={item} className={cn("mb-0.5 rounded px-1.5 py-1 text-[0.58rem]", index === 1 ? "bg-sidebar-accent font-medium" : "text-muted-foreground")}>{item}</div>
           ))}
         </div>

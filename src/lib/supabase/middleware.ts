@@ -5,11 +5,11 @@ import { getSupabaseConfig } from "@/lib/supabase/config";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
-  const { url, anonKey } = getSupabaseConfig();
+  const { url, publishableKey } = getSupabaseConfig();
 
   const supabase = createServerClient(
     url,
-    anonKey,
+    publishableKey,
     {
       cookies: {
         getAll() {

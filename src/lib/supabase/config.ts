@@ -1,32 +1,47 @@
 const PLACEHOLDER_SUPABASE_URL = "https://your-project.supabase.co";
+const PLACEHOLDER_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_your-key";
 const PLACEHOLDER_SUPABASE_ANON_KEY = "your-anon-key";
 
 export type SupabaseConfig = {
   url: string;
-  anonKey: string;
+  publishableKey: string;
 };
+
+function publicApiKey() {
+  const publishableKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+  if (
+    publishableKey &&
+    publishableKey !== PLACEHOLDER_SUPABASE_PUBLISHABLE_KEY
+  ) {
+    return publishableKey;
+  }
+
+  return process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim() || publishableKey;
+}
 
 export function isSupabaseConfigured() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const publishableKey = publicApiKey();
 
   return Boolean(
     url &&
-      anonKey &&
+      publishableKey &&
       url !== PLACEHOLDER_SUPABASE_URL &&
-      anonKey !== PLACEHOLDER_SUPABASE_ANON_KEY,
+      publishableKey !== PLACEHOLDER_SUPABASE_PUBLISHABLE_KEY &&
+      publishableKey !== PLACEHOLDER_SUPABASE_ANON_KEY,
   );
 }
 
 export function getSupabaseConfig(): SupabaseConfig {
   if (!isSupabaseConfigured()) {
     throw new Error(
-      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY.",
     );
   }
 
   return {
     url: process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    publishableKey: publicApiKey()!,
   };
 }
