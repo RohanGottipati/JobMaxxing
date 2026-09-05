@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
-import { copyLatexWorkspace } from "@/lib/latex/repository";
 import { hashJobDescription } from "@/lib/applications/description-hash";
 import { assertNoStoredUnsupportedClaims } from "@/lib/maxwell/claims";
 import type {
@@ -342,20 +341,12 @@ export async function duplicateResumeVersion(
       document_schema_version: source.document_schema_version,
       structured_content: source.structured_content,
       template_id: source.template_id,
-      latex_engine: source.content_format === "latex" ? source.latex_engine : null,
       row_version: 0,
     })
     .select("*")
     .single();
 
   if (error) throw error;
-  if (source.content_format === "latex") {
-    await copyLatexWorkspace({
-      kind: "resume_version",
-      sourceId: versionId,
-      destinationId: data.id,
-    });
-  }
   return data;
 }
 
@@ -458,19 +449,11 @@ export async function duplicateCoverLetter(
       job_description_snapshot: source.job_description_snapshot,
       content_format: source.content_format,
       generation_metadata: source.generation_metadata,
-      latex_engine: source.content_format === "latex" ? source.latex_engine : null,
       row_version: 0,
     })
     .select("*")
     .single();
 
   if (error) throw error;
-  if (source.content_format === "latex") {
-    await copyLatexWorkspace({
-      kind: "cover_letter",
-      sourceId: coverLetterId,
-      destinationId: data.id,
-    });
-  }
   return data;
 }

@@ -1,10 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { DOCUMENT_BUCKET, DOCUMENT_SIGNED_URL_TTL } from "@/lib/documents/constants";
-import {
-  copyLatexWorkspace,
-  readLatexWorkspacePaths,
-  removeLatexWorkspace,
-} from "@/lib/latex/repository";
 import type {
   CoverLetter,
   Resume,
@@ -171,7 +166,6 @@ export async function createMasterResume(input: {
   name: string;
   content: string | null;
   content_format?: Resume["content_format"];
-  latex_engine?: Resume["latex_engine"];
 }): Promise<Resume> {
   const { supabase, userId } = await getAuthContext();
   const { count, error: countError } = await supabase
@@ -208,7 +202,7 @@ export async function duplicateMasterResume(id: string): Promise<Resume> {
   const { supabase, userId } = await getAuthContext();
   const { data: source, error: readError } = await supabase
     .from("resumes")
-    .select("name, content, content_format, generation_metadata, editor_mode, document_schema_version, structured_content, template_id, row_version, latex_engine")
+    .select("name, content, content_format, generation_metadata, editor_mode, document_schema_version, structured_content, template_id, row_version")
     .eq("id", id)
     .eq("user_id", userId)
     .maybeSingle();
@@ -230,7 +224,6 @@ export async function duplicateMasterResume(id: string): Promise<Resume> {
       document_schema_version: source.document_schema_version,
       structured_content: source.structured_content,
       template_id: source.template_id,
-      latex_engine: source.content_format === "latex" ? source.latex_engine : null,
       row_version: 0,
       is_default: false,
       file_path: null,
@@ -239,9 +232,6 @@ export async function duplicateMasterResume(id: string): Promise<Resume> {
     .single();
 
   if (error) throw error;
-  if (source.content_format === "latex") {
-    await copyLatexWorkspace({ kind: "master_resume", sourceId: id, destinationId: data.id });
-  }
   return data;
 }
 
@@ -265,7 +255,6 @@ export async function deleteMasterResume(id: string): Promise<void> {
   if (readError || !resume) {
     throw readError ?? new Error("Resume not found.");
   }
-  const latexPaths = await readLatexWorkspacePaths("master_resume", id);
 
   const { error } = await supabase
     .from("resumes")
@@ -277,7 +266,6 @@ export async function deleteMasterResume(id: string): Promise<void> {
   if (resume.file_path) {
     await supabase.storage.from(DOCUMENT_BUCKET).remove([resume.file_path]);
   }
-  await removeLatexWorkspace({ kind: "master_resume", id, ...latexPaths });
 
   if (resume.is_default) {
     const { data: nextResume } = await supabase
@@ -330,7 +318,6 @@ export async function deleteTailoredResume(id: string): Promise<void> {
   if (version.submitted_at) {
     throw new Error("Previously submitted resume versions cannot be deleted.");
   }
-  const latexPaths = await readLatexWorkspacePaths("resume_version", id);
   const { error } = await supabase
     .from("resume_versions")
     .delete()
@@ -341,7 +328,6 @@ export async function deleteTailoredResume(id: string): Promise<void> {
   if (version.file_path) {
     await supabase.storage.from(DOCUMENT_BUCKET).remove([version.file_path]);
   }
-  await removeLatexWorkspace({ kind: "resume_version", id, ...latexPaths });
 }
 
 export async function updateCoverLetter(
@@ -375,7 +361,6 @@ export async function deleteCoverLetter(id: string): Promise<void> {
   if (letter.submitted_at) {
     throw new Error("Previously submitted cover letters cannot be deleted.");
   }
-  const latexPaths = await readLatexWorkspacePaths("cover_letter", id);
   const { error } = await supabase
     .from("cover_letters")
     .delete()
@@ -386,7 +371,6 @@ export async function deleteCoverLetter(id: string): Promise<void> {
   if (letter.file_path) {
     await supabase.storage.from(DOCUMENT_BUCKET).remove([letter.file_path]);
   }
-  await removeLatexWorkspace({ kind: "cover_letter", id, ...latexPaths });
 }
 
 async function readFilePath(kind: DocumentKind, id: string) {

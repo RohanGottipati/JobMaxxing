@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { deleteCoverLetterDocumentAction, duplicateCoverLetterDocumentAction, submitCoverLetterDocumentAction, updateCoverLetterAction } from "@/app/(app)/documents/actions";
 import { DocumentEditor } from "@/components/documents/document-editor";
@@ -13,7 +13,6 @@ export default async function CoverLetterPage({ params, searchParams }: { params
   const [{ id }, state, user] = await Promise.all([params, searchParams, requireCurrentUser()]);
   const letter = await getCoverLetter(id);
   if (!letter) notFound();
-  if (letter.content_format === "latex") redirect(`/latex/cover_letter/${id}`);
   const signedUrl = await createSignedDocumentUrl(letter.file_path);
   return <AppPage><DocumentEditor model={toEditorModel("cover_letter", letter)} userId={user.id} signedUrl={signedUrl} saveAction={updateCoverLetterAction.bind(null, id)} duplicateAction={duplicateCoverLetterDocumentAction.bind(null, id)} submitAction={submitCoverLetterDocumentAction.bind(null, id)} deleteAction={deleteCoverLetterDocumentAction.bind(null, id)} state={state} /></AppPage>;
 }

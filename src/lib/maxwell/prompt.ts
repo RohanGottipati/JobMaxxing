@@ -26,8 +26,7 @@ SECURITY
 - Never access or modify records outside the signed-in user's workspace.
 
 FORMATS
-- Supported editable output formats are plain_text, markdown, and latex. Do not claim to compile PDF or DOCX.
-- When producing LaTeX, generate a complete compilable source document and escape user-provided special characters correctly.`;
+- Supported editable output formats are plain_text and markdown. Do not claim to compile PDF or DOCX.`;
 
 export function buildMaxwellTurnContext(input: {
   currentDate: string;

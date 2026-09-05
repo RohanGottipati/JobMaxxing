@@ -43,7 +43,7 @@ export function DocumentationBrowser({ articles }: { articles: DocumentationArti
       {results.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border-strong bg-parchment/35 p-8 text-center">
           <p className="font-medium">No matching guide</p>
-          <p className="mt-1 text-sm text-muted-foreground">Try applications, extension, resumes or LaTeX.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Try applications, extension, resumes or cover letters.</p>
         </div>
       ) : null}
     </div>

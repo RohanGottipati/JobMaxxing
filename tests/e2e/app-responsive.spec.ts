@@ -19,13 +19,13 @@ test("authenticated routes remain visible and vertically reachable", async ({ pa
     "/applications/new",
     `/applications/${applicationId}`,
     `/applications/${applicationId}/edit`,
+    `/applications/${applicationId}/package`,
     `/applications/${applicationId}/match`,
     "/resumes",
     "/resumes/new",
     "/resumes/versions/new",
     "/cover-letters",
     "/cover-letters/new",
-    "/latex",
     "/profile",
     "/documentation",
     "/documentation/getting-started",
@@ -47,13 +47,17 @@ test("application list, filters, and local detail tabs remain reachable", async 
   const applicationId = await fixtureId();
   await page.goto(`/applications?id=${applicationId}`);
 
-  await expect(page.getByRole("tablist", { name: "Application scope" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Application scope" })).toBeVisible();
   await expect(page.getByLabel("Search applications")).toBeVisible();
+  await expect(page.getByLabel("Application status")).toBeVisible();
   await expect(page.getByRole("navigation", { name: "Application details" })).toBeVisible();
   await page.getByRole("button", { name: "Job post" }).click();
   await expect(page).toHaveURL(/view=job-description/);
   await page.getByRole("button", { name: "Overview" }).click();
   await expect(page.getByText("Submitted files")).toBeVisible();
+  await page.getByRole("link", { name: "Manage application package" }).click();
+  await expect(page).toHaveURL(new RegExp(`/applications/${applicationId}/package$`));
+  await expect(page.getByRole("heading", { name: "Application package" })).toBeVisible();
 });
 
 test("Maxwell is a full route with history, context, and streaming chat", async ({ page }) => {

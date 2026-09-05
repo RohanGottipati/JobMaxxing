@@ -33,7 +33,7 @@ import {
   type ResumeVersion,
 } from "@/lib/applications/package-types";
 import { formatDateTime } from "@/lib/applications/status";
-import { documentWorkspaceHref } from "@/lib/latex/types";
+import { documentWorkspaceHref } from "@/lib/documents/types";
 
 type ApplicationPackageSectionProps = {
   applicationId: string;
@@ -70,7 +70,7 @@ export function ApplicationPackageSection({
       <CardHeader className="border-b border-border bg-parchment/35">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <CardTitle>Application package</CardTitle>
+            <CardTitle><h2>Application package</h2></CardTitle>
             <CardDescription>
               Save the exact resume and cover letter you submitted for this role.
             </CardDescription>
@@ -92,7 +92,7 @@ export function ApplicationPackageSection({
             isSubmitted: version.id === submittedResumeVersionId,
             hasBeenSubmitted: Boolean(version.submitted_at),
             submittedAt: version.submitted_at,
-            href: documentWorkspaceHref("resume_version", version.id, version.content_format),
+            href: documentWorkspaceHref("resume_version", version.id),
           }))}
           submitAction={markResumeVersionSubmittedAction}
           duplicateAction={duplicateResumeVersionAction}
@@ -111,7 +111,7 @@ export function ApplicationPackageSection({
             isSubmitted: letter.id === submittedCoverLetterId,
             hasBeenSubmitted: Boolean(letter.submitted_at),
             submittedAt: letter.submitted_at,
-            href: documentWorkspaceHref("cover_letter", letter.id, letter.content_format),
+            href: documentWorkspaceHref("cover_letter", letter.id),
           }))}
           submitAction={markCoverLetterSubmittedAction}
           duplicateAction={duplicateCoverLetterAction}

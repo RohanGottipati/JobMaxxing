@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { AlertTriangle, Download, Eye, Lock } from "lucide-react";
+import { Download, Eye, Lock } from "lucide-react";
 
 import {
   PreviewEmpty,
@@ -10,7 +10,6 @@ import {
   PreviewLoading,
 } from "@/components/previews/preview-states";
 import {
-  PreviewLatexSourceView,
   PreviewMarkdownView,
   PreviewPlainTextView,
 } from "@/components/previews/preview-text-views";
@@ -84,9 +83,6 @@ function ViewBody({
         <ResumePrintDocument model={view.model} />
       </div>
     );
-  }
-  if (view.type === "latex") {
-    return <PreviewLatexSourceView source={view.source} engine={view.engine} />;
   }
   if (view.type === "markdown") {
     return <PreviewMarkdownView text={view.text} />;
@@ -178,16 +174,6 @@ export function DocumentPreviewDialog({
             {descriptor?.subtitle ?? "Preview this document without leaving the page."}
           </DialogDescription>
         </DialogHeader>
-
-        {descriptor?.staleCompiledOutput ? (
-          <p className="flex items-start gap-2 rounded-lg border border-amber-500/40 bg-amber-500/[0.06] px-3 py-2 text-xs leading-5">
-            <AlertTriangle aria-hidden className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-            <span>
-              The stored PDF is from an older source revision. Open the project in Overleaf,
-              export a current PDF, and attach it to this document.
-            </span>
-          </p>
-        ) : null}
 
         {loading ? <PreviewLoading /> : null}
 

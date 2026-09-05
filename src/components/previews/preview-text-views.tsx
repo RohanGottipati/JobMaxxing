@@ -7,8 +7,6 @@ import {
   parseMarkdownBlocks,
   type MarkdownSpan,
 } from "@/lib/previews/markdown";
-import { LATEX_ENGINE_LABELS } from "@/lib/latex/constants";
-import type { LatexEngine } from "@/types/database";
 
 const PAPER_CLASSES =
   "mx-auto w-full max-w-[8.5in] bg-white p-[0.9in] text-neutral-900 shadow-lg";
@@ -143,27 +141,6 @@ export function PreviewPlainTextView({
       <article className={`${PAPER_CLASSES} leading-relaxed whitespace-pre-wrap`}>
         {text}
       </article>
-    </div>
-  );
-}
-
-export function PreviewLatexSourceView({
-  source,
-  engine,
-}: {
-  source: string;
-  engine: LatexEngine;
-}) {
-  if (!source.trim()) return <PreviewEmpty title="This document has no source yet" />;
-
-  return (
-    <div className="grid gap-2">
-      <p className="text-xs text-muted-foreground">
-        LaTeX source · compiles with {LATEX_ENGINE_LABELS[engine]}
-      </p>
-      <pre className="max-h-[min(70dvh,44rem)] overflow-auto overscroll-contain rounded-lg border border-border bg-parchment/40 p-4 font-mono text-xs leading-5">
-        {source}
-      </pre>
     </div>
   );
 }

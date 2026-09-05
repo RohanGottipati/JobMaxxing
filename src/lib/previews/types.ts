@@ -1,5 +1,4 @@
 import type { ResumeRenderModel } from "@/lib/resumes/render-model";
-import type { LatexEngine } from "@/types/database";
 
 export const PREVIEW_KINDS = [
   "master_resume",
@@ -19,7 +18,7 @@ export function isPreviewKind(value: string): value is PreviewKind {
  * Binary views point at `/api/previews/[kind]/[id]/file`, which streams the
  * private object through the app instead of handing out a storage URL.
  */
-export type PreviewBinaryTarget = "attachment" | "compiled";
+export type PreviewBinaryTarget = "attachment";
 
 export type PreviewView =
   | {
@@ -45,13 +44,6 @@ export type PreviewView =
       model: ResumeRenderModel;
     }
   | {
-      type: "latex";
-      id: string;
-      label: string;
-      source: string;
-      engine: LatexEngine;
-    }
-  | {
       type: "markdown";
       id: string;
       label: string;
@@ -74,11 +66,6 @@ export type PreviewDownload = {
   href: string;
 };
 
-/**
- * `staleCompiledOutput` is set when a LaTeX document has a stored PDF that was
- * produced from an older source revision, so the dialog can warn instead of
- * silently showing outdated output.
- */
 export type DocumentPreviewDescriptor = {
   kind: PreviewKind;
   id: string;
@@ -88,7 +75,7 @@ export type DocumentPreviewDescriptor = {
   locked: boolean;
   views: PreviewView[];
   downloads: PreviewDownload[];
-  staleCompiledOutput: { compiledAt: string | null } | null;
+  staleCompiledOutput: null;
 };
 
 export function previewDescriptorPath(kind: PreviewKind, id: string) {

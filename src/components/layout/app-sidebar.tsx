@@ -52,7 +52,7 @@ const navigation = [
     href: "/resumes",
     icon: Files,
     label: "Documents",
-    matches: ["/resumes", "/cover-letters", "/latex"],
+    matches: ["/resumes", "/cover-letters"],
   },
 ] as const;
 
@@ -106,7 +106,7 @@ export function AppSidebar({
             collapsed ? "px-2" : "px-3",
           )}
         >
-          <SidebarMenu>
+          <SidebarMenu className={cn(collapsed && "items-center")}>
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild

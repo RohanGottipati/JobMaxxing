@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { deleteMasterResumeAction, duplicateMasterResumeAction, setDefaultResumeAction, updateMasterResumeAction } from "@/app/(app)/documents/actions";
 import { DocumentEditor } from "@/components/documents/document-editor";
@@ -15,7 +15,6 @@ export default async function MasterResumePage({ params, searchParams }: { param
   const [{ id }, state, user] = await Promise.all([params, searchParams, requireCurrentUser()]);
   const resume = await getMasterResume(id);
   if (!resume) notFound();
-  if (resume.content_format === "latex") redirect(`/latex/master_resume/${id}`);
   if (resume.editor_mode === "structured") {
     const structured = await getStructuredResume("master", id);
     if (!structured) notFound();

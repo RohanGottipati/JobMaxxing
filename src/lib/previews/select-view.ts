@@ -6,7 +6,6 @@ const VIEW_PRIORITY: Record<PreviewView["type"], number> = {
   docx: 3,
   markdown: 4,
   plain_text: 5,
-  latex: 6,
 };
 
 function viewPriority(view: PreviewView) {

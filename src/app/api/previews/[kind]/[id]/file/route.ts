@@ -5,7 +5,6 @@ import { getPreviewBinary } from "@/lib/previews/repository";
 import { PREVIEW_KINDS } from "@/lib/previews/types";
 
 const kindSchema = z.enum(PREVIEW_KINDS);
-const targetSchema = z.enum(["attachment", "compiled"]);
 
 /**
  * Private objects are streamed through the app rather than exposed as storage
@@ -21,10 +20,9 @@ export async function GET(
     z.uuid().parse(id);
 
     const url = new URL(request.url);
-    const target = targetSchema.parse(url.searchParams.get("target") ?? "attachment");
     const asDownload = url.searchParams.get("download") === "1";
 
-    const file = await getPreviewBinary(parsedKind, id, target);
+    const file = await getPreviewBinary(parsedKind, id);
     if (!file) {
       return apiError("NOT_FOUND", "This file is no longer available.", 404);
     }

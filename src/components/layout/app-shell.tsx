@@ -22,7 +22,6 @@ const routeLabels: Array<[string, string]> = [
   ["/dashboard", "Home"],
   ["/applications/new", "New application"],
   ["/applications", "Applications"],
-  ["/latex", "LaTeX"],
   ["/resumes/versions/new", "New tailored resume"],
   ["/resumes/versions", "Tailored resume"],
   ["/resumes/new", "New master resume"],
@@ -38,7 +37,7 @@ const routeLabels: Array<[string, string]> = [
 export function AppShell({ children, user, onboardingIncomplete = false }: AppShellProps) {
   const pathname = usePathname();
   const applicationsWorkspace = pathname === "/applications";
-  const documentsWorkspace = ["/resumes", "/cover-letters", "/latex"].some(
+  const documentsWorkspace = ["/resumes", "/cover-letters"].some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
   const title = pathname.match(/^\/applications\/[^/]+\/match(?:\/|$)/)
@@ -60,7 +59,6 @@ export function AppShell({ children, user, onboardingIncomplete = false }: AppSh
               <nav aria-label="Documents" className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto sm:ml-3">
                 <DocumentNavLink href="/resumes" active={pathname.startsWith("/resumes")}>Resumes</DocumentNavLink>
                 <DocumentNavLink href="/cover-letters" active={pathname.startsWith("/cover-letters")}>Cover letters</DocumentNavLink>
-                <DocumentNavLink href="/latex" active={pathname.startsWith("/latex")}>LaTeX</DocumentNavLink>
               </nav>
             ) : (
               <div className="flex-1" />

@@ -8,7 +8,6 @@ import type { DocumentContentFormat } from "@/types/database";
 const formats: Record<DocumentContentFormat, { extension: string; mime: string }> = {
   plain_text: { extension: "txt", mime: "text/plain; charset=utf-8" },
   markdown: { extension: "md", mime: "text/markdown; charset=utf-8" },
-  latex: { extension: "tex", mime: "application/x-tex; charset=utf-8" },
 };
 
 function fileName(title: string, extension: string) {

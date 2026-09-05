@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   ArrowLeft,
   Building2,
@@ -10,27 +10,42 @@ import {
   Clock,
   ExternalLink,
   FileText,
+  Loader2,
   MapPin,
   NotebookPen,
   Paperclip,
   Pencil,
   UserRound,
 } from "lucide-react";
+import { toast } from "sonner";
 
-import { getApplicationDetails } from "@/app/(app)/applications/actions";
+import {
+  getApplicationDetails,
+  updateApplicationStatusAction,
+} from "@/app/(app)/applications/actions";
 import {
   MAILBOX_VIEWS,
   type MailboxView,
 } from "@/components/applications/application-mailbox-constants";
-import { StatusBadge } from "@/components/applications/status-badge";
 import { DocumentOpenLink } from "@/components/documents/document-open-link";
 import { DocumentPreviewButton } from "@/components/previews/document-preview-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { documentWorkspaceHref } from "@/lib/latex/types";
-import type { JobApplication } from "@/lib/applications/types";
-import { formatDate, formatDateTime } from "@/lib/applications/status";
+import { documentWorkspaceHref } from "@/lib/documents/types";
+import {
+  formatDate,
+  formatDateTime,
+  statusAccents,
+  statusLabels,
+} from "@/lib/applications/status";
+import {
+  applicationStatuses,
+  type ApplicationStatus,
+  type JobApplication,
+} from "@/lib/applications/types";
+import { cn } from "@/lib/utils";
 
 type Details = Awaited<ReturnType<typeof getApplicationDetails>>;
 
@@ -149,7 +164,10 @@ function LoadedApplicationReadingPane({
             ) : null}
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status={application.status} />
+                <ApplicationStatusSelect
+                  applicationId={application.id}
+                  initialStatus={application.status}
+                />
                 {application.recruitingSeason ? <Badge variant="secondary">{application.recruitingSeason}</Badge> : null}
                 {application.sourceHost ? <Badge variant="outline">From {application.sourceHost}</Badge> : null}
               </div>
@@ -187,7 +205,7 @@ function LoadedApplicationReadingPane({
               submittedResume={submittedResume}
             />
             <Link
-              href={`/applications/${application.id}/edit`}
+              href={`/applications/${application.id}/package`}
               className={buttonVariants({ variant: "outline", size: "sm", className: "w-fit" })}
             >
               Manage application package
@@ -228,6 +246,67 @@ function LoadedApplicationReadingPane({
   );
 }
 
+function ApplicationStatusSelect({
+  applicationId,
+  initialStatus,
+}: {
+  applicationId: string;
+  initialStatus: ApplicationStatus;
+}) {
+  const [status, setStatus] = useState(initialStatus);
+  const [isPending, startTransition] = useTransition();
+
+  function updateStatus(nextStatus: ApplicationStatus) {
+    if (nextStatus === status || isPending) return;
+
+    const previousStatus = status;
+    setStatus(nextStatus);
+    startTransition(async () => {
+      try {
+        const result = await updateApplicationStatusAction({
+          applicationId,
+          status: nextStatus,
+        });
+        if (!result.ok) {
+          setStatus(previousStatus);
+          toast.error(result.message);
+          return;
+        }
+        setStatus(result.status);
+        toast.success(`Status changed to ${statusLabels[result.status]}.`);
+      } catch {
+        setStatus(previousStatus);
+        toast.error("Could not update the application status.");
+      }
+    });
+  }
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <Select
+        aria-label="Application status"
+        value={status}
+        disabled={isPending}
+        onChange={(event) => updateStatus(event.target.value as ApplicationStatus)}
+        className={cn(
+          "h-7 w-36 max-w-full min-w-0 rounded-full px-2.5 text-xs font-semibold shadow-none",
+          statusAccents[status].badge,
+        )}
+      >
+        {applicationStatuses.map((item) => (
+          <option key={item} value={item}>{statusLabels[item]}</option>
+        ))}
+      </Select>
+      {isPending ? (
+        <Loader2
+          aria-label="Updating status"
+          className="size-3.5 animate-spin text-muted-foreground"
+        />
+      ) : null}
+    </div>
+  );
+}
+
 function OverviewSection({
   application,
   submittedCoverLetter,
@@ -255,7 +334,7 @@ function OverviewSection({
             <h3 className="flex items-center gap-2 text-sm font-semibold"><Paperclip aria-hidden className="size-4" />Submitted files</h3>
             <p className="mt-1 text-xs text-muted-foreground">What you sent for this application.</p>
           </div>
-          <Link href={`/applications/${application.id}/edit`} className={buttonVariants({ variant: "ghost", size: "sm" })}>Manage</Link>
+          <Link href={`/applications/${application.id}/package`} className={buttonVariants({ variant: "ghost", size: "sm" })}>Manage</Link>
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           <PackageDocumentLink
@@ -379,7 +458,7 @@ function DocumentVersions({
 
 function DocumentHeader({ kind, item }: { kind: "resume_version" | "cover_letter"; item: DocumentItem }) {
   const submittedLabel = safeFormatDate(item.submitted_at);
-  const href = documentWorkspaceHref(kind, item.id, item.content_format ?? "plain_text");
+  const href = documentWorkspaceHref(kind, item.id);
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">

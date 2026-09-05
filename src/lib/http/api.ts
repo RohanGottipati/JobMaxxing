@@ -7,6 +7,12 @@ export function apiError(code: ApiErrorCode, message: string, status: number, ex
   return NextResponse.json({ error: { code, message, ...extra } }, { status });
 }
 
+export function databaseErrorCode(error: unknown) {
+  return error && typeof error === "object" && "code" in error && typeof error.code === "string"
+    ? error.code
+    : null;
+}
+
 export function routeError(error: unknown) {
   if (error instanceof ZodError) return apiError("VALIDATION", "The request contains invalid fields.", 400, { fieldErrors: error.flatten().fieldErrors });
   const message = error instanceof Error
@@ -14,9 +20,7 @@ export function routeError(error: unknown) {
     : error && typeof error === "object" && "message" in error && typeof error.message === "string"
       ? error.message
       : "Unexpected request failure.";
-  const databaseCode = error && typeof error === "object" && "code" in error && typeof error.code === "string"
-    ? error.code
-    : null;
+  const databaseCode = databaseErrorCode(error);
   if (/DUPLICATE_DESCRIPTION:/i.test(message)) {
     const [, company, role] = message.split(":");
     return apiError(

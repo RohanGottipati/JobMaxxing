@@ -11,8 +11,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { CoverLetterItem, MasterResumeItem, TailoredResumeItem } from "@/lib/documents/types";
-import { documentWorkspaceHref } from "@/lib/latex/types";
+import { documentWorkspaceHref, type CoverLetterItem, type MasterResumeItem, type TailoredResumeItem } from "@/lib/documents/types";
 import { cn } from "@/lib/utils";
 
 const documentDateFormatter = new Intl.DateTimeFormat("en", {
@@ -110,7 +109,7 @@ function DocumentRow({ item, kind }: { item: MasterResumeItem | TailoredResumeIt
   const master = kind === "master_resume" ? item as MasterResumeItem : null;
   const version = kind !== "master_resume" ? item as TailoredResumeItem | CoverLetterItem : null;
   const title = master?.name || version?.title || `${kind === "cover_letter" ? "Cover letter" : "Resume"} v${version?.version_number}`;
-  const href = documentWorkspaceHref(kind, item.id, item.content_format);
+  const href = documentWorkspaceHref(kind, item.id);
   const Icon = kind === "master_resume" ? Files : kind === "resume_version" ? FileCheck2 : FileText;
 
   return (
@@ -121,7 +120,6 @@ function DocumentRow({ item, kind }: { item: MasterResumeItem | TailoredResumeIt
           <h2 className="truncate text-sm font-semibold">{title}</h2>
           {master?.is_default ? <Badge className="bg-primary/12 text-primary hover:bg-primary/12"><Star aria-hidden className="mr-1 size-3" />Default</Badge> : null}
           {version?.submitted_at ? <Badge className="bg-success/12 text-success hover:bg-success/12">Submitted</Badge> : null}
-          {item.content_format === "latex" ? <Badge variant="outline">LaTeX</Badge> : null}
           {item.file_path ? <Badge variant="outline"><UploadCloud aria-hidden className="mr-1 size-3" />File</Badge> : null}
         </div>
         <p className="mt-1 truncate text-xs text-muted-foreground">

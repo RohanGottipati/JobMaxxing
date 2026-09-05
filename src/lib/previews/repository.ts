@@ -2,8 +2,6 @@ import "server-only";
 
 import { getCanonicalCareerProfile } from "@/lib/career/repository";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
-import { LATEX_BUCKET } from "@/lib/latex/constants";
-import { isCompiledOutputFresh } from "@/lib/latex/compile-freshness";
 import { selectPreviewViews } from "@/lib/previews/select-view";
 import type {
   DocumentPreviewDescriptor,
@@ -16,7 +14,7 @@ import { previewBinaryPath } from "@/lib/previews/types";
 import { createResumeRenderModel } from "@/lib/resumes/render-model";
 import { resumeDocumentV1Schema } from "@/lib/resumes/schema";
 import { createClient } from "@/lib/supabase/server";
-import type { DocumentContentFormat, LatexEngine } from "@/types/database";
+import type { DocumentContentFormat } from "@/types/database";
 
 const PDF_MIME_TYPE = "application/pdf";
 const DOCX_MIME_TYPE =
@@ -70,18 +68,8 @@ function attachmentView(
 function textView(
   format: DocumentContentFormat,
   content: string,
-  engine: LatexEngine | null,
   layout: "page" | "monospace",
 ): PreviewView {
-  if (format === "latex") {
-    return {
-      type: "latex",
-      id: "source-latex",
-      label: "LaTeX source",
-      source: content,
-      engine: engine ?? "pdflatex",
-    };
-  }
   if (format === "markdown") {
     return { type: "markdown", id: "source-markdown", label: "Rendered", text: content };
   }
@@ -93,7 +81,7 @@ function sourceDownload(
   id: string,
   format: DocumentContentFormat,
 ): PreviewDownload {
-  const extension = format === "latex" ? ".tex" : format === "markdown" ? ".md" : ".txt";
+  const extension = format === "markdown" ? ".md" : ".txt";
   return {
     id: "source",
     label: `Download ${extension}`,
@@ -110,10 +98,6 @@ type DocumentRow = {
   content: string | null;
   contentFormat: DocumentContentFormat;
   filePath: string | null;
-  latexEngine: LatexEngine | null;
-  compiledPdfPath: string | null;
-  compiledRowVersion: number | null;
-  compiledAt: string | null;
   rowVersion: number;
   structuredContent: unknown;
   editorMode: "legacy" | "structured";
@@ -143,10 +127,6 @@ async function readDocumentRow(
       content: data.content,
       contentFormat: data.content_format,
       filePath: data.file_path,
-      latexEngine: data.latex_engine,
-      compiledPdfPath: data.compiled_pdf_path,
-      compiledRowVersion: data.compiled_row_version,
-      compiledAt: data.compiled_at,
       rowVersion: data.row_version,
       structuredContent: data.structured_content,
       editorMode: data.editor_mode,
@@ -174,10 +154,6 @@ async function readDocumentRow(
       content: data.content,
       contentFormat: data.content_format,
       filePath: data.file_path,
-      latexEngine: data.latex_engine,
-      compiledPdfPath: data.compiled_pdf_path,
-      compiledRowVersion: data.compiled_row_version,
-      compiledAt: data.compiled_at,
       rowVersion: data.row_version,
       structuredContent: data.structured_content,
       editorMode: data.editor_mode,
@@ -204,10 +180,6 @@ async function readDocumentRow(
     content: data.content,
     contentFormat: data.content_format,
     filePath: data.file_path,
-    latexEngine: data.latex_engine,
-    compiledPdfPath: data.compiled_pdf_path,
-    compiledRowVersion: data.compiled_row_version,
-    compiledAt: data.compiled_at,
     rowVersion: data.row_version,
     structuredContent: null,
     editorMode: "legacy",
@@ -223,16 +195,6 @@ async function documentDescriptor(
 
   const views: PreviewView[] = [];
   const downloads: PreviewDownload[] = [];
-  const isLatex = row.contentFormat === "latex";
-  const compiledIsStale =
-    isLatex &&
-    !row.filePath &&
-    Boolean(row.compiledPdfPath) &&
-    !isCompiledOutputFresh({
-      compiledRowVersion: row.compiledRowVersion,
-      rowVersion: row.rowVersion,
-    });
-
   if (row.editorMode === "structured" && row.structuredContent) {
     const [document, profile] = await Promise.all([
       Promise.resolve(resumeDocumentV1Schema.parse(row.structuredContent)),
@@ -244,27 +206,11 @@ async function documentDescriptor(
       label: "Resume",
       model: createResumeRenderModel(document, profile),
     });
-  } else if (isLatex && row.compiledPdfPath) {
-    views.push({
-      type: "pdf",
-      id: "compiled-pdf",
-      label: "Compiled PDF",
-      fileName: `${row.title || "document"}.pdf`,
-      target: "compiled",
-      sizeBytes: null,
-    });
-    views.push(textView(row.contentFormat, row.content ?? "", row.latexEngine, "page"));
-    downloads.push({
-      id: "compiled",
-      label: "Download PDF",
-      href: previewBinaryPath(kind, id, "compiled", { download: true }),
-    });
   } else if (row.content) {
     views.push(
       textView(
         row.contentFormat,
         row.content,
-        row.latexEngine,
         kind === "cover_letter" ? "page" : "monospace",
       ),
     );
@@ -293,7 +239,7 @@ async function documentDescriptor(
     locked: row.locked,
     views: selectPreviewViews({ views }),
     downloads,
-    staleCompiledOutput: compiledIsStale ? { compiledAt: row.compiledAt } : null,
+    staleCompiledOutput: null,
   };
 }
 
@@ -447,7 +393,6 @@ type PreviewBinary = {
 async function readStoredPath(
   kind: PreviewKind,
   id: string,
-  target: PreviewBinaryTarget,
 ): Promise<{ bucket: string; path: string; fileName: string } | null> {
   const { supabase, userId } = await context();
 
@@ -482,15 +427,6 @@ async function readStoredPath(
   const row = await readDocumentRow(kind, id);
   if (!row) return null;
 
-  if (target === "compiled") {
-    if (!row.compiledPdfPath) return null;
-    return {
-      bucket: LATEX_BUCKET,
-      path: row.compiledPdfPath,
-      fileName: `${row.title || "document"}.pdf`,
-    };
-  }
-
   if (!row.filePath) return null;
   return {
     bucket: DOCUMENT_BUCKET,
@@ -502,9 +438,8 @@ async function readStoredPath(
 export async function getPreviewBinary(
   kind: PreviewKind,
   id: string,
-  target: PreviewBinaryTarget,
 ): Promise<PreviewBinary | null> {
-  const stored = await readStoredPath(kind, id, target);
+  const stored = await readStoredPath(kind, id);
   if (!stored) return null;
 
   const { supabase, userId } = await context();

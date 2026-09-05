@@ -30,10 +30,7 @@ import {
 import type { DocumentKind } from "@/lib/documents/types";
 import { RESUME_TEMPLATE_IDS } from "@/lib/resumes/schema";
 import { createStructuredMasterResume } from "@/lib/resumes/repository";
-import { createLatexDocument } from "@/lib/latex/repository";
-import { resolveLatexCreateSource } from "@/lib/latex/create";
-import { LATEX_DOCUMENT_KINDS, MAX_LATEX_SOURCE_LENGTH } from "@/lib/latex/constants";
-import { documentWorkspaceHref, latexOverleafHref } from "@/lib/latex/types";
+import { documentWorkspaceHref } from "@/lib/documents/types";
 import { updateOnboardingStatus } from "@/lib/onboarding/repository";
 
 const requiredTitle = z.string().trim().min(1).max(160);
@@ -56,7 +53,6 @@ function revalidateDocumentSurfaces() {
   revalidatePath("/applications");
   revalidatePath("/resumes");
   revalidatePath("/cover-letters");
-  revalidatePath("/latex");
 }
 
 export async function createMasterResumeAction(formData: FormData) {
@@ -67,7 +63,7 @@ export async function createMasterResumeAction(formData: FormData) {
 
   const resume = await createMasterResume(parsed.data);
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("master_resume", resume.id, resume.content_format));
+  redirect(documentWorkspaceHref("master_resume", resume.id));
 }
 
 export async function createStructuredMasterResumeAction(formData: FormData) {
@@ -105,7 +101,7 @@ export async function setDefaultResumeAction(id: string) {
 export async function duplicateMasterResumeAction(id: string) {
   const duplicate = await duplicateMasterResume(id);
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("master_resume", duplicate.id, duplicate.content_format));
+  redirect(documentWorkspaceHref("master_resume", duplicate.id));
 }
 
 export async function deleteMasterResumeAction(id: string) {
@@ -154,7 +150,7 @@ export async function createTailoredResumeAction(formData: FormData) {
       : {}),
   });
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("resume_version", version.id, version.content_format));
+  redirect(documentWorkspaceHref("resume_version", version.id));
 }
 
 export async function updateTailoredResumeAction(id: string, formData: FormData) {
@@ -183,7 +179,7 @@ export async function updateTailoredResumeAction(id: string, formData: FormData)
 export async function duplicateTailoredResumeAction(id: string) {
   const duplicate = await duplicateResumeVersion(id);
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("resume_version", duplicate.id, duplicate.content_format));
+  redirect(documentWorkspaceHref("resume_version", duplicate.id));
 }
 
 export async function submitTailoredResumeAction(id: string) {
@@ -219,7 +215,7 @@ export async function createCoverLetterAction(formData: FormData) {
     job_description_snapshot: application.jobDescription,
   });
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("cover_letter", letter.id, letter.content_format));
+  redirect(documentWorkspaceHref("cover_letter", letter.id));
 }
 
 export async function updateCoverLetterAction(id: string, formData: FormData) {
@@ -236,7 +232,7 @@ export async function updateCoverLetterAction(id: string, formData: FormData) {
 export async function duplicateCoverLetterDocumentAction(id: string) {
   const duplicate = await duplicateCoverLetter(id);
   revalidateDocumentSurfaces();
-  redirect(documentWorkspaceHref("cover_letter", duplicate.id, duplicate.content_format));
+  redirect(documentWorkspaceHref("cover_letter", duplicate.id));
 }
 
 export async function submitCoverLetterDocumentAction(id: string) {
@@ -267,62 +263,6 @@ export async function attachDocumentFileAction(
       message: error instanceof Error ? error.message : "Could not attach file.",
     };
   }
-}
-
-export async function createLatexDocumentAction(formData: FormData) {
-  const kindParsed = z.enum(LATEX_DOCUMENT_KINDS).safeParse(text(formData, "kind"));
-  if (!kindParsed.success) redirect("/latex?error=invalid");
-  const kind = kindParsed.data;
-  const rawErrorHref = text(formData, "error_href");
-  const failBase =
-    rawErrorHref.startsWith("/") && !rawErrorHref.startsWith("//")
-      ? rawErrorHref
-      : kind === "master_resume"
-        ? "/resumes/new?mode=latex"
-        : kind === "resume_version"
-          ? "/resumes/versions/new?mode=latex"
-          : "/cover-letters/new?mode=latex";
-  const withError = (code: string) => {
-    const url = new URL(failBase, "https://jobmaxxing.local");
-    url.searchParams.set("error", code);
-    return `${url.pathname}${url.search}`;
-  };
-
-  const title = requiredTitle.safeParse(text(formData, kind === "master_resume" ? "name" : "title"));
-  if (!title.success) redirect(withError("invalid"));
-
-  const applicationId = optionalId.safeParse(text(formData, "application_id"));
-  const baseResumeId = optionalId.safeParse(text(formData, "base_resume_id"));
-  if (!applicationId.success || !baseResumeId.success) redirect(withError("invalid"));
-
-  if (kind !== "master_resume") {
-    if (!applicationId.data) redirect(withError("application"));
-    const application = await getApplicationById(applicationId.data);
-    if (!application) redirect(withError("application"));
-  }
-
-  const uploaded = formData.get("tex_file");
-  let pasted = text(formData, "source");
-  if (uploaded instanceof File && uploaded.size > 0) {
-    if (uploaded.size > MAX_LATEX_SOURCE_LENGTH) redirect(withError("invalid"));
-    pasted = await uploaded.text();
-  }
-
-  const resolved = resolveLatexCreateSource({
-    kind,
-    templateId: text(formData, "template_id") || null,
-    pastedSource: pasted || null,
-  });
-  const created = await createLatexDocument({
-    kind,
-    title: title.data,
-    source: resolved.source,
-    engine: resolved.engine,
-    applicationId: applicationId.data,
-    baseResumeId: baseResumeId.data,
-  });
-  revalidateDocumentSurfaces();
-  redirect(latexOverleafHref(created.kind, created.id));
 }
 
 export async function removeDocumentFileAction(kind: DocumentKind, id: string) {

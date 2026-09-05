@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import {
   createApplication as createApplicationRecord,
@@ -20,6 +21,7 @@ import {
 } from "@/lib/applications/packages";
 import { getApplicationById } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
+import { applicationStatuses } from "@/lib/applications/types";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
 import {
   isOwnedApplicationPackagePath,
@@ -201,6 +203,30 @@ export async function updateApplication(formData: FormData) {
   redirect(`/applications?id=${id}`);
 }
 
+const applicationStatusUpdateSchema = z.object({
+  applicationId: z.string().uuid(),
+  status: z.enum(applicationStatuses),
+});
+
+export async function updateApplicationStatusAction(input: unknown) {
+  const parsed = applicationStatusUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, message: "Choose a valid application status." };
+  }
+
+  try {
+    const application = await updateApplicationRecord(parsed.data.applicationId, {
+      status: parsed.data.status,
+    });
+    revalidatePath("/applications");
+    revalidatePath(`/applications/${application.id}`);
+    revalidatePath(`/applications/${application.id}/package`);
+    return { ok: true as const, status: application.status };
+  } catch {
+    return { ok: false as const, message: "Could not update the application status." };
+  }
+}
+
 export async function deleteApplication(formData: FormData) {
   const id = readApplicationId(formData);
   await deleteApplicationRecord(id);
@@ -222,8 +248,8 @@ export async function reorderApplicationsAction(
 }
 
 /**
- * Loads everything saved for one application — core details plus the exact resume
- * versions and cover letters tracked against it — to populate the board's detail drawer.
+ * Loads one application's core details plus its exact resume versions and cover
+ * letters for the selected-application workspace.
  */
 export async function getApplicationDetails(id: string) {
   const application = await getApplicationById(id);
@@ -253,6 +279,7 @@ export async function addResumeVersion(formData: FormData) {
   });
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
 }
 
 export async function markResumeVersionSubmittedAction(formData: FormData) {
@@ -263,6 +290,7 @@ export async function markResumeVersionSubmittedAction(formData: FormData) {
   }
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
   revalidatePath("/applications");
 }
 
@@ -274,6 +302,7 @@ export async function duplicateResumeVersionAction(formData: FormData) {
   }
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
 }
 
 export async function addCoverLetter(formData: FormData) {
@@ -285,6 +314,7 @@ export async function addCoverLetter(formData: FormData) {
   });
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
 }
 
 export async function markCoverLetterSubmittedAction(formData: FormData) {
@@ -295,6 +325,7 @@ export async function markCoverLetterSubmittedAction(formData: FormData) {
   }
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
   revalidatePath("/applications");
 }
 
@@ -306,4 +337,5 @@ export async function duplicateCoverLetterAction(formData: FormData) {
   }
 
   revalidatePath(`/applications/${applicationId}`);
+  revalidatePath(`/applications/${applicationId}/package`);
 }

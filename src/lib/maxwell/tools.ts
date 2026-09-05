@@ -52,7 +52,7 @@ const statusSchema = z.enum([
   "rejected",
   "withdrawn",
 ]);
-const formatSchema = z.enum(["plain_text", "markdown", "latex"]);
+const formatSchema = z.enum(["plain_text", "markdown"]);
 const evidenceSchema = z.string().max(500).default("");
 const optionalText = z.string().max(100_000).optional();
 const optionalShortText = z.string().max(500).optional();
@@ -173,7 +173,7 @@ type ToolName = keyof typeof schemas;
 const documentProperties = {
   title: { type: "string", description: "Document title, maximum 160 characters." },
   content: { type: "string", description: "Complete editable document source." },
-  content_format: { type: "string", enum: ["plain_text", "markdown", "latex"] },
+  content_format: { type: "string", enum: ["plain_text", "markdown"] },
   attachment_id: { type: "string", description: "ID of an uploaded PDF or DOCX to attach." },
   unsupported_claims: {
     type: "array",
@@ -318,7 +318,7 @@ export const MAXWELL_TOOL_DECLARATIONS: FunctionDeclaration[] = [
         document_id: { type: "string" },
         title: { type: "string" },
         content: { type: "string" },
-        content_format: { type: "string", enum: ["plain_text", "markdown", "latex"] },
+        content_format: { type: "string", enum: ["plain_text", "markdown"] },
         unsupported_claims: { type: "array", items: { type: "string" } },
         ...writeEvidence,
       },

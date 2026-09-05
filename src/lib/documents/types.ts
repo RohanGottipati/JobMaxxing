@@ -10,6 +10,10 @@ export type DocumentKind =
   | "resume_version"
   | "cover_letter";
 
+export function documentWorkspaceHref(kind: DocumentKind, id: string) {
+  return kind === "master_resume" ? `/resumes/${id}` : kind === "resume_version" ? `/resumes/versions/${id}` : `/cover-letters/${id}`;
+}
+
 export type ApplicationOption = {
   id: string;
   companyName: string;

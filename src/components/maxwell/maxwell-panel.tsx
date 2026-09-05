@@ -723,7 +723,7 @@ export function MaxwellPanel({
                     <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted-foreground">Drop in a job description, resume, and cover letter—or ask Maxwell anything about your workspace.</p>
                   </div>
                   <div className="grid gap-2 text-left sm:grid-cols-3">
-                    {["Which applications are missing documents?", "Assess my tailored resume for this job", "Create a LaTeX resume for this role"].map((prompt, index) => (
+                    {["Which applications are missing documents?", "Assess my tailored resume for this job"].map((prompt, index) => (
                       <Button
                         key={prompt}
                         type="button"
