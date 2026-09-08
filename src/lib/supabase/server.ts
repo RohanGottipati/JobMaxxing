@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import { supabaseCookieOptions } from "@/lib/supabase/cookie-options";
 import { supabaseServerFetch } from "@/lib/supabase/server-fetch";
 import type { Database } from "@/types/database";
 
@@ -14,6 +15,7 @@ export async function createClient() {
     publishableKey,
     {
       global: { fetch: supabaseServerFetch },
+      cookieOptions: supabaseCookieOptions(),
       cookies: {
         getAll() {
           return cookieStore.getAll();
