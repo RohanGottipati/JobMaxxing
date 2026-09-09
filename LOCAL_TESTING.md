@@ -11,12 +11,12 @@ Extension side of the same workflow: [`../extension/LOCAL_TESTING.md`](../extens
 
 | File | Local value | Deployed value |
 |------|-------------|----------------|
-| `web/.env` → `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://jobmaxxing.app` |
+| `web/.env` → `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://job-maxxing.vercel.app` |
 
 `.env` already carries the reminder:
 
 ```
-# LOCAL TESTING — revert to https://jobmaxxing.app before deploying
+# LOCAL TESTING — revert to https://job-maxxing.vercel.app before deploying
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
@@ -70,12 +70,12 @@ This single var drives two things, which is why it must be correct per
 environment:
 
 1. **Canonical URLs / metadata / sitemap** — `src/lib/site.ts` falls back to
-   `https://jobmaxxing.app` if unset.
+   `https://job-maxxing.vercel.app` if unset.
 2. **Auth cookie domain** — `src/lib/supabase/cookie-options.ts`
    (`resolveCookieDomain`) derives the cookie scope from it:
    - `http://localhost:3000` → cookie stays **host-only** (correct for local).
-   - `https://jobmaxxing.app` → cookie scoped to `jobmaxxing.app` so apex/www
-     share one session.
+   - `https://job-maxxing.vercel.app` → cookie scoped to `job-maxxing.vercel.app`
+     so the app host and its subdomains share one session.
 
 If you leave the deployed value while running locally, the auth cookie is scoped
 to the wrong domain and sign-in / session refresh misbehaves — and the extension
@@ -93,9 +93,9 @@ disable email confirmation for dev).
 Deployment env vars live in the **hosting platform dashboard** (Vercel/Railway),
 not in the pushed code — so setting them there is the real switch-back step:
 
-- [ ] `NEXT_PUBLIC_APP_URL` = `https://jobmaxxing.app` (the production origin).
-- [ ] `NEXT_PUBLIC_COOKIE_DOMAIN` set (or confirm derivation) so apex/www share
-      the session.
+- [ ] `NEXT_PUBLIC_APP_URL` = `https://job-maxxing.vercel.app` (the production origin).
+- [ ] `NEXT_PUBLIC_COOKIE_DOMAIN` set (or confirm derivation) so the app host and
+      its subdomains share the session.
 - [ ] Supabase Auth redirect URLs include the production `/auth/callback`.
 - [ ] Any new `supabase/migrations` applied to the linked project (`npm run db:push`).
 - [ ] `npm run build` succeeds and `npm test` passes.
