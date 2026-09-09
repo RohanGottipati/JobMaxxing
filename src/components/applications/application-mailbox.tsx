@@ -6,6 +6,7 @@ import { Plus, Search } from "lucide-react";
 
 import { ApplicationComposePane } from "@/components/applications/application-compose-pane";
 import { ApplicationMailboxReadingPane } from "@/components/applications/application-mailbox-reading-pane";
+import { DeleteApplicationButton } from "@/components/applications/delete-application-button";
 import {
   MAILBOX_SCOPES,
   parseMailboxScope,
@@ -139,6 +140,15 @@ export function ApplicationMailbox({
     navigate({ compose: null, error: null });
   }
 
+  function handleDeleted(id: string) {
+    // Drop the reading pane if it was showing the row we just removed, then
+    // re-pull the revalidated server data so the list reflects the deletion.
+    if (selectedId === id) {
+      navigate({ id: null, view: null });
+    }
+    router.refresh();
+  }
+
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
       <header className="flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border bg-sidebar px-3 text-sidebar-foreground sm:px-4">
@@ -235,12 +245,12 @@ export function ApplicationMailbox({
           ) : (
             <ul>
               {scopedApplications.map((application) => (
-                <li key={application.id}>
+                <li key={application.id} className="group relative">
                   <button
                     type="button"
                     onClick={() => selectApplication(application.id)}
                     className={cn(
-                      "flex w-full items-start gap-3 border-b border-border px-3 py-3 text-left transition-colors duration-150",
+                      "flex w-full items-start gap-3 border-b border-border py-3 pl-3 pr-11 text-left transition-colors duration-150",
                       "border-l-[3px] border-l-transparent hover:bg-muted/50",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-inset",
                       selectedId === application.id && "border-l-primary bg-primary/5",
@@ -279,6 +289,19 @@ export function ApplicationMailbox({
                       </span>
                     </span>
                   </button>
+                  <div
+                    className={cn(
+                      "absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-opacity",
+                      "group-hover:opacity-100 focus-within:opacity-100",
+                    )}
+                  >
+                    <DeleteApplicationButton
+                      applicationId={application.id}
+                      jobTitle={application.jobTitle}
+                      companyName={application.companyName}
+                      onDeleted={handleDeleted}
+                    />
+                  </div>
                 </li>
               ))}
             </ul>
