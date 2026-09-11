@@ -235,6 +235,32 @@ export async function deleteApplication(formData: FormData) {
   redirect("/applications");
 }
 
+const applicationDeleteSchema = z.object({
+  applicationId: z.string().uuid(),
+});
+
+/**
+ * Deletes an application inline from the mailbox list. Unlike `deleteApplication`
+ * this returns a result instead of redirecting, so the client can refresh the
+ * list in place and surface failures with a toast.
+ */
+export async function deleteApplicationAction(
+  input: unknown,
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  const parsed = applicationDeleteSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false as const, message: "Choose a valid application to delete." };
+  }
+
+  try {
+    await deleteApplicationRecord(parsed.data.applicationId);
+    revalidatePath("/applications");
+    return { ok: true as const };
+  } catch {
+    return { ok: false as const, message: "Could not delete this application." };
+  }
+}
+
 /**
  * Persists a batch of status/position changes when cards are dragged on the board.
  * The board updates optimistically, so this only revalidates the cached server data
