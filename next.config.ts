@@ -31,7 +31,15 @@ if (process.env.NODE_ENV === "production" && missingEnvironment.length > 0) {
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["pdf-parse", "undici"],
+  serverExternalPackages: ["pdf-parse", "@napi-rs/canvas", "undici"],
+  // pdf-parse loads the pdfjs "fake worker" by dynamically importing this file.
+  // The standalone tracer misses that dynamic import, so force it into the
+  // output for the routes that extract PDF text.
+  outputFileTracingIncludes: {
+    "/api/resume-imports/**": [
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    ],
+  },
 };
 
 export default nextConfig;
