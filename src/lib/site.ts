@@ -2,7 +2,7 @@ export const SITE_NAME = "JobMaxxing";
 export const SITE_DESCRIPTION =
   "Track job applications, deadlines, job descriptions, tailored resumes, and cover letters in one private workspace.";
 
-const DEFAULT_SITE_URL = "https://jobmaxxing.app";
+const DEFAULT_SITE_URL = "https://job-maxxing.vercel.app";
 
 export function getSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim() || DEFAULT_SITE_URL;

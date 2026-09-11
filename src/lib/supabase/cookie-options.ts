@@ -4,13 +4,13 @@ import { getSiteUrl } from "@/lib/site";
 
 /**
  * The Supabase auth session lives in cookies. By default those cookies are
- * host-only, so a session created on `www.jobmaxxing.app` is not sent back on
- * `jobmaxxing.app` (and vice versa). When a return visit or an apex<->www
- * redirect lands on the other host, the browser omits the auth cookie, the
- * refresh call ships a stale/empty token, and Supabase answers
+ * host-only, so a session created on `www.job-maxxing.vercel.app` is not sent
+ * back on `job-maxxing.vercel.app` (and vice versa). When a return visit or an
+ * apex<->www redirect lands on the other host, the browser omits the auth
+ * cookie, the refresh call ships a stale/empty token, and Supabase answers
  * `Invalid Refresh Token: Refresh Token Not Found` — logging the user out.
  *
- * Scoping the cookie to the registrable domain (`jobmaxxing.app`) lets the apex
+ * Scoping the cookie to the app host (`job-maxxing.vercel.app`) lets that host
  * and every subdomain share one session. Local development must stay host-only,
  * because browsers reject a `Domain` attribute for `localhost`/IP hosts.
  */

@@ -5,12 +5,12 @@ import { resolveCookieDomain } from "@/lib/supabase/cookie-options";
 
 test("shares the session across apex and www on the deployed domain", () => {
   assert.equal(
-    resolveCookieDomain(undefined, "https://jobmaxxing.app"),
-    "jobmaxxing.app",
+    resolveCookieDomain(undefined, "https://job-maxxing.vercel.app"),
+    "job-maxxing.vercel.app",
   );
   assert.equal(
-    resolveCookieDomain(undefined, "https://www.jobmaxxing.app"),
-    "jobmaxxing.app",
+    resolveCookieDomain(undefined, "https://www.job-maxxing.vercel.app"),
+    "job-maxxing.vercel.app",
   );
 });
 
@@ -22,10 +22,13 @@ test("stays host-only for local development", () => {
 
 test("prefers an explicit cookie domain override", () => {
   assert.equal(
-    resolveCookieDomain(".jobmaxxing.app", "http://localhost:3000"),
-    ".jobmaxxing.app",
+    resolveCookieDomain(".job-maxxing.vercel.app", "http://localhost:3000"),
+    ".job-maxxing.vercel.app",
   );
-  assert.equal(resolveCookieDomain("  ", "https://jobmaxxing.app"), "jobmaxxing.app");
+  assert.equal(
+    resolveCookieDomain("  ", "https://job-maxxing.vercel.app"),
+    "job-maxxing.vercel.app",
+  );
 });
 
 test("returns undefined when nothing usable is configured", () => {
