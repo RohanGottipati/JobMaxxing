@@ -2,3 +2,4 @@
 Fix the issue with being logged out too often
 Unable to upload resume's, especially found this during onboarding to upload a master resume 
 when suing combing PDF feature, give the user the option to drag the PDF they added to change the order of the output PDF
+At the applciation page, the job description are rendering too slow. render the information as user loads in not after they click on the job title
