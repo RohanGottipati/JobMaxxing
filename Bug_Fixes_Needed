@@ -5,3 +5,4 @@ new:
 when suing combing PDF feature, give the user the option to drag the PDF they added to change the order of the output PDF
 At the applciation page, the job description are rendering too slow. render the information as user loads in not after they click on the job title
 Allow users to upload the resume they provided in the website as well.
+make the preview resume part scrolling from top down instead of left right(using arrow). 
