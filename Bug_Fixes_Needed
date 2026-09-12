@@ -1,2 +1,4 @@
+
 Fix the issue with being logged out too often
 Unable to upload resume's, especially found this during onboarding to upload a master resume 
+when suing combing PDF feature, give the user the option to drag the PDF they added to change the order of the output PDF
