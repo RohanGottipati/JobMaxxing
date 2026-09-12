@@ -48,6 +48,8 @@ import {
 import { cn } from "@/lib/utils";
 
 type Details = Awaited<ReturnType<typeof getApplicationDetails>>;
+export type ApplicationDetails = NonNullable<Details>;
+export type ApplicationDetailsCache = Map<string, ApplicationDetails>;
 
 type DocumentItem = {
   id: string;
@@ -71,11 +73,15 @@ function safeFormatDateTime(value: string | null | undefined) {
 
 export function ApplicationMailboxReadingPane({
   applicationId,
+  detailsCache,
+  initialApplication,
   onBack,
   onViewChange,
   view,
 }: {
   applicationId: string | null;
+  detailsCache?: ApplicationDetailsCache;
+  initialApplication?: JobApplication | null;
   onBack?: () => void;
   onViewChange?: (view: MailboxView) => void;
   view: MailboxView;
@@ -88,6 +94,8 @@ export function ApplicationMailboxReadingPane({
     <LoadedApplicationReadingPane
       key={applicationId}
       applicationId={applicationId}
+      detailsCache={detailsCache}
+      initialApplication={initialApplication}
       onBack={onBack}
       onViewChange={onViewChange}
       view={view}
@@ -95,58 +103,85 @@ export function ApplicationMailboxReadingPane({
   );
 }
 
+type PackageData = {
+  resumeVersions: ApplicationDetails["resumeVersions"];
+  coverLetters: ApplicationDetails["coverLetters"];
+};
+
 function LoadedApplicationReadingPane({
   applicationId,
+  detailsCache,
+  initialApplication,
   onBack,
   onViewChange,
   view,
 }: {
   applicationId: string;
+  detailsCache?: ApplicationDetailsCache;
+  initialApplication?: JobApplication | null;
   onBack?: () => void;
   onViewChange?: (view: MailboxView) => void;
   view: MailboxView;
 }) {
-  const [details, setDetails] = useState<Details | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // Prefer prefetched details, then the list row we already have in memory, so
+  // the header and job description render instantly without waiting on a fetch.
+  const cached = detailsCache?.get(applicationId) ?? null;
+  const [application, setApplication] = useState<JobApplication | null>(
+    cached?.application ?? initialApplication ?? null,
+  );
+  const [packages, setPackages] = useState<PackageData | null>(
+    cached ? { resumeVersions: cached.resumeVersions, coverLetters: cached.coverLetters } : null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (cached) return; // Everything is already prefetched.
     let cancelled = false;
 
     getApplicationDetails(applicationId)
       .then((next) => {
-        if (!cancelled) setDetails(next);
+        if (cancelled) return;
+        if (!next) {
+          if (!initialApplication) setError("Unable to load this application.");
+          return;
+        }
+        detailsCache?.set(applicationId, next);
+        setApplication(next.application);
+        setPackages({ resumeVersions: next.resumeVersions, coverLetters: next.coverLetters });
       })
       .catch(() => {
-        if (!cancelled) setError("Unable to load this application.");
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (cancelled) return;
+        // The description still renders from the list row; just stop the
+        // package loading state so the resume/cover tabs aren't stuck.
+        if (initialApplication) setPackages({ resumeVersions: [], coverLetters: [] });
+        else setError("Unable to load this application.");
       });
 
     return () => {
       cancelled = true;
     };
+    // This component is keyed by applicationId, so it remounts per selection;
+    // cached/initialApplication/detailsCache are captured fresh at mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicationId]);
 
-  if (isLoading) {
+  if (!application) {
+    if (error) {
+      return (
+        <div className="grid h-full place-items-center p-8 text-center">
+          <div>
+            <h2 className="text-lg font-semibold">Application unavailable</h2>
+            <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+          </div>
+        </div>
+      );
+    }
     return <ReadingPaneSkeleton />;
   }
 
-  if (error || !details) {
-    return (
-      <div className="grid h-full place-items-center p-8 text-center">
-        <div>
-          <h2 className="text-lg font-semibold">Application unavailable</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {error ?? "This application could not be loaded."}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const { application, coverLetters, resumeVersions } = details;
+  const packagesLoading = packages === null;
+  const resumeVersions = packages?.resumeVersions ?? [];
+  const coverLetters = packages?.coverLetters ?? [];
   const submittedResume =
     resumeVersions.find((v) => v.id === application.submittedResumeVersionId) ?? null;
   const submittedCoverLetter =
@@ -203,6 +238,7 @@ function LoadedApplicationReadingPane({
               application={application}
               submittedCoverLetter={submittedCoverLetter}
               submittedResume={submittedResume}
+              packagesLoading={packagesLoading}
             />
             <Link
               href={`/applications/${application.id}/package`}
@@ -219,24 +255,32 @@ function LoadedApplicationReadingPane({
           />
         ) : null}
         {view === "resume" ? (
-          <DocumentVersions
-            heading="Resume versions"
-            submitted={submittedResume}
-            kind="resume_version"
-            items={resumeVersions}
-            emptyLabel="No resume versions yet."
-            submittedEmptyLabel="No submitted resume selected."
-          />
+          packagesLoading ? (
+            <DocumentVersionsSkeleton />
+          ) : (
+            <DocumentVersions
+              heading="Resume versions"
+              submitted={submittedResume}
+              kind="resume_version"
+              items={resumeVersions}
+              emptyLabel="No resume versions yet."
+              submittedEmptyLabel="No submitted resume selected."
+            />
+          )
         ) : null}
         {view === "cover-letter" ? (
-          <DocumentVersions
-            heading="Cover letters"
-            submitted={submittedCoverLetter}
-            kind="cover_letter"
-            items={coverLetters}
-            emptyLabel="No cover letters yet."
-            submittedEmptyLabel="No submitted cover letter selected."
-          />
+          packagesLoading ? (
+            <DocumentVersionsSkeleton />
+          ) : (
+            <DocumentVersions
+              heading="Cover letters"
+              submitted={submittedCoverLetter}
+              kind="cover_letter"
+              items={coverLetters}
+              emptyLabel="No cover letters yet."
+              submittedEmptyLabel="No submitted cover letter selected."
+            />
+          )
         ) : null}
         {view === "notes" ? (
           <DocumentText value={application.notes} emptyLabel="No notes yet." />
@@ -311,10 +355,12 @@ function OverviewSection({
   application,
   submittedCoverLetter,
   submittedResume,
+  packagesLoading,
 }: {
   application: JobApplication;
   submittedCoverLetter: DocumentItem | null;
   submittedResume: DocumentItem | null;
+  packagesLoading: boolean;
 }) {
   const appliedLabel = safeFormatDate(application.appliedAt);
   const deadlineLabel = safeFormatDate(application.deadline);
@@ -337,16 +383,25 @@ function OverviewSection({
           <Link href={`/applications/${application.id}/package`} className={buttonVariants({ variant: "ghost", size: "sm" })}>Manage</Link>
         </div>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <PackageDocumentLink
-            href={`/applications?id=${application.id}&view=resume`}
-            label="Submitted resume"
-            document={submittedResume}
-          />
-          <PackageDocumentLink
-            href={`/applications?id=${application.id}&view=cover-letter`}
-            label="Submitted cover letter"
-            document={submittedCoverLetter}
-          />
+          {packagesLoading ? (
+            <>
+              <Skeleton className="h-[3.75rem] w-full rounded-md" />
+              <Skeleton className="h-[3.75rem] w-full rounded-md" />
+            </>
+          ) : (
+            <>
+              <PackageDocumentLink
+                href={`/applications?id=${application.id}&view=resume`}
+                label="Submitted resume"
+                document={submittedResume}
+              />
+              <PackageDocumentLink
+                href={`/applications?id=${application.id}&view=cover-letter`}
+                label="Submitted cover letter"
+                document={submittedCoverLetter}
+              />
+            </>
+          )}
         </div>
       </section>
       <p className="text-xs text-muted-foreground">
@@ -538,6 +593,21 @@ function ReadingPaneEmpty() {
         <p className="text-base font-semibold text-foreground">Select a role to read</p>
         <p className="mt-1 text-sm">Choose an application from the list to view details.</p>
       </div>
+    </div>
+  );
+}
+
+function DocumentVersionsSkeleton() {
+  return (
+    <div className="grid gap-5">
+      <section className="grid gap-3">
+        <Skeleton className="h-5 w-36" />
+        <Skeleton className="h-16 w-full rounded-lg" />
+      </section>
+      <section className="grid gap-3">
+        <Skeleton className="h-5 w-32" />
+        <Skeleton className="h-24 w-full rounded-lg" />
+      </section>
     </div>
   );
 }

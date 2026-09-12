@@ -1,11 +1,15 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, Search } from "lucide-react";
 
+import { getApplicationDetails } from "@/app/(app)/applications/actions";
 import { ApplicationComposePane } from "@/components/applications/application-compose-pane";
-import { ApplicationMailboxReadingPane } from "@/components/applications/application-mailbox-reading-pane";
+import {
+  ApplicationMailboxReadingPane,
+  type ApplicationDetailsCache,
+} from "@/components/applications/application-mailbox-reading-pane";
 import { DeleteApplicationButton } from "@/components/applications/delete-application-button";
 import {
   MAILBOX_SCOPES,
@@ -33,6 +37,15 @@ const activeStatuses = new Set<ApplicationStatus>([
   "final_round",
 ]);
 const closedStatuses = new Set<ApplicationStatus>(["offer", "rejected", "withdrawn"]);
+
+const PREFETCH_COUNT = 10;
+
+// Newest first, by date applied (falling back to when the row was added).
+function appliedTimestamp(application: JobApplication) {
+  const value = application.appliedAt ?? application.createdAt;
+  const time = value ? new Date(value).getTime() : 0;
+  return Number.isFinite(time) ? time : 0;
+}
 
 type ApplicationMailboxProps = {
   applications: JobApplication[];
@@ -104,8 +117,35 @@ export function ApplicationMailbox({
       }
     }
 
+    scoped.sort((a, b) => appliedTimestamp(b) - appliedTimestamp(a));
+
     return { scopeCounts: counts, scopedApplications: scoped };
   }, [applications, scope]);
+
+  // Details are re-fetched per open; cache them and warm the top rows in the
+  // background so opening a recent application shows its data instantly.
+  const detailsCache = useMemo<ApplicationDetailsCache>(() => new Map(), []);
+  const prefetching = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const inFlight = prefetching.current;
+    for (const application of scopedApplications.slice(0, PREFETCH_COUNT)) {
+      const { id } = application;
+      if (detailsCache.has(id) || inFlight.has(id)) continue;
+      inFlight.add(id);
+      getApplicationDetails(id)
+        .then((details) => {
+          if (details) detailsCache.set(id, details);
+        })
+        .catch(() => {})
+        .finally(() => inFlight.delete(id));
+    }
+  }, [scopedApplications, detailsCache]);
+
+  const selectedApplication = useMemo(
+    () => applications.find((application) => application.id === selectedId) ?? null,
+    [applications, selectedId],
+  );
 
   function navigate(
     updates: Record<string, string | null | undefined>,
@@ -323,6 +363,8 @@ export function ApplicationMailbox({
           ) : selectedId ? (
             <ApplicationMailboxReadingPane
               applicationId={selectedId}
+              detailsCache={detailsCache}
+              initialApplication={selectedApplication}
               view={view}
               onBack={() => navigate({ id: null, view: null })}
               onViewChange={(nextView) => navigate({ view: nextView === "overview" ? null : nextView })}
