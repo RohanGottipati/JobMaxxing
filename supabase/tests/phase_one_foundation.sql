@@ -27,6 +27,59 @@ select pg_temp.assert_true(
   has_table_privilege('authenticated', 'public.profile_bullets', 'select'),
   'authenticated users need Data API privileges for profile bullets'
 );
+select pg_temp.assert_true(
+  (
+    select
+      not public
+      and file_size_limit = 10485760
+      and allowed_mime_types @> array[
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ]::text[]
+      and allowed_mime_types <@ array[
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ]::text[]
+    from storage.buckets
+    where id = 'job-documents'
+  ),
+  'job-documents must remain private and accept bounded PDF and DOCX uploads'
+);
+select pg_temp.assert_true(
+  exists (
+    select 1
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and policyname = 'Users can upload own job documents'
+      and cmd = 'INSERT'
+      and 'authenticated' = any(roles)
+      and position('job-documents' in coalesce(with_check, '')) > 0
+      and position('storage.foldername' in coalesce(with_check, '')) > 0
+      and position('auth.jwt()' in coalesce(with_check, '')) > 0
+  ),
+  'authenticated users need a user-folder-scoped job-document upload policy'
+);
+select pg_temp.assert_true(
+  not exists (
+    select 1
+    from pg_proc as function_definition
+    join pg_namespace as function_schema
+      on function_schema.oid = function_definition.pronamespace
+    where function_schema.nspname = 'public'
+      and function_definition.proname in (
+        'lock_submitted_resume_version',
+        'lock_submitted_cover_letter'
+      )
+      and (
+        function_definition.prosrc like '%latex_engine%'
+        or function_definition.prosrc like '%compiled_pdf_path%'
+        or function_definition.prosrc like '%compiled_row_version%'
+        or function_definition.prosrc like '%compiled_at%'
+      )
+  ),
+  'submitted-document locks must not reference retired LaTeX columns'
+);
 
 insert into auth.users (
   id, aud, role, email, encrypted_password, email_confirmed_at,

@@ -1,6 +1,11 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+import { generateResumeDocx } from "@/lib/resumes/docx";
+import { generateResumePdf } from "@/lib/resumes/pdf";
+import { createResumeRenderModel } from "@/lib/resumes/render-model";
+import { careerProfileFixture, resumeDocumentFixture } from "@/lib/test/fixtures";
+
 const resumeText = `Playwright Candidate
 playwright@example.test
 
@@ -19,6 +24,38 @@ BASc, Computer Engineering
 
 SKILLS
 PostgreSQL, TypeScript`;
+
+test("uploads PDF and DOCX resume imports through authenticated Storage", async ({ page }) => {
+  const model = createResumeRenderModel(resumeDocumentFixture(), careerProfileFixture());
+  const [pdf, docx] = await Promise.all([generateResumePdf(model), generateResumeDocx(model)]);
+  const fixtures = [
+    { name: "storage-policy-resume.pdf", mimeType: "application/pdf", buffer: pdf },
+    {
+      name: "storage-policy-resume.docx",
+      mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      buffer: docx,
+    },
+  ];
+
+  for (const fixture of fixtures) {
+    let importId: string | null = null;
+    try {
+      await page.goto("/resumes/import");
+      await page.locator('input[type="file"]').setInputFiles(fixture);
+      await expect(page).toHaveURL(/\/resumes\/import\/[0-9a-f-]{36}\/review/);
+      importId = page.url().match(/\/resumes\/import\/([0-9a-f-]{36})\/review/)?.[1] ?? null;
+      expect(importId).not.toBeNull();
+      await expect(page.getByRole("heading", { name: "Compare before saving" })).toBeVisible();
+    } finally {
+      if (importId) {
+        const response = await page.request.delete(`/api/resume-imports/${importId}`);
+        if (!response.ok() && response.status() !== 404) {
+          throw new Error(`Could not remove E2E resume import (${response.status()}).`);
+        }
+      }
+    }
+  }
+});
 
 test("imports, reviews, persists, edits, checkpoints, and exports a structured resume", async ({ page }) => {
   let importId: string | null = null;
