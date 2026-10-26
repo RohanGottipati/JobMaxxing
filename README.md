@@ -165,3 +165,7 @@ NEXT_PUBLIC_APP_URL
 For email confirmation and password recovery in production, set `NEXT_PUBLIC_APP_URL` and the Supabase Auth Site URL to the same public origin and allow `https://<your-domain>/auth/callback` in Supabase Auth.
 
 Before publishing, verify that the production origin resolves, `/api/health` succeeds, `/robots.txt` and `/sitemap.xml` contain that origin, and the extension's `APP_URL` and manifest host permission match it.
+
+## License
+
+No open-source license is currently declared. All rights reserved.
