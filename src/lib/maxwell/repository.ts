@@ -393,18 +393,6 @@ export async function createMaxwellAction(input: {
   return toAction(data);
 }
 
-export async function getMaxwellAction(id: string) {
-  const { supabase, userId } = await getMaxwellAuthContext();
-  const { data, error } = await supabase
-    .from("assistant_actions")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", userId)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? toAction(data) : null;
-}
-
 export async function updateMaxwellAction(
   id: string,
   input: {

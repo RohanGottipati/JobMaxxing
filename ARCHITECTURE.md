@@ -4,7 +4,7 @@
 > tailor resumes and cover letters, run AI job matching, and manage documents.
 > It also owns the shared Supabase backend and the API the Chrome extension calls.
 >
-> Companion doc: [`../extension/ARCHITECTURE.md`](../extension/ARCHITECTURE.md).
+> Companion doc: [JobMaxxing-extension `ARCHITECTURE.md`](https://github.com/RohanGottipati/JobMaxxing-extension/blob/main/ARCHITECTURE.md).
 > Both docs use the same section layout so you can read them side by side.
 
 ---
@@ -50,7 +50,7 @@ extension is a thin capture client that writes into this backend.
 ## 3. Directory layout
 
 ```
-web/
+JobMaxxing/
 ├── src/
 │   ├── app/                    # Next.js App Router (routes + API)
 │   │   ├── (marketing)/        # Public: landing, login, signup, privacy, /extension
@@ -61,7 +61,7 @@ web/
 │   │   └── layout.tsx          # Root layout: theme, toaster, metadata
 │   ├── components/             # React components
 │   │   ├── ui/                 # shadcn/ui primitives
-│   │   ├── applications/ tracker/ resumes/ resume-imports/
+│   │   ├── applications/ resumes/ resume-imports/ auth/ documentation/
 │   │   ├── maxwell/            # AI assistant panel
 │   │   ├── previews/ documents/ profile/ onboarding/ layout/ theme/
 │   ├── lib/                    # Business logic (framework-agnostic core)
@@ -74,10 +74,10 @@ web/
 │   │   ├── documents/ previews/ ai/ http/ auth/ profile/ career/
 │   │   └── crypto/ documentation/ site.ts
 │   ├── proxy.ts                # Next middleware entry → refreshes Supabase session
-│   └── types/                  # Generated Supabase types + hand-written types
+│   └── types/                  # Supabase database types (database.ts)
 ├── supabase/
 │   ├── migrations/             # Ordered SQL schema history (source of truth)
-│   └── tests/                  # pgTAP-style SQL tests
+│   └── tests/                  # SQL checks run in a rollback transaction
 └── scripts/                    # Build helpers (copy runtime workers)
 ```
 
@@ -108,7 +108,9 @@ Two audiences share the same backend logic in `src/lib/*`:
 
 **Internal (session-cookie auth)** — used by the app's own client components:
 `cover-letters/*`, `job-analyses/*`, `job-matches`, `resume-analysis`,
-`resume-imports/*`, `maxwell/*`, `previews/*`, `documents/*`.
+`resume-imports/*`, `resume-documents/*`, `resume-bullets/*`, `tailoring-runs/*`,
+`job-imports/*`, `maxwell/*`, `previews/*`, `documents/*`. `/api/health` is an
+unauthenticated dependency check used by the Railway healthcheck.
 
 **Extension (Bearer-JWT auth)** — the contract the Chrome extension depends on:
 
@@ -116,14 +118,15 @@ Two audiences share the same backend logic in `src/lib/*`:
 |----------|--------|---------|
 | `/api/extension/applications` | `POST` | Save/update an application package (dupe-detected, 409 on conflict) |
 | `/api/extension/applications` | `GET` | List the user's applications |
-| `/api/extension/applications/[id]` | — | Single application operations |
+| `/api/extension/applications` | `DELETE` | Delete all of the user's applications and their stored files |
+| `/api/extension/applications/[id]` | `GET` / `PATCH` / `DELETE` | Read, update or delete one application |
 | `/api/extension/applications/[id]/analyze` | `POST` | Trigger server-side job-description parse (Gemini only with consent) |
 
 Bearer requests go through `requireBearerAuth` + `getAuthContextFromRequest`
 (`src/lib/supabase/request-client.ts`); the shared implementation lives in
 `src/lib/extension/applications.ts`. **Changing these request/response shapes is a
 breaking change for the extension** — keep them in sync with
-[`extension/ARCHITECTURE.md` §5](../extension/ARCHITECTURE.md).
+[the extension's `ARCHITECTURE.md` §5](https://github.com/RohanGottipati/JobMaxxing-extension/blob/main/ARCHITECTURE.md).
 
 ---
 
@@ -191,5 +194,5 @@ npm run build      # standalone production build
 npm test           # unit tests (node --test)
 npm run test:e2e   # Playwright e2e
 npm run db:push    # apply migrations to linked Supabase project
-npm run db:types   # regenerate src/types/database.generated.ts
+npm run db:types   # generate src/types/database.generated.ts (app imports src/types/database.ts)
 ```

@@ -12,17 +12,6 @@ export const statusLabels: Record<ApplicationStatus, string> = {
   withdrawn: "Withdrawn",
 };
 
-export const statusDescriptions: Record<ApplicationStatus, string> = {
-  saved: "Bookmarked roles to revisit.",
-  applied: "Applications submitted.",
-  online_assessment: "Take-home or online assessments.",
-  interview: "Active interview loops.",
-  final_round: "Final-stage interviews.",
-  offer: "Offers on the table.",
-  rejected: "Closed opportunities.",
-  withdrawn: "Roles you stepped away from.",
-};
-
 /**
  * Subtle per-status accents used on the board. `dot` colours the column marker and card
  * stripe; `badge` styles the status pill. Kept muted to stay on-brand with the grayscale UI.

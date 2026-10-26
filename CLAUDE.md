@@ -5,7 +5,8 @@ Job application tracker — help users organize their job search pipeline.
 ## Stack
 
 - Next.js 16 App Router (`src/app/`)
-- Supabase for auth + Postgres (`src/lib/supabase/`, `supabase/migrations/`)
+- Supabase for auth + Postgres + Storage (`src/lib/supabase/`, `supabase/migrations/`)
+- Optional Google Gemini for AI features (`src/lib/ai/`, `src/lib/maxwell/`)
 - shadcn/ui components (`src/components/ui/`)
 - Tailwind CSS v4 (`src/app/globals.css`)
 
@@ -21,9 +22,15 @@ Job application tracker — help users organize their job search pipeline.
 | `/applications` | Searchable list-and-detail application mailbox (auth required) |
 | `/applications/new` | Create application (auth required) |
 | `/applications/[id]` | Application detail + package manager (auth required) |
+| `/applications/[id]/match` | Career match: job analysis, scoring, tailoring, cover letters (auth required) |
+| `/dashboard` | Signed-in home: recent applications, deadlines, pipeline counts |
+| `/resumes`, `/cover-letters` | Document library and editors (auth required) |
+| `/maxwell` | Maxwell workspace assistant (auth required) |
+| `/onboarding` | Three-step first-run setup (auth required) |
 | `/profile` | User profile (auth required) |
 | `/auth/callback` | Supabase email-confirmation callback |
-| `/api/extension/applications` | Chrome extension: save/list applications (Bearer JWT) |
+| `/api/extension/applications` | Chrome extension: save/list/delete applications (Bearer JWT) |
+| `/api/extension/applications/[id]` | Chrome extension: read/update/delete one application (Bearer JWT) |
 | `/api/extension/applications/[id]/analyze` | Chrome extension: trigger job parse (Bearer JWT) |
 
 ## Database

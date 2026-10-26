@@ -3,7 +3,7 @@
 How to run the JobMaxxing web app against `localhost`, what to flip to point at
 local, and what to flip **back** before you deploy.
 
-Extension side of the same workflow: [`../extension/LOCAL_TESTING.md`](../extension/LOCAL_TESTING.md).
+Extension side of the same workflow: [JobMaxxing-extension `LOCAL_TESTING.md`](https://github.com/RohanGottipati/JobMaxxing-extension/blob/main/LOCAL_TESTING.md).
 
 ---
 
@@ -11,16 +11,16 @@ Extension side of the same workflow: [`../extension/LOCAL_TESTING.md`](../extens
 
 | File | Local value | Deployed value |
 |------|-------------|----------------|
-| `web/.env` → `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://job-maxxing.vercel.app` |
+| `.env.local` → `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | `https://job-maxxing.vercel.app` |
 
-`.env` already carries the reminder:
+A reminder comment in `.env.local` helps:
 
 ```
 # LOCAL TESTING — revert to https://job-maxxing.vercel.app before deploying
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-> **Good news:** `.env` is gitignored (`.gitignore` ignores `.env*` except
+> **Good news:** `.env.local` is gitignored (`.gitignore` ignores `.env*` except
 > `.env.example`), so this value **never gets pushed**. `git push` is safe. The
 > real risk is the **deployment**, not the commit — see [§4](#4-before-you-deploy).
 
@@ -31,7 +31,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 - Node.js ≥ 22.3
 - The Supabase project already linked (same hosted project is used for local and
   prod — you are not running a local Postgres unless you deliberately do).
-- `web/.env` present (copy from `.env.example` if missing).
+- `.env.local` present (`cp .env.example .env.local` if missing).
 
 Required env keys:
 
@@ -101,7 +101,7 @@ not in the pushed code — so setting them there is the real switch-back step:
 - [ ] `npm run build` succeeds and `npm test` passes.
 
 ### Before you push (git)
-Because `.env` is gitignored, the localhost value won't leak into git. Just
+Because `.env.local` is gitignored, the localhost value won't leak into git. Just
 sanity-check you didn't accidentally hardcode a URL in committed source:
 
 ```bash
@@ -113,6 +113,6 @@ git diff --cached | grep -n "localhost:3000" || echo "clean"
 ## 5. End-to-end with the extension
 
 To test the full capture flow locally, run this app on `localhost:3000` and point
-the extension at it — see [`../extension/LOCAL_TESTING.md`](../extension/LOCAL_TESTING.md)
+the extension at it — see [JobMaxxing-extension `LOCAL_TESTING.md`](https://github.com/RohanGottipati/JobMaxxing-extension/blob/main/LOCAL_TESTING.md)
 (set the extension's `APP_URL` to `http://localhost:3000`, load unpacked, sign in
 with the same account, capture a job, and confirm it lands on `/applications`).

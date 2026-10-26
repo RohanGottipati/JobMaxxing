@@ -6,7 +6,6 @@ import { hashJobDescription } from "@/lib/applications/description-hash";
 import type {
   Application,
   ApplicationStatus,
-  ApplicationUpdate,
 } from "@/lib/applications/package-types";
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
 import {
@@ -47,12 +46,6 @@ export const extensionApplicationSchema = z.object({
 });
 
 export type ExtensionApplicationInput = z.infer<typeof extensionApplicationSchema>;
-
-export const extensionApplicationUpdateSchema = extensionApplicationSchema
-  .partial()
-  .extend({ id: z.uuid() });
-
-export type ExtensionApplicationUpdate = z.infer<typeof extensionApplicationUpdateSchema>;
 
 export const extensionSubmittedFileSchema = z.object({
   path: z.string().trim().min(1).max(1_000),
@@ -155,94 +148,6 @@ function toSummary(row: {
   };
 }
 
-export async function findDuplicateByDescriptionHash(
-  auth: AuthContext,
-  descriptionHash: string,
-  excludeId?: string,
-) {
-  let query = auth.supabase
-    .from("applications")
-    .select("id, company_name, role_title, status")
-    .eq("user_id", auth.userId)
-    .eq("description_hash", descriptionHash)
-    .limit(1);
-
-  if (excludeId) {
-    query = query.neq("id", excludeId);
-  }
-
-  const { data, error } = await query.maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function upsertExtensionApplication(
-  auth: AuthContext,
-  input: ExtensionApplicationInput,
-) {
-  const parsed = extensionApplicationSchema.parse(input);
-  const descriptionHash = parsed.jobDescription
-    ? hashJobDescription(parsed.jobDescription)
-    : null;
-
-  if (descriptionHash) {
-    const duplicate = await findDuplicateByDescriptionHash(
-      auth,
-      descriptionHash,
-      parsed.id,
-    );
-    if (duplicate) {
-      return {
-        application: null,
-        duplicate: {
-          id: duplicate.id,
-          companyName: duplicate.company_name,
-          roleTitle: duplicate.role_title,
-          status: duplicate.status,
-        },
-      };
-    }
-  }
-
-  const row = {
-    user_id: auth.userId,
-    company_name: parsed.companyName,
-    role_title: parsed.roleTitle,
-    job_url: parsed.jobUrl ?? null,
-    location: parsed.location ?? null,
-    date_applied: parsed.dateApplied ?? null,
-    deadline: parsed.deadline ?? null,
-    next_action: parsed.nextAction ?? null,
-    status: parsed.status ?? "saved",
-    job_description: parsed.jobDescription ?? null,
-    notes: parsed.notes ?? null,
-    referral_contact: parsed.referralContact ?? null,
-    source_host: parsed.sourceHost ?? null,
-    recruiting_season: parsed.recruitingSeason ?? null,
-    description_hash: descriptionHash,
-  };
-
-  if (parsed.id) {
-    const { data, error } = await auth.supabase
-      .from("applications")
-      .update(row)
-      .eq("id", parsed.id)
-      .eq("user_id", auth.userId)
-      .select("*")
-      .single();
-    if (error) throw error;
-    return { application: data, duplicate: null };
-  }
-
-  const { data, error } = await auth.supabase
-    .from("applications")
-    .insert(row)
-    .select("*")
-    .single();
-  if (error) throw error;
-  return { application: data, duplicate: null };
-}
-
 export async function getExtensionApplications(
   auth: AuthContext,
   options: { limit?: number; full?: boolean } = {},
@@ -279,68 +184,6 @@ export async function getExtensionApplication(auth: AuthContext, id: string) {
     .maybeSingle();
   if (error) throw error;
   return data ? toExtensionApplication(data) : null;
-}
-
-export async function updateExtensionApplication(
-  auth: AuthContext,
-  input: ExtensionApplicationUpdate,
-) {
-  const parsed = extensionApplicationUpdateSchema.parse(input);
-  const existing = await getExtensionApplication(auth, parsed.id);
-  if (!existing) throw new Error("Application not found.");
-
-  const jobDescription =
-    parsed.jobDescription !== undefined
-      ? parsed.jobDescription
-      : existing.jobDescription;
-  const descriptionHash = jobDescription
-    ? hashJobDescription(jobDescription)
-    : null;
-
-  if (descriptionHash) {
-    const duplicate = await findDuplicateByDescriptionHash(
-      auth,
-      descriptionHash,
-      parsed.id,
-    );
-    if (duplicate) {
-      return {
-        application: null,
-        duplicate: {
-          id: duplicate.id,
-          companyName: duplicate.company_name,
-          roleTitle: duplicate.role_title,
-          status: duplicate.status,
-        },
-      };
-    }
-  }
-
-  const row: ApplicationUpdate = { id: parsed.id };
-  if (parsed.companyName !== undefined) row.company_name = parsed.companyName;
-  if (parsed.roleTitle !== undefined) row.role_title = parsed.roleTitle;
-  if (parsed.jobUrl !== undefined) row.job_url = parsed.jobUrl;
-  if (parsed.location !== undefined) row.location = parsed.location;
-  if (parsed.dateApplied !== undefined) row.date_applied = parsed.dateApplied;
-  if (parsed.deadline !== undefined) row.deadline = parsed.deadline;
-  if (parsed.nextAction !== undefined) row.next_action = parsed.nextAction;
-  if (parsed.status !== undefined) row.status = parsed.status;
-  if (parsed.jobDescription !== undefined) row.job_description = parsed.jobDescription;
-  if (parsed.notes !== undefined) row.notes = parsed.notes;
-  if (parsed.referralContact !== undefined) row.referral_contact = parsed.referralContact;
-  if (parsed.sourceHost !== undefined) row.source_host = parsed.sourceHost;
-  if (parsed.recruitingSeason !== undefined) row.recruiting_season = parsed.recruitingSeason;
-  if (parsed.jobDescription !== undefined) row.description_hash = descriptionHash;
-
-  const { data, error } = await auth.supabase
-    .from("applications")
-    .update(row)
-    .eq("id", parsed.id)
-    .eq("user_id", auth.userId)
-    .select("*")
-    .single();
-  if (error) throw error;
-  return { application: toExtensionApplication(data), duplicate: null };
 }
 
 type SubmittedFile = z.infer<typeof extensionSubmittedFileSchema>;
@@ -618,20 +461,6 @@ export async function deleteAllExtensionApplications(auth: AuthContext) {
     .eq("user_id", auth.userId);
   if (error) throw error;
   await removeExtensionApplicationDocuments(auth, paths);
-}
-
-export async function getRecentExtensionApplications(
-  auth: AuthContext,
-  limit = 10,
-) {
-  const { data, error } = await auth.supabase
-    .from("applications")
-    .select("id, company_name, role_title, status, date_applied, updated_at, job_url")
-    .eq("user_id", auth.userId)
-    .order("updated_at", { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return (data ?? []).map(toSummary);
 }
 
 export async function analyzeExtensionApplication(
