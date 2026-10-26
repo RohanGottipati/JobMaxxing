@@ -15,9 +15,7 @@ import {
   getResumeVersions,
   markCoverLetterSubmitted,
   markResumeVersionSubmitted,
-  reorderApplications,
   updateApplication as updateApplicationRecord,
-  type ApplicationReorderItem,
 } from "@/lib/applications/packages";
 import { getApplicationById } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
@@ -227,14 +225,6 @@ export async function updateApplicationStatusAction(input: unknown) {
   }
 }
 
-export async function deleteApplication(formData: FormData) {
-  const id = readApplicationId(formData);
-  await deleteApplicationRecord(id);
-
-  revalidatePath("/applications");
-  redirect("/applications");
-}
-
 const applicationDeleteSchema = z.object({
   applicationId: z.string().uuid(),
 });
@@ -262,18 +252,6 @@ export async function deleteApplicationAction(
 }
 
 /**
- * Persists a batch of status/position changes when cards are dragged on the board.
- * The board updates optimistically, so this only revalidates the cached server data
- * (no redirect) and surfaces failures to the client for rollback.
- */
-export async function reorderApplicationsAction(
-  updates: ApplicationReorderItem[],
-) {
-  await reorderApplications(updates);
-  revalidatePath("/applications");
-}
-
-/**
  * Loads one application's core details plus its exact resume versions and cover
  * letters for the selected-application workspace.
  */
@@ -296,18 +274,6 @@ export async function getApplicationDetails(id: string) {
 // Resume version + cover letter package actions
 // ---------------------------------------------------------------------------
 
-export async function addResumeVersion(formData: FormData) {
-  const applicationId = readApplicationId(formData);
-  await createResumeVersion({
-    application_id: applicationId,
-    title: readOptionalText(formData, "title"),
-    content: readOptionalText(formData, "content"),
-  });
-
-  revalidatePath(`/applications/${applicationId}`);
-  revalidatePath(`/applications/${applicationId}/package`);
-}
-
 export async function markResumeVersionSubmittedAction(formData: FormData) {
   const applicationId = readApplicationId(formData);
   const versionId = readText(formData, "version_id");
@@ -326,18 +292,6 @@ export async function duplicateResumeVersionAction(formData: FormData) {
   if (versionId) {
     await duplicateResumeVersion(versionId);
   }
-
-  revalidatePath(`/applications/${applicationId}`);
-  revalidatePath(`/applications/${applicationId}/package`);
-}
-
-export async function addCoverLetter(formData: FormData) {
-  const applicationId = readApplicationId(formData);
-  await createCoverLetter({
-    application_id: applicationId,
-    title: readOptionalText(formData, "title"),
-    content: readOptionalText(formData, "content"),
-  });
 
   revalidatePath(`/applications/${applicationId}`);
   revalidatePath(`/applications/${applicationId}/package`);

@@ -1047,11 +1047,5 @@ export async function decideMaxwellAction(actionId: string, decision: "confirm" 
   }
 }
 
-export function maxwellActionFromRow(
-  row: Database["public"]["Tables"]["assistant_actions"]["Row"],
-) {
-  return toAction(row);
-}
-
 export type MaxwellToolStatus = ApplicationStatus;
 export type MaxwellToolFormat = DocumentContentFormat;

@@ -6,12 +6,9 @@ import type {
   Application,
   ApplicationInsert,
   ApplicationPackage,
-  ApplicationStatus,
   ApplicationUpdate,
   CoverLetter,
   CoverLetterInsert,
-  Resume,
-  ResumeInsert,
   ResumeVersion,
   ResumeVersionInsert,
 } from "@/lib/applications/package-types";
@@ -166,32 +163,6 @@ export async function getApplications(): Promise<Application[]> {
   return data ?? [];
 }
 
-export type ApplicationReorderItem = {
-  id: string;
-  status: ApplicationStatus;
-  position: number;
-};
-
-/**
- * Persists a batch of status/position changes from the board in a single transaction.
- * Backed by the `reorder_applications` RPC, which is scoped to the authenticated user.
- */
-export async function reorderApplications(
-  updates: ApplicationReorderItem[],
-): Promise<void> {
-  if (updates.length === 0) {
-    return;
-  }
-
-  const { supabase } = await getAuthContext();
-
-  const { error } = await supabase.rpc("reorder_applications", {
-    p_updates: updates,
-  });
-
-  if (error) throw error;
-}
-
 /**
  * Fetches the full package for a single application — application details plus the
  * exact submitted resume version and cover letter — from the application_packages view.
@@ -206,30 +177,6 @@ export async function getApplicationPackage(
     .select("*")
     .eq("id", applicationId)
     .maybeSingle();
-
-  if (error) throw error;
-  return data;
-}
-
-// ----------------------------------------------------------------------------
-// Base resumes
-// ----------------------------------------------------------------------------
-
-export type CreateBaseResumeInput = Omit<
-  ResumeInsert,
-  "id" | "user_id" | "created_at" | "updated_at"
->;
-
-export async function createBaseResume(
-  input: CreateBaseResumeInput,
-): Promise<Resume> {
-  const { supabase, userId } = await getAuthContext();
-
-  const { data, error } = await supabase
-    .from("resumes")
-    .insert({ ...input, user_id: userId })
-    .select("*")
-    .single();
 
   if (error) throw error;
   return data;

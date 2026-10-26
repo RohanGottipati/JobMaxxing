@@ -16,17 +16,6 @@ export const APPLICATION_STATUSES = [
   "withdrawn",
 ] as const satisfies readonly ApplicationStatus[];
 
-export const APPLICATION_STATUS_LABELS: Record<ApplicationStatus, string> = {
-  saved: "Saved",
-  applied: "Applied",
-  online_assessment: "Online Assessment",
-  interview: "Interview",
-  final_round: "Final Round",
-  offer: "Offer",
-  rejected: "Rejected",
-  withdrawn: "Withdrawn",
-};
-
 export type Application = Tables["applications"]["Row"];
 export type ApplicationInsert = Tables["applications"]["Insert"];
 export type ApplicationUpdate = Tables["applications"]["Update"];

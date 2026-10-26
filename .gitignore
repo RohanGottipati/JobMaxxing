@@ -48,7 +48,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# runtime workers and TeX Live assets copied/downloaded by scripts/
+# runtime worker copied by scripts/copy-runtime-workers.mjs
 /public/pdf.worker.min.mjs
-/public/latex/
 .env*.local

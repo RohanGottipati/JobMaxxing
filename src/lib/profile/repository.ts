@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
 
 async function getAuthContext() {
   const supabase = await createClient();
@@ -33,18 +32,4 @@ export async function getProfile(): Promise<{
   if (error) throw error;
 
   return { email, profile: data };
-}
-
-export async function updateProfile(input: Pick<ProfileUpdate, "full_name" | "headline">) {
-  const { supabase, userId } = await getAuthContext();
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(input)
-    .eq("id", userId)
-    .select("*")
-    .single();
-
-  if (error) throw error;
-  return data;
 }
