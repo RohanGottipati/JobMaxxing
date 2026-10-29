@@ -6,8 +6,10 @@ import {
   ArrowLeft,
   Building2,
   CalendarDays,
+  Check,
   CheckCircle2,
   Clock,
+  Copy,
   ExternalLink,
   FileText,
   Loader2,
@@ -252,6 +254,7 @@ function LoadedApplicationReadingPane({
           <DocumentText
             value={application.jobDescription}
             emptyLabel="No job description saved for this role."
+            copyLabel="Job description"
           />
         ) : null}
         {view === "resume" ? (
@@ -543,17 +546,53 @@ function AttachedFileState() {
 }
 
 function DocumentText({
+  copyLabel,
   emptyLabel,
   value,
 }: {
+  copyLabel?: string;
   emptyLabel: string;
   value: string | null;
 }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 2000);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
+
   if (!value) return <EmptyState>{emptyLabel}</EmptyState>;
-  return (
+
+  async function copyValue() {
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      toast.success(`${copyLabel} copied`);
+    } catch {
+      toast.error("Could not copy to the clipboard.");
+    }
+  }
+
+  const text = (
     <div className="paper-rule max-h-[32rem] overflow-y-auto whitespace-pre-wrap rounded-lg border border-border bg-parchment/40 p-4 text-sm leading-7 text-muted-foreground">
       {value}
     </div>
+  );
+  if (!copyLabel) return text;
+
+  return (
+    <section className="grid gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-sm font-semibold">{copyLabel}</h3>
+        <Button type="button" variant="outline" size="sm" onClick={copyValue} aria-label={`Copy ${copyLabel.toLowerCase()}`}>
+          {copied ? <Check aria-hidden className="size-3.5" /> : <Copy aria-hidden className="size-3.5" />}
+          {copied ? "Copied" : "Copy"}
+        </Button>
+      </div>
+      {text}
+    </section>
   );
 }
 

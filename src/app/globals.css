@@ -200,11 +200,14 @@
 }
 
 @layer utilities {
+  /* `local` attachment keeps the paper pattern moving with the content when
+     the patterned element is itself the scroll container. */
   .surface-grid {
     background-image:
       linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
     background-size: 28px 28px;
+    background-attachment: local;
   }
 
   .surface-grid-sm {
@@ -212,11 +215,13 @@
       linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
       linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
     background-size: 14px 14px;
+    background-attachment: local;
   }
 
   .paper-rule {
     background-image: linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
     background-size: 100% 32px;
+    background-attachment: local;
   }
 
   .folder-tab {
