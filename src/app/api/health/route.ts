@@ -27,8 +27,6 @@ export async function GET() {
       }),
     ]);
 
-    const geminiConfigured = Boolean(process.env.GEMINI_API_KEY);
-
     if (!authResponse.ok || !dataResponse.ok) {
       console.error("[health] Dependency check failed", {
         authStatus: authResponse.status,
@@ -37,7 +35,7 @@ export async function GET() {
       return Response.json({ status: "unhealthy" }, { status: 503 });
     }
 
-    return Response.json({ status: "ok", optionalServices: { geminiConfigured } });
+    return Response.json({ status: "ok" });
   } catch (error) {
     console.error(
       "[health] Dependency check could not complete",

@@ -6,6 +6,7 @@ import {
   extractAttachmentText,
   isMaxwellAttachmentMimeType,
   MAXWELL_MAX_FILE_SIZE,
+  MaxwellAttachmentError,
 } from "@/lib/maxwell/attachments";
 import type {
   MaxwellAction,
@@ -299,13 +300,13 @@ export async function registerMaxwellAttachment(input: {
 }) {
   const { supabase, userId } = await getMaxwellAuthContext();
   if (!input.filePath.startsWith(`${userId}/assistant/${input.threadId}/`)) {
-    throw new Error("Invalid assistant attachment path.");
+    throw new MaxwellAttachmentError("Invalid assistant attachment path.");
   }
   if (!isMaxwellAttachmentMimeType(input.mimeType)) {
-    throw new Error("Maxwell accepts PDF and DOCX files only.");
+    throw new MaxwellAttachmentError("Maxwell accepts PDF and DOCX files only.");
   }
   if (input.sizeBytes < 1 || input.sizeBytes > MAXWELL_MAX_FILE_SIZE) {
-    throw new Error("Files must be 10 MB or smaller.");
+    throw new MaxwellAttachmentError("Files must be 10 MB or smaller.");
   }
 
   const { data: thread, error: threadError } = await supabase
@@ -315,14 +316,14 @@ export async function registerMaxwellAttachment(input: {
     .eq("user_id", userId)
     .maybeSingle();
   if (threadError || !thread) {
-    throw threadError ?? new Error("Conversation not found.");
+    throw threadError ?? new MaxwellAttachmentError("Conversation not found.");
   }
 
   const downloaded = await supabase.storage.from(DOCUMENT_BUCKET).download(input.filePath);
   if (downloaded.error) throw downloaded.error;
   const buffer = Buffer.from(await downloaded.data.arrayBuffer());
   if (buffer.byteLength !== input.sizeBytes) {
-    throw new Error("The uploaded file size did not match the request.");
+    throw new MaxwellAttachmentError("The uploaded file size did not match the request.");
   }
   const extractedText = await extractAttachmentText(buffer, input.mimeType);
 

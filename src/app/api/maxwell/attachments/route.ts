@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { DOCUMENT_BUCKET } from "@/lib/documents/constants";
+import { MaxwellAttachmentError } from "@/lib/maxwell/attachments";
 import {
   getMaxwellAuthContext,
   registerMaxwellAttachment,
@@ -32,8 +33,11 @@ export async function POST(request: Request) {
         await supabase.storage.from(DOCUMENT_BUCKET).remove([cleanupPath]);
       }
     }
+    if (!(error instanceof MaxwellAttachmentError)) {
+      console.error("[maxwell] Attachment registration failed", error);
+    }
     return Response.json(
-      { error: error instanceof Error ? error.message : "Could not read attachment." },
+      { error: error instanceof MaxwellAttachmentError ? error.message : "Could not read attachment." },
       { status: 400 },
     );
   }

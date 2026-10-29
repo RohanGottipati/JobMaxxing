@@ -1,5 +1,8 @@
+import { lookup as lookupCallback, type LookupAddress, type LookupOptions } from "node:dns";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+
+import { Agent, fetch as undiciFetch } from "undici";
 
 import {
   ByteLimitExceededError,
@@ -23,6 +26,28 @@ const supportedHosts = [
   { suffix: "linkedin.com", adapter: "linkedin" },
   { suffix: "indeed.com", adapter: "indeed" },
 ] as const;
+
+type LookupCallback = (
+  error: NodeJS.ErrnoException | null,
+  address: string | LookupAddress[],
+  family?: number,
+) => void;
+
+// Re-validate at connect time so a DNS answer that changes between the
+// pre-flight check and the socket connect (DNS rebinding) cannot reach a
+// private address.
+function publicOnlyLookup(hostname: string, options: LookupOptions, callback: LookupCallback) {
+  lookupCallback(hostname, { ...options, all: true, verbatim: true }, (error, addresses) => {
+    if (error) return callback(error, []);
+    if (!addresses.length || addresses.some(({ address }) => !isPublicIp(address))) {
+      return callback(Object.assign(new Error("JOB_URL_UNSUPPORTED"), { code: "ENOTFOUND" }), []);
+    }
+    if (options.all) return callback(null, addresses);
+    callback(null, addresses[0].address, addresses[0].family);
+  });
+}
+
+const importDispatcher = new Agent({ connect: { lookup: publicOnlyLookup } });
 
 export type JobPageImport = {
   sourceUrl: string;
@@ -63,8 +88,8 @@ export async function importJobUrl(input: string): Promise<JobPageImport> {
   let validated = validateSupportedJobUrl(input);
   for (let redirect = 0; redirect <= MAX_REDIRECTS; redirect += 1) {
     await assertPublicDns(validated.url.hostname);
-    const response = await fetch(validated.url, {
-      cache: "no-store",
+    const response = (await undiciFetch(validated.url, {
+      dispatcher: importDispatcher,
       redirect: "manual",
       referrerPolicy: "no-referrer",
       signal: AbortSignal.timeout(10_000),
@@ -74,7 +99,7 @@ export async function importJobUrl(input: string): Promise<JobPageImport> {
       },
     }).catch(() => {
       throw new Error("JOB_IMPORT_UNAVAILABLE");
-    });
+    })) as unknown as Response;
 
     if (response.status >= 300 && response.status < 400) {
       if (redirect === MAX_REDIRECTS) throw new Error("JOB_IMPORT_UNAVAILABLE");
@@ -172,25 +197,47 @@ export function isPublicIp(address: string) {
       (a === 169 && b === 254) ||
       (a === 172 && b >= 16 && b <= 31) ||
       (a === 192 && (b === 0 || b === 168)) ||
+      (a === 192 && b === 88 && parts[2] === 99) ||
       (a === 198 && (b === 18 || b === 19 || b === 51)) ||
       (a === 203 && b === 0) ||
       a >= 224
     );
   }
   if (version === 6) {
-    const normalized = address.toLocaleLowerCase();
-    if (normalized.startsWith("::ffff:")) return isPublicIp(normalized.slice(7));
+    const x = ipv6Hextets(address);
+    const embeddedIpv4 = () => [x[6] >> 8, x[6] & 255, x[7] >> 8, x[7] & 255].join(".");
+    const zeros = (from: number, to: number) => x.slice(from, to).every((part) => part === 0);
+    // IPv4-mapped (::ffff:a.b.c.d) and NAT64 well-known prefix (64:ff9b::/96)
+    if (zeros(0, 5) && x[5] === 0xffff) return isPublicIp(embeddedIpv4());
+    if (x[0] === 0x64 && x[1] === 0xff9b && zeros(2, 6)) return isPublicIp(embeddedIpv4());
     return !(
-      normalized === "::" ||
-      normalized === "::1" ||
-      normalized.startsWith("fc") ||
-      normalized.startsWith("fd") ||
-      /^fe[89ab]/.test(normalized) ||
-      normalized.startsWith("ff") ||
-      normalized.startsWith("2001:db8")
+      zeros(0, 6) || // ::, ::1, and deprecated IPv4-compatible addresses
+      (x[0] === 0x64 && x[1] === 0xff9b) || // NAT64 local-use
+      (x[0] === 0x100 && zeros(1, 4)) || // discard-only
+      (x[0] === 0x2001 && x[1] === 0) || // Teredo
+      (x[0] === 0x2001 && x[1] === 0xdb8) || // documentation
+      x[0] === 0x2002 || // 6to4
+      (x[0] & 0xfe00) === 0xfc00 || // unique local
+      (x[0] & 0xffc0) === 0xfe80 || // link-local
+      (x[0] & 0xffc0) === 0xfec0 || // site-local
+      (x[0] & 0xff00) === 0xff00 // multicast
     );
   }
   return false;
+}
+
+function ipv6Hextets(address: string) {
+  let value = address.toLocaleLowerCase().split("%", 1)[0];
+  const dotted = /(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(value);
+  if (dotted) {
+    const [, a, b, c, d] = dotted.map(Number);
+    value = `${value.slice(0, dotted.index)}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const [head, tail] = value.includes("::") ? value.split("::") : [value, undefined];
+  const headParts = head ? head.split(":") : [];
+  const tailParts = tail ? tail.split(":") : [];
+  const fill = tail === undefined ? [] : Array(8 - headParts.length - tailParts.length).fill("0");
+  return [...headParts, ...fill, ...tailParts].map((part) => Number.parseInt(part, 16));
 }
 
 async function readLimitedBody(response: Response) {

@@ -29,8 +29,30 @@ if (process.env.NODE_ENV === "production" && missingEnvironment.length > 0) {
   );
 }
 
+const baseSecurityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+];
+
+const pageSecurityHeaders = [
+  ...baseSecurityHeaders,
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  {
+    key: "Content-Security-Policy",
+    value: "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'",
+  },
+];
+
 const nextConfig: NextConfig = {
   output: "standalone",
+  async headers() {
+    return [
+      { source: "/api/:path*", headers: baseSecurityHeaders },
+      { source: "/((?!api/).*)", headers: pageSecurityHeaders },
+    ];
+  },
   serverExternalPackages: ["pdf-parse", "@napi-rs/canvas", "undici"],
   // pdf-parse loads the pdfjs "fake worker" by dynamically importing this file.
   // The standalone tracer misses that dynamic import, so force it into the

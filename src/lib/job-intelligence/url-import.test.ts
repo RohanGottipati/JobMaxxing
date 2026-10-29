@@ -28,8 +28,13 @@ test("public IP validation rejects private, link-local, documentation, and mappe
   for (const address of ["127.0.0.1", "10.0.0.4", "169.254.169.254", "192.168.1.2", "203.0.113.5", "::1", "fd00::1", "fe80::1", "::ffff:127.0.0.1"]) {
     assert.equal(isPublicIp(address), false, address);
   }
+  for (const address of ["::", "::ffff:7f00:1", "::ffff:10.0.0.1", "64:ff9b::a9fe:a9fe", "64:ff9b:1::1", "2002:c000:0204::1", "2001:0:4136:e378::1", "2001:db8::1", "fec0::1", "ff02::1", "100::1", "192.88.99.1"]) {
+    assert.equal(isPublicIp(address), false, address);
+  }
   assert.equal(isPublicIp("8.8.8.8"), true);
   assert.equal(isPublicIp("2606:4700:4700::1111"), true);
+  assert.equal(isPublicIp("::ffff:8.8.8.8"), true);
+  assert.equal(isPublicIp("64:ff9b::808:808"), true);
 });
 
 test("job page extraction prefers JobPosting JSON-LD and returns sanitized text", () => {

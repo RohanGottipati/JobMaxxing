@@ -7,6 +7,9 @@ export const MAXWELL_ALLOWED_MIME_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 ] as const;
 
+// Errors whose message is safe to show the user verbatim.
+export class MaxwellAttachmentError extends Error {}
+
 export type MaxwellAttachmentMimeType =
   (typeof MAXWELL_ALLOWED_MIME_TYPES)[number];
 
@@ -19,13 +22,13 @@ export function isMaxwellAttachmentMimeType(
 function validateMagicBytes(buffer: Buffer, mimeType: MaxwellAttachmentMimeType) {
   if (mimeType === "application/pdf") {
     if (buffer.subarray(0, 5).toString("ascii") !== "%PDF-") {
-      throw new Error("The uploaded file is not a valid PDF.");
+      throw new MaxwellAttachmentError("The uploaded file is not a valid PDF.");
     }
     return;
   }
 
   if (buffer[0] !== 0x50 || buffer[1] !== 0x4b) {
-    throw new Error("The uploaded file is not a valid DOCX document.");
+    throw new MaxwellAttachmentError("The uploaded file is not a valid DOCX document.");
   }
 }
 
@@ -53,7 +56,7 @@ export async function extractAttachmentText(
 
   const normalized = text.replace(/\u0000/g, "").trim();
   if (!normalized) {
-    throw new Error("No readable text could be extracted from this document.");
+    throw new MaxwellAttachmentError("No readable text could be extracted from this document.");
   }
 
   return normalized.slice(0, MAXWELL_MAX_EXTRACTED_TEXT);
