@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { beginAiOperation } from "@/lib/ai/usage";
+import { databaseErrorCode } from "@/lib/http/api";
 import {
   createMaxwellMessage,
   createMaxwellThread,
@@ -56,6 +58,25 @@ export async function POST(request: Request) {
     body = parsed.data;
   } catch {
     return Response.json({ error: "Invalid request body." }, { status: 400 });
+  }
+
+  // Each turn can call Gemini several times, so it is metered by the same
+  // per-user daily quota as the other AI features before any work starts.
+  try {
+    await beginAiOperation({ action: "maxwell_chat" });
+  } catch (error) {
+    const message = String((error as { message?: unknown })?.message ?? "");
+    if (/AI_RATE_LIMITED/i.test(message)) {
+      return Response.json(
+        { error: "You reached today's Maxwell message limit. Try again tomorrow." },
+        { status: 429 },
+      );
+    }
+    if (/auth/i.test(message)) {
+      return Response.json({ error: "Sign in to continue." }, { status: 401 });
+    }
+    console.error("[maxwell] Usage claim failed", databaseErrorCode(error) ?? "unknown");
+    return Response.json({ error: "Maxwell is unavailable right now." }, { status: 503 });
   }
 
   try {

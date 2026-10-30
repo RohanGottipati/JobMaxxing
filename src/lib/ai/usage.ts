@@ -7,10 +7,12 @@ import { createClient } from "@/lib/supabase/server";
 export const AI_ACTIONS = [
   "bullet_rewrite",
   "resume_analysis",
+  "resume_import",
   "job_parse",
   "job_match",
   "resume_tailoring",
   "cover_letter_generation",
+  "maxwell_chat",
 ] as const;
 
 export type AiAction = (typeof AI_ACTIONS)[number];

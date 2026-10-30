@@ -11,6 +11,16 @@ export function getGeminiModel() {
   return process.env.GEMINI_MODEL?.trim() || "gemini-2.5-flash";
 }
 
+// Job descriptions and resumes can be very long (the extension accepts 200k
+// characters). Sending them whole wastes provider quota without improving the
+// result, so long free text is trimmed before it reaches a prompt.
+export const MAX_AI_SOURCE_CHARS = 40_000;
+const MAX_AI_PROMPT_CHARS = 250_000;
+
+export function limitAiText<T extends string | null | undefined>(value: T, maximum = MAX_AI_SOURCE_CHARS): T {
+  return (typeof value === "string" && value.length > maximum ? value.slice(0, maximum) : value) as T;
+}
+
 export async function generateValidatedJson<T>(input: {
   schema: z.ZodType<T>;
   system: string;
@@ -19,6 +29,7 @@ export async function generateValidatedJson<T>(input: {
 }) {
   const key = process.env.GEMINI_API_KEY?.trim();
   if (!key) throw new Error("AI_UNAVAILABLE");
+  if (input.prompt.length > MAX_AI_PROMPT_CHARS) throw new Error("AI_PROMPT_TOO_LARGE");
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), input.timeoutMs ?? 45_000);
   try {

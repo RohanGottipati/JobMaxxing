@@ -56,6 +56,7 @@ const formatSchema = z.enum(["plain_text", "markdown"]);
 const evidenceSchema = z.string().max(500).default("");
 const optionalText = z.string().max(100_000).optional();
 const optionalShortText = z.string().max(500).optional();
+const webUrl = z.string().url().max(2_000).refine((value) => /^https?:\/\//i.test(value), "Use an http(s) job URL.");
 
 const documentInputSchema = z.object({
   title: z.string().min(1).max(160),
@@ -82,7 +83,7 @@ const schemas = {
     company_name: z.string().min(1).max(200),
     role_title: z.string().min(1).max(200),
     job_description: optionalText,
-    job_url: z.string().url().max(2_000).optional(),
+    job_url: webUrl.optional(),
     location: optionalShortText,
     status: statusSchema.default("saved"),
     date_applied: z.string().date().optional(),
@@ -106,7 +107,7 @@ const schemas = {
     application_id: z.string().uuid(),
     company_name: z.string().min(1).max(200).optional(),
     role_title: z.string().min(1).max(200).optional(),
-    job_url: z.string().url().max(2_000).or(z.literal("")).optional(),
+    job_url: webUrl.or(z.literal("")).optional(),
     job_description: optionalText,
     location: optionalShortText,
     deadline: z.string().date().or(z.literal("")).optional(),

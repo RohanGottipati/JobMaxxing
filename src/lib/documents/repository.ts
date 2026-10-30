@@ -458,27 +458,31 @@ export async function removeDocumentFile(kind: DocumentKind, id: string) {
     throw new Error("Previously submitted documents are locked.");
   }
 
+  // Detach first and stop on failure: removing the object while a row still
+  // points at it would leave a broken document link.
+  let updateError: { message: string } | null = null;
   if (kind === "master_resume") {
-    await supabase
+    ({ error: updateError } = await supabase
       .from("resumes")
       .update({ file_path: null })
       .eq("id", id)
-      .eq("user_id", userId);
+      .eq("user_id", userId));
   } else if (kind === "resume_version") {
-    await supabase
+    ({ error: updateError } = await supabase
       .from("resume_versions")
       .update({ file_path: null })
       .eq("id", id)
       .eq("user_id", userId)
-      .is("submitted_at", null);
+      .is("submitted_at", null));
   } else {
-    await supabase
+    ({ error: updateError } = await supabase
       .from("cover_letters")
       .update({ file_path: null })
       .eq("id", id)
       .eq("user_id", userId)
-      .is("submitted_at", null);
+      .is("submitted_at", null));
   }
+  if (updateError) throw updateError;
 
   if (current.data.file_path) {
     const { error } = await supabase.storage

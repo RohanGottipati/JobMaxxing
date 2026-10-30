@@ -17,6 +17,7 @@ import {
   markResumeVersionSubmitted,
   updateApplication as updateApplicationRecord,
 } from "@/lib/applications/packages";
+import { normalizeJobUrl } from "@/lib/applications/job-url";
 import { getApplicationById } from "@/lib/applications/repository";
 import { parseApplicationStatus } from "@/lib/applications/status";
 import { applicationStatuses } from "@/lib/applications/types";
@@ -55,7 +56,7 @@ function parseApplicationInput(formData: FormData) {
     company_name: companyName,
     role_title: jobTitle,
     status,
-    job_url: readOptionalText(formData, "job_url"),
+    job_url: normalizeJobUrl(readOptionalText(formData, "job_url")),
     location: readOptionalText(formData, "location"),
     date_applied: readOptionalText(formData, "applied_at"),
     deadline: readOptionalText(formData, "deadline"),

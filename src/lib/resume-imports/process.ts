@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getGeminiModel, isGeminiConfigured } from "@/lib/ai/gemini";
+import { beginAiOperation, recordAiAudit, safeAiErrorCode } from "@/lib/ai/usage";
 import { getCanonicalCareerProfile } from "@/lib/career/repository";
 import { enhanceImportWithGemini } from "@/lib/resume-imports/ai-parser";
 import { extractResumeText } from "@/lib/resume-imports/extract";
@@ -27,12 +29,21 @@ export async function processResumeImport(id: string, useAi: boolean) {
       const { importContext } = await import("@/lib/resume-imports/repository");
       const { supabase, userId } = await importContext();
       const consent = await supabase.from("profiles").select("ai_processing_consent_at").eq("id", userId).single();
-      if (consent.data?.ai_processing_consent_at) {
+      if (!isGeminiConfigured()) {
+        result.warnings.push("AI classification was unavailable, so deterministic parsing was used.");
+      } else if (consent.data?.ai_processing_consent_at) {
+        let operation: Awaited<ReturnType<typeof beginAiOperation>> | null = null;
         try {
+          operation = await beginAiOperation({ action: "resume_import" }, { supabase, userId });
           result = await enhanceImportWithGemini({ sourceText: extracted.text, deterministic: result });
           aiUsed = true;
-        } catch {
-          result.warnings.push("AI classification was unavailable, so deterministic parsing was used.");
+          await recordAiAudit({ action: "resume_import", outcome: "succeeded", model: getGeminiModel(), startedAt: operation.startedAt }, { supabase, userId });
+        } catch (error) {
+          const rateLimited = /AI_RATE_LIMITED/i.test(String((error as { message?: unknown })?.message ?? ""));
+          result.warnings.push(rateLimited
+            ? "You reached the daily AI import limit, so deterministic parsing was used."
+            : "AI classification was unavailable, so deterministic parsing was used.");
+          if (operation) await recordAiAudit({ action: "resume_import", outcome: "fallback", startedAt: operation.startedAt, errorCode: safeAiErrorCode(error) }, { supabase, userId });
         }
       } else {
         result.warnings.push("AI classification was not used because consent has not been granted.");

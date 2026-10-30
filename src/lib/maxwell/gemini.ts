@@ -28,6 +28,9 @@ import type {
 
 const MAX_TOOL_CALLS_PER_TURN = 6;
 const MAX_HISTORY_MESSAGES = 20;
+const MAX_OLDER_MESSAGE_CHARS = 12_000;
+const MAX_OLDER_HISTORY_CHARS = 60_000;
+const MAX_ATTACHMENT_CONTEXT_CHARS = 40_000;
 
 function createGeminiClient() {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -95,10 +98,20 @@ export async function runMaxwellTurn(input: {
   const history = detail.messages
     .filter((message) => message.content.trim() && message.id !== input.assistantMessageId)
     .slice(-MAX_HISTORY_MESSAGES);
-  const contents: Content[] = history.map((message) => ({
-    role: message.role === "assistant" ? "model" : "user",
-    parts: [{ text: message.content }],
-  }));
+  // Every tool round resends the whole conversation, so older turns are
+  // trimmed to a fixed budget. The newest message is always sent in full.
+  let historyBudget = MAX_OLDER_HISTORY_CHARS;
+  const contents: Content[] = [];
+  for (let index = history.length - 1; index >= 0; index -= 1) {
+    const message = history[index];
+    const text = index === history.length - 1
+      ? message.content
+      : message.content.slice(0, Math.min(MAX_OLDER_MESSAGE_CHARS, historyBudget));
+    if (index !== history.length - 1) historyBudget -= text.length;
+    if (!text.trim()) break;
+    contents.unshift({ role: message.role === "assistant" ? "model" : "user", parts: [{ text }] });
+  }
+  while (contents.length > 1 && contents[0]?.role === "model") contents.shift();
 
   const [attachments, validatedPageContext] = await Promise.all([
     getMaxwellAttachmentContext(input.threadId, input.attachmentIds),
@@ -117,7 +130,7 @@ export async function runMaxwellTurn(input: {
       attachments: attachments.map((attachment) => ({
         id: attachment.id,
         fileName: attachment.file_name,
-        text: attachment.extracted_text ?? "[No text extracted]",
+        text: attachment.extracted_text?.slice(0, MAX_ATTACHMENT_CONTEXT_CHARS) ?? "[No text extracted]",
       })),
     }),
   );

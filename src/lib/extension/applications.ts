@@ -3,6 +3,7 @@ import "server-only";
 import { z } from "zod";
 
 import { hashJobDescription } from "@/lib/applications/description-hash";
+import { normalizeJobUrl } from "@/lib/applications/job-url";
 import type {
   Application,
   ApplicationStatus,
@@ -32,7 +33,13 @@ export const extensionApplicationSchema = z.object({
   id: z.uuid().optional(),
   companyName: z.string().trim().min(1).max(200),
   roleTitle: z.string().trim().min(1).max(200),
-  jobUrl: z.string().trim().max(2000).optional().nullable(),
+  jobUrl: z
+    .string()
+    .trim()
+    .max(2000)
+    .optional()
+    .nullable()
+    .transform((value) => (value === undefined ? undefined : normalizeJobUrl(value))),
   location: z.string().trim().max(200).optional().nullable(),
   dateApplied: z.string().date().optional().nullable(),
   deadline: z.string().date().optional().nullable(),
